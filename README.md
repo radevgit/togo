@@ -12,6 +12,11 @@ It is intended for use in my other projects, and **may not implement** all possi
 
 ## Examples
 
+Add to Cargo.toml
+```
+base-geom = "0.0.1-alpha.1"
+```
+
 ### Creating and working with points
 ```
 use base_geom::{Point, point};

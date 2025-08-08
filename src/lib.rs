@@ -238,8 +238,7 @@
 //!             assert_eq!(point(0.5, 0.8660254037844386), pt);
 //!         },
 //!         _ => {
-//!             // Could be two points, no intersection, or other cases
-//!             assert!(false); // Accept other valid intersection results
+//!             assert!(false);
 //!         }
 //!     }
 //! ```
@@ -259,7 +258,7 @@
 //!         DistLineCircleConfig::OnePair(dist, _param, _line_pt, _circle_pt) => {
 //!             assert_eq!(1.0, dist);
 //!         }
-//!         _ => assert!(false), // Accept other valid distance results
+//!         _ => assert!(false),
 //!     }
 //!
 //!     // Distance from point to arc
@@ -269,7 +268,7 @@
 //!         DistPointArcConfig::OnePoint(dist, _) => {
 //!             assert_eq!(1.0, dist);
 //!         }
-//!         _ => assert!(false), // Accept other valid distance results
+//!         _ => assert!(false),
 //!     }
 //!
 //!     // Distance from segment to arc
@@ -293,7 +292,7 @@
 //!         DistSegmentCircleConfig::OnePoint(dist, closest) => {
 //!             assert_eq!(2.0, dist); // Distance should be non-negative
 //!         }
-//!         _ => assert!(false), // Accept any valid distance result
+//!         _ => assert!(false),
 //!     }
 //!
 //!     // Distance between two segments
@@ -319,7 +318,7 @@
 //!         assert_eq!(start, 3.0);
 //!         assert_eq!(end, 5.0);
 //!     },
-//!     _ => assert!(false), // Accept other valid intersection results
+//!     _ => assert!(false),
 //! }
 //!
 //! // Line-line intersection
@@ -331,7 +330,7 @@
 //!         // Lines intersect at origin
 //!         assert_eq!(point(0.0, 0.0), pt);
 //!     },
-//!     _ => assert!(false), // Accept other valid intersection results
+//!     _ => assert!(false), 
 //! }
 //! ```
 
@@ -436,7 +435,7 @@ mod tests {
             }
             _ => {
                 // Could be two points, no intersection, or other cases
-                assert!(false); // Accept other valid intersection results
+                assert!(false);
             }
         }
     }
@@ -453,7 +452,7 @@ mod tests {
             DistSegmentCircleConfig::OnePoint(dist, _closest) => {
                 assert_eq!(2.0, dist); // Distance should be non-negative
             }
-            _ => assert!(false), // Accept any valid distance result
+            _ => assert!(false),
         }
 
         // Distance between two segments
