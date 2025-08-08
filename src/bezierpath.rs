@@ -2,7 +2,7 @@
 
 // #00014
 
-// use crate::prelude::*;
+// use base_geom::prelude::*;
 
 // This path can contain lines, quadratics ([`QuadBez`]), cubics ([`CubicBez`])
 // and arcs ([`Arc`]) and is used to represent a Bezier path.

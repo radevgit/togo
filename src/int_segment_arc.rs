@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 // #00024
 /// Represents the configuration of the intersection between a segment and an arc.
@@ -31,7 +31,7 @@ pub enum SegmentArcConfig {
 ///
 /// # Examples
 /// ```
-/// use base_geom::{int_segment_arc, Segment, Arc, point, circle, SegmentArcConfig};
+/// use base_geom::prelude::*;
 /// let segment = Segment::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let arc = Arc::new(point(0.0, 1.0), point(1.0, 0.0), point(1.0, 1.0), 1.0);
 /// let result = int_segment_arc(&segment, &arc);

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 
 // #00025
@@ -28,7 +28,7 @@ pub enum SegmentCircleConfig {
 ///
 /// # Examples
 /// ```
-/// use base_geom::{int_segment_circle, Segment, Circle, point, SegmentCircleConfig};
+/// use base_geom::prelude::*;
 /// let seg = Segment::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let circle = Circle::new(point(0.0, 1.0), 1.0);
 /// let result = int_segment_circle(&seg, &circle);

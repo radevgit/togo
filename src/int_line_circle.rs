@@ -28,7 +28,7 @@ const ZERO: f64 = 0f64;
 ///
 /// # Examples
 /// ```
-/// use base_geom::{int_line_circle, Line, Circle, point, LineCircleConfig};
+/// use base_geom::prelude::*;
 /// let line = Line::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let circle = Circle::new(point(0.0, 1.0), 1.0);
 /// let result = int_line_circle(&line, &circle);

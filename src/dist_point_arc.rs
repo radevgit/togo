@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 /// Configuration for the distance between a point and an arc.
 #[derive(Debug, PartialEq)]
@@ -29,7 +29,7 @@ pub enum DistPointArcConfig {
 ///
 /// # Examples
 /// ```
-/// use base_geom::{dist_point_arc, arc, point, DistPointArcConfig};
+/// use base_geom::prelude::*;
 /// let arc = arc(point(1.0, 0.0), point(1.0, 2.0), point(1.0, 1.0), 1.0);
 /// let p = point(2.0, 1.0);
 /// let res = dist_point_arc(&p, &arc);

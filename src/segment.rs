@@ -12,7 +12,7 @@ use crate::point::Point;
 /// # Examples
 ///
 /// ```
-/// use base_geom::{Segment, point};
+/// use base_geom::prelude::*;
 ///
 /// let seg = Segment::new(point(0.0, 0.0), point(3.0, 4.0));
 /// ```
@@ -40,7 +40,7 @@ impl Segment {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{Segment, point};
+    /// use base_geom::prelude::*;
     ///
     /// let seg = Segment::new(point(0.0, 0.0), point(1.0, 1.0));
     /// ```
@@ -62,7 +62,7 @@ impl Segment {
 /// # Examples
 ///
 /// ```
-/// use base_geom::{segment, point};
+/// use base_geom::prelude::*;
 ///
 /// let seg = segment(point(0.0, 0.0), point(1.0, 1.0));
 /// ```
@@ -88,7 +88,7 @@ impl Segment {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{segment, point};
+    /// use base_geom::prelude::*;
     ///
     /// let seg = segment(point(0.0, 0.0), point(4.0, 0.0));
     /// let (center, direction, extent) = seg.get_centered_form();

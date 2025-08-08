@@ -29,7 +29,7 @@ pub enum IntervalConfig {
 ///
 /// # Examples
 /// ```
-/// use base_geom::{int_interval_interval, IntervalConfig, interval};
+/// use base_geom::prelude::*;
 /// let i0 = interval(1.0, 3.0);
 /// let i1 = interval(2.0, 4.0);
 /// let result = int_interval_interval(i0, i1);

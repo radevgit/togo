@@ -2,7 +2,7 @@
 
 use std::fmt::Display;
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 /// A polyline vertex that defines either a line segment or an arc segment.
 ///
@@ -26,7 +26,7 @@ use crate::prelude::*;
 /// # Examples
 ///
 /// ```
-/// use base_geom::{pvertex, point};
+/// use base_geom::prelude::*;
 ///
 /// // Straight line segment
 /// let straight = pvertex(point(0.0, 0.0), 0.0);
@@ -62,7 +62,7 @@ impl PVertex {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{PVertex, point};
+    /// use base_geom::prelude::*;
     ///
     /// let vertex = PVertex::new(point(1.0, 2.0), 0.5);
     /// ```
@@ -84,7 +84,7 @@ impl PVertex {
 /// # Examples
 ///
 /// ```
-/// use base_geom::{pvertex, point};
+/// use base_geom::prelude::*;
 ///
 /// let vertex = pvertex(point(1.0, 2.0), 0.5);
 /// ```
@@ -116,7 +116,7 @@ pub type Polyline = Vec<PVertex>;
 /// # Examples
 ///
 /// ```
-/// use base_geom::{polyline_reverse, pvertex, point};
+/// use base_geom::prelude::*;
 ///
 /// let original = vec![
 ///     pvertex(point(0.0, 0.0), 0.5),
@@ -176,7 +176,7 @@ pub fn polylines_reverse(poly: &Vec<Polyline>) -> Vec<Polyline> {
 /// # Examples
 ///
 /// ```
-/// use base_geom::{polyline_scale, pvertex, point};
+/// use base_geom::prelude::*;
 ///
 /// let original = vec![
 ///     pvertex(point(1.0, 2.0), 0.5),
@@ -210,7 +210,7 @@ pub fn polyline_scale(poly: &Polyline, scale: f64) -> Polyline {
 /// # Examples
 ///
 /// ```
-/// use base_geom::{polyline_translate, pvertex, point};
+/// use base_geom::prelude::*;
 ///
 /// let original = vec![
 ///     pvertex(point(1.0, 2.0), 0.5),

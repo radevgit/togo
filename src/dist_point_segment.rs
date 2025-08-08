@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 /// Computes the distance between a point and a line segment.
 /// 
@@ -29,7 +29,7 @@ use crate::prelude::*;
 /// # Examples
 /// 
 /// ```
-/// use base_geom::{dist_point_segment, point, segment};
+/// use base_geom::prelude::*;
 /// 
 /// let p = point(1.0, 1.0);
 /// let seg = segment(point(0.0, 0.0), point(2.0, 0.0));

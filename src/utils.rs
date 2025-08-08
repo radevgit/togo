@@ -29,7 +29,7 @@ const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
 /// # Examples
 ///
 /// ```
-/// use base_geom::almost_equal_as_int;
+/// use base_geom::prelude::*;
 ///
 /// let a = 1.0f64;
 /// let b = 1.0000000000000002f64; // Next representable value after 1.0
@@ -86,7 +86,7 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
 /// # Examples
 ///
 /// ```
-/// use base_geom::close_enough;
+/// use base_geom::prelude::*;
 ///
 /// assert!(close_enough(1.0, 1.001, 0.01));
 /// assert!(!close_enough(1.0, 1.1, 0.01));
@@ -141,7 +141,7 @@ pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
 /// # Examples
 ///
 /// ```
-/// use base_geom::next;
+/// use base_geom::prelude::*;
 ///
 /// assert_eq!(next(0, 5), 1);
 /// assert_eq!(next(4, 5), 0); // Wraps around
@@ -170,7 +170,7 @@ pub fn next(ind: usize, size: usize) -> usize {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prev;
+/// use base_geom::prelude::*;
 ///
 /// assert_eq!(prev(1, 5), 0);
 /// assert_eq!(prev(0, 5), 4); // Wraps around
@@ -380,7 +380,7 @@ mod test_almost_equal_as_int {
 /// # Examples
 ///
 /// ```
-/// use base_geom::diff_of_prod;
+/// use base_geom::prelude::*;
 ///
 /// // This would suffer from catastrophic cancellation with naive computation
 /// let result = diff_of_prod(1e16, 1.0, 1e16, 1.0000000000000001);
@@ -423,7 +423,7 @@ pub fn diff_of_prod(a: f64, b: f64, c: f64, d: f64) -> f64 {
 /// # Examples
 ///
 /// ```
-/// use base_geom::sum_of_prod;
+/// use base_geom::prelude::*;
 ///
 /// let result = sum_of_prod(1.5, 2.0, 3.0, 4.0); // 1.5×2.0 + 3.0×4.0 = 15.0
 /// ```

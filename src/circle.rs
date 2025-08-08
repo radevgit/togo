@@ -11,7 +11,7 @@ use std::fmt::Display;
 /// # Examples
 ///
 /// ```
-/// use base_geom::{Circle, point};
+/// use base_geom::prelude::*;
 ///
 /// let circle = Circle::new(point(0.0, 0.0), 5.0);
 /// ```
@@ -42,7 +42,7 @@ impl Circle {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{Circle, point};
+    /// use base_geom::prelude::*;
     ///
     /// let circle = Circle::new(point(3.0, 4.0), 5.0);
     /// ```
@@ -64,7 +64,7 @@ impl Circle {
 /// # Examples
 ///
 /// ```
-/// use base_geom::{circle, point};
+/// use base_geom::prelude::*;
 ///
 /// let circle = circle(point(3.0, 4.0), 5.0);
 /// ```

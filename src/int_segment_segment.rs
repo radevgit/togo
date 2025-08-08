@@ -43,7 +43,7 @@ const ZERO: f64 = 0f64;
 ///
 /// # Examples
 /// ```
-/// use base_geom::{int_segment_segment, Segment, point, SegmentSegmentConfig};
+/// use base_geom::prelude::*;
 /// let segment0 = Segment::new(point(0.0, 0.0), point(2.0, 2.0));
 /// let segment1 = Segment::new(point(2.0, 2.0), point(4.0, 0.0));
 /// let result = int_segment_segment(&segment0, &segment1);

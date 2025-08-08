@@ -15,8 +15,8 @@ static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
 
 /// An arc segment defined by start point, end point, center, and radius.
 ///
-/// Arcs are fundamental geometric primitives used in the offsetting algorithm.
-/// All arcs are oriented counter-clockwise by convention.
+/// Arcs are fundamental geometric primitives.
+/// <div class="warning">NOTE: Arcs are always CCW (counter-clockwise) in this library.</div>
 ///
 /// # Fields
 ///
@@ -29,7 +29,7 @@ static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
 /// # Examples
 ///
 /// ```
-/// use base_geom::{Arc, point};
+/// use base_geom::prelude::*;
 ///
 /// let start = point(0.0, 1.0);
 /// let end = point(1.0, 0.0);
@@ -39,7 +39,6 @@ static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
 /// let arc = Arc::new(start, end, center, radius);
 /// ```
 ///
-/// <div class="warning">Arcs are always oriented counter-clockwise.</div>
 // #00001
 #[derive(Debug, Copy, Clone)]
 pub struct Arc {
@@ -87,7 +86,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{Arc, point};
+    /// use base_geom::prelude::*;
     ///
     /// // Create a quarter circle arc
     /// let arc = Arc::new(
@@ -146,7 +145,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{Arc, point};
+    /// use base_geom::prelude::*;
     ///
     /// let mut arc = Arc::new(
     ///     point(0.0, 0.0),
@@ -185,7 +184,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::{arc, point};
+    /// use base_geom::prelude::*;
     /// let arc0 = arc(point(0.0, 0.0), point(1.0, 1.0), point(0.5, 0.5), 1.0);
     /// assert!(arc0.contains(point(1.0, 0.0))); // Point on the arc
     /// assert!(!arc0.contains(point(0.0, 1.0))); // Point outside the arc
@@ -991,7 +990,7 @@ pub fn arc_g_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
 
 #[cfg(test)]
 mod test_arc_g_from_points {
-    use crate::prelude::*;
+    use base_geom::prelude::*;
 
     use super::*;
 

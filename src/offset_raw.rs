@@ -2,7 +2,7 @@
 
 use std::fmt::Display;
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct OffsetRaw {
@@ -31,7 +31,7 @@ pub fn offsetraw(arc: Arc, orig: Point, g: f64) -> OffsetRaw {
 
 #[cfg(test)]
 mod test_offset_raw {
-    use crate::prelude::*;
+    use base_geom::prelude::*;
 
     #[test]
     fn test_new_and_display() {

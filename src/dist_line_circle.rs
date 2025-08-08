@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 /// Configuration for the distance between a segment and a circle.
 #[derive(Debug, PartialEq)]
@@ -30,7 +30,7 @@ pub enum DistLineCircleConfig {
 /// 
 /// # Examples
 /// ```
-/// use base_geom::{dist_line_circle, line, circle, point, DistLineCircleConfig};
+/// use base_geom::prelude::*;
 /// let line = line(point(0.0, 0.0), point(1.0, 0.0));
 /// let circle = circle(point(1.0, 1.0), 1.0);
 /// let res = dist_line_circle(&line, &circle);

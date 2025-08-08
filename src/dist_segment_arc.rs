@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 /// Computes the distance between a segment and an arc.
 ///
@@ -26,7 +26,7 @@ use crate::prelude::*;
 /// # Examples
 ///
 /// ```
-/// use base_geom::{dist_segment_arc, segment, arc, point};
+/// use base_geom::prelude::*;
 /// let seg = segment(point(0.0, 0.0), point(3.0, 4.0));
 /// let arc = arc(point(1.0, 1.0), point(2.0, 2.0), point(1.5, 1.5), 1.0);
 /// let distance = dist_segment_arc(&seg, &arc);

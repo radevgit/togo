@@ -19,7 +19,7 @@ const ZERO: f64 = 0f64;
 /// # Examples
 ///
 /// ```
-/// use base_geom::point;
+/// use base_geom::prelude::*;
 ///
 /// let p1 = point(3.0, 4.0);
 /// let p2 = point(1.0, 2.0);
@@ -45,7 +45,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::Point;
+    /// use base_geom::prelude::*;
     ///
     /// let p = Point::new(3.0, 4.0);
     /// assert_eq!(p.x, 3.0);
@@ -68,7 +68,7 @@ impl Point {
 /// # Examples
 ///
 /// ```
-/// use base_geom::point;
+/// use base_geom::prelude::*;
 ///
 /// let p = point(3.0, 4.0);
 /// assert_eq!(p.x, 3.0);
@@ -177,7 +177,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::point;
+    /// use base_geom::prelude::*;
     ///
     /// let p1 = point(3.0, 4.0);
     /// let p2 = point(1.0, 2.0);
@@ -211,7 +211,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::point;
+    /// use base_geom::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
     /// let magnitude = p.norm(); // sqrt(3² + 4²) = 5.0
@@ -234,7 +234,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::point;
+    /// use base_geom::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
     /// let (normalized, magnitude) = p.normalize();
@@ -288,7 +288,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::point;
+    /// use base_geom::prelude::*;
     ///
     /// let p1 = point(1.0, 2.0);
     /// let p2 = point(1.0000001, 2.0000001);
@@ -314,7 +314,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::point;
+    /// use base_geom::prelude::*;
     ///
     /// let p1 = point(1.0, 2.0);
     /// let p2 = point(1.001, 2.001);

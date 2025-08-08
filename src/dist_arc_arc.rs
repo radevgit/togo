@@ -3,7 +3,7 @@
 // https://stackoverflow.com/questions/18949449/calculate-the-minimum-distance-between-two-given-circular-arcs
 // https://math.stackexchange.com/questions/95009/how-can-one-calculate-the-minimum-and-maximum-distance-between-two-given-circula
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 /// Computes the distance between two arcs.
 ///
@@ -24,7 +24,7 @@ use crate::prelude::*;
 ///
 /// # Examples
 /// ```
-/// use base_geom::{arc, dist_arc_arc, point};
+/// use base_geom::prelude::*;
 /// let arc0 = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
 /// let arc1 = arc(point(2.0, 0.0), point(0.0, 0.0), point(1.0, 1.0), 1.0);
 /// let dist = dist_arc_arc(&arc0, &arc1);

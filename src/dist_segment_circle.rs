@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::prelude::*;
+use base_geom::prelude::*;
 
 #[derive(Debug, PartialEq)]
 pub enum DistSegmentCircleConfig {
@@ -34,7 +34,7 @@ const ONE: f64 = 1.0;
 /// # Examples
 /// 
 /// ```
-/// use base_geom::{dist_segment_circle, segment, circle, point};
+/// use base_geom::prelude::*;
 /// let seg = segment(point(0.0, 0.0), point(3.0, 4.0));
 /// let c = circle(point(1.0, 1.0), 2.0);
 /// let dist = dist_segment_circle(&seg, &c);
