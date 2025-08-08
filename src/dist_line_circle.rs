@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 
-use crate::Point;
-use crate::circle::Circle;
-use crate::line::Line;
-use crate::point::point;
+use crate::prelude::*;
 
 /// Configuration for the distance between a segment and a circle.
 #[derive(Debug, PartialEq)]

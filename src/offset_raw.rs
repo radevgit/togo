@@ -2,8 +2,7 @@
 
 use std::fmt::Display;
 
-use crate::Arc;
-use crate::Point;
+use crate::prelude::*;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct OffsetRaw {
@@ -26,6 +25,26 @@ impl OffsetRaw {
 }
 
 #[inline]
-pub(crate) fn offsetraw(arc: Arc, orig: Point, g: f64) -> OffsetRaw {
+pub fn offsetraw(arc: Arc, orig: Point, g: f64) -> OffsetRaw {
     OffsetRaw::new(arc, orig, g)
+}
+
+#[cfg(test)]
+mod test_offset_raw {
+    use crate::prelude::*;
+
+    #[test]
+    fn test_new_and_display() {
+        let a = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
+        let o = point(0.0, 0.0);
+        let off = offsetraw(a, o, 0.25);
+        assert_eq!(off.arc, a);
+        assert_eq!(off.orig, o);
+        assert_eq!(off.g, 0.25);
+        // Check Display has brackets and three components
+        let s = format!("{}", off);
+        assert!(s.starts_with("["));
+        assert!(s.contains("], ["));
+        assert!(s.ends_with("]"));
+    }
 }

@@ -133,4 +133,30 @@ mod test_segment {
         assert_eq!(dir, point(0.7071067811865475, 0.7071067811865475));
         assert_eq!(extent, 1.4142135623730951);
     }
+
+    #[test]
+    fn test_get_centered_form_edge_cases() {
+        // Test zero-length segment (degenerate case)
+        let s_zero = Segment::new(point(5.0, 3.0), point(5.0, 3.0));
+        let (center, dir, extent) = s_zero.get_centered_form();
+        assert_eq!(center, point(5.0, 3.0));
+        assert_eq!(extent, 0.0);
+        // Direction should be zero for zero-length segments (normalize returns (0,0))
+        assert_eq!(dir.x, 0.0);
+        assert_eq!(dir.y, 0.0);
+        
+        // Test horizontal segment
+        let s_horiz = Segment::new(point(0.0, 2.0), point(6.0, 2.0));
+        let (center, dir, extent) = s_horiz.get_centered_form();
+        assert_eq!(center, point(3.0, 2.0));
+        assert_eq!(dir, point(1.0, 0.0));
+        assert_eq!(extent, 3.0);
+        
+        // Test vertical segment  
+        let s_vert = Segment::new(point(1.0, -2.0), point(1.0, 4.0));
+        let (center, dir, extent) = s_vert.get_centered_form();
+        assert_eq!(center, point(1.0, 1.0));
+        assert_eq!(dir, point(0.0, 1.0));
+        assert_eq!(extent, 3.0);
+    }
 }

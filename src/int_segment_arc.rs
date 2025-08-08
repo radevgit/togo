@@ -1,11 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{
-    Arc, Point,
-    circle::circle,
-    int_segment_circle::{SegmentCircleConfig, int_segment_circle},
-    segment::Segment,
-};
+use crate::prelude::*;
 
 // #00024
 /// Represents the configuration of the intersection between a segment and an arc.

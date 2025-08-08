@@ -247,7 +247,7 @@
 //!
 //! ```
 //! use base_geom::{
-//!     ArcArcConfig, DistLineCircleConfig, DistPointArcConfig, 
+//!     ArcArcConfig, DistLineCircleConfig, DistPointArcConfig,
 //!     arc, circle, dist_line_circle, dist_point_arc, dist_segment_arc, dist_segment_circle,
 //!     int_arc_arc, line, point, segment, dist_segment_segment
 //! };
@@ -277,7 +277,7 @@
 //!     let dist = dist_segment_arc(&seg, &a);
 //!     assert_eq!(2.0, dist);
 //! ```
-//! 
+//!
 //! ```
 //! use base_geom::{
 //!     circle, dist_segment_circle, dist_segment_segment,
@@ -330,7 +330,7 @@
 //!         // Lines intersect at origin
 //!         assert_eq!(point(0.0, 0.0), pt);
 //!     },
-//!     _ => assert!(false), 
+//!     _ => assert!(false),
 //! }
 //! ```
 
@@ -378,50 +378,52 @@ mod bezierq;
 // Visualization and debugging
 mod svg;
 
-// Re-export core types and functions
-pub use crate::arc::{Arc, arc, arcline};
-pub use crate::circle::{Circle, circle};
-pub use crate::interval::{Interval, interval};
-pub use crate::line::{Line, line};
-pub use crate::point::{Point, point};
-pub use crate::pvertex::{
-    PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
-    pvertex,
-};
-pub use crate::segment::{Segment, segment};
-pub use crate::svg::{SVG, svg};
+pub mod prelude {
+    // Re-export core types and functions
+    pub use crate::arc::{Arc, arc, arcline, arc_circle_parametrization};
+    pub use crate::circle::{Circle, circle};
+    pub use crate::interval::{Interval, interval};
+    pub use crate::line::{Line, line};
+    pub use crate::point::{Point, point};
+    pub use crate::pvertex::{
+        PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
+        pvertex,
+    };
+    pub use crate::segment::{Segment, segment};
+    pub use crate::offset_raw::{OffsetRaw, offsetraw};  
+    pub use crate::svg::{SVG, svg};
 
-// Re-export distance computation functions
-pub use crate::dist_arc_arc::dist_arc_arc;
-pub use crate::dist_line_circle::{DistLineCircleConfig, dist_line_circle};
-pub use crate::dist_point_arc::{DistPointArcConfig, dist_point_arc};
-pub use crate::dist_point_circle::dist_point_circle;
-pub use crate::dist_point_segment::dist_point_segment;
-pub use crate::dist_segment_arc::dist_segment_arc;
-pub use crate::dist_segment_circle::{DistSegmentCircleConfig, dist_segment_circle};
-pub use crate::dist_segment_segment::dist_segment_segment;
+    // Re-export distance computation functions
+    pub use crate::dist_arc_arc::dist_arc_arc;
+    pub use crate::dist_line_circle::{DistLineCircleConfig, dist_line_circle};
+    pub use crate::dist_point_arc::{DistPointArcConfig, dist_point_arc, dist_point_arc_dist};
+    pub use crate::dist_point_circle::dist_point_circle;
+    pub use crate::dist_point_segment::dist_point_segment;
+    pub use crate::dist_segment_arc::dist_segment_arc;
+    pub use crate::dist_segment_circle::{DistSegmentCircleConfig, dist_segment_circle};
+    pub use crate::dist_segment_segment::dist_segment_segment;
 
-// Re-export intersection computation functions
-pub use crate::int_arc_arc::{ArcArcConfig, int_arc_arc};
-pub use crate::int_circle_circle::{CircleCircleConfig, int_circle_circle};
-pub use crate::int_interval_interval::{IntervalConfig, int_interval_interval};
-pub use crate::int_line_arc::{LineArcConfig, int_line_arc};
-pub use crate::int_line_circle::{LineCircleConfig, int_line_circle};
-pub use crate::int_line_line::{LineLineConfig, int_line_line};
-pub use crate::int_segment_arc::{SegmentArcConfig, int_segment_arc};
-pub use crate::int_segment_circle::{SegmentCircleConfig, int_segment_circle};
-pub use crate::int_segment_point::int_segment_point;
-pub use crate::int_segment_segment::{SegmentSegmentConfig, int_segment_segment};
+    // Re-export intersection computation functions
+    pub use crate::int_arc_arc::{ArcArcConfig, int_arc_arc};
+    pub use crate::int_circle_circle::{CircleCircleConfig, int_circle_circle};
+    pub use crate::int_interval_interval::{IntervalConfig, int_interval_interval};
+    pub use crate::int_line_arc::{LineArcConfig, int_line_arc};
+    pub use crate::int_line_circle::{LineCircleConfig, int_line_circle};
+    pub use crate::int_line_line::{LineLineConfig, int_line_line};
+    pub use crate::int_segment_arc::{SegmentArcConfig, int_segment_arc};
+    pub use crate::int_segment_circle::{SegmentCircleConfig, int_segment_circle};
+    pub use crate::int_segment_point::{int_segment_point, SegmentPointConfig};
+    pub use crate::int_segment_segment::{SegmentSegmentConfig, int_segment_segment};
 
-// Re-export utility functions
-pub use crate::utils::{almost_equal_as_int, close_enough, diff_of_prod, next, prev, sum_of_prod};
+    // Re-export utility functions
+    pub use crate::utils::{
+        almost_equal_as_int, close_enough, diff_of_prod, next, prev, sum_of_prod, min_3, min_4, min_5
+    };
+}
 
 #[cfg(test)]
 mod tests {
-    use crate::dist_segment_circle::{DistSegmentCircleConfig, dist_segment_circle};
-    use crate::{
-        ArcArcConfig, arc, circle, dist_segment_segment, int_arc_arc, point, segment,
-    };
+    use super::prelude::*;
 
     #[test]
     fn test_distance_computations() {
@@ -442,7 +444,6 @@ mod tests {
 
     #[test]
     fn test_intersection_tests() {
-    
         // Distance from segment to circle
         let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
         let c = circle(point(0.0, 0.0), 1.0);

@@ -81,4 +81,29 @@ mod test_line {
             format!("{}", s0)
         );
     }
+
+    #[test]
+    fn test_unitdir() {
+        // Test unitdir with a simple vector
+        let l = Line::new(point(0.0, 0.0), point(3.0, 4.0)); // 3-4-5 triangle
+        let unit_l = l.unitdir();
+        assert!((unit_l.dir.norm() - 1.0).abs() < 1e-15);
+        assert_eq!(unit_l.origin, point(0.0, 0.0));
+        
+        // Test with already unit vector
+        let unit_input = Line::new(point(1.0, 1.0), point(1.0, 0.0));
+        let unit_output = unit_input.unitdir();
+        assert!((unit_output.dir.norm() - 1.0).abs() < 1e-15);
+        assert_eq!(unit_output.dir, point(1.0, 0.0));
+    }
+
+    #[test]
+    fn test_unitdir_zero_vector() {
+        // Edge case: zero direction vector should handle gracefully
+        let l = Line::new(point(0.0, 0.0), point(0.0, 0.0));
+        let unit_l = l.unitdir();
+        // The normalize function should handle this case
+        // Check that we don't panic and get a valid result
+        assert!(unit_l.dir.x.is_nan() || unit_l.dir.x == 0.0);
+    }
 }

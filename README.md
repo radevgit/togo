@@ -83,8 +83,8 @@ match result {
 ### Working with arcs
 
 
-> [!CAUTION]
-> ⚠️ Arcs are always CCW (counter-clockwise) in this library.
+> [!IMPORTANT]
+> Arcs are always CCW (counter-clockwise) in this library.
 
 
 ```

@@ -2,7 +2,7 @@
 
 use std::fmt::Display;
 
-use crate::Point;
+use crate::prelude::*;
 
 /// A polyline vertex that defines either a line segment or an arc segment.
 ///
@@ -248,5 +248,47 @@ mod test_pvertex {
             "[[1.00000000000000000000, 2.00000000000000000000], 5.5]",
             format!("{}", p)
         );
+    }
+
+    #[test]
+    fn test_polylines_reverse() {
+        // Test reversing multiple polylines
+        let poly1 = vec![
+            pvertex(point(0.0, 0.0), 0.5),
+            pvertex(point(1.0, 0.0), -0.3),
+        ];
+        let poly2 = vec![
+            pvertex(point(2.0, 2.0), 0.0),
+            pvertex(point(3.0, 3.0), 0.2),
+        ];
+        let polylines = vec![poly1, poly2];
+        let reversed = polylines_reverse(&polylines);
+        
+        assert_eq!(reversed.len(), 2);
+        // Each polyline should be individually reversed
+        assert_eq!(reversed[0].len(), 2);
+        assert_eq!(reversed[1].len(), 2);
+    }
+
+    #[test]
+    fn test_polyline_scale_edge_cases() {
+        // Test with zero scale
+        let original = vec![pvertex(point(2.0, 3.0), 0.5)];
+        let scaled = polyline_scale(&original, 0.0);
+        assert_eq!(scaled[0].p, point(0.0, 0.0));
+        assert_eq!(scaled[0].b, 0.5); // Bulge should be preserved
+        
+        // Test with negative scale
+        let scaled_neg = polyline_scale(&original, -2.0);
+        assert_eq!(scaled_neg[0].p, point(-4.0, -6.0));
+        assert_eq!(scaled_neg[0].b, 0.5);
+    }
+
+    #[test]
+    fn test_polyline_translate_empty() {
+        // Test with empty polyline
+        let empty: Polyline = vec![];
+        let translated = polyline_translate(&empty, point(10.0, 5.0));
+        assert_eq!(translated.len(), 0);
     }
 }

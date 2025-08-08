@@ -214,7 +214,7 @@ fn are_both_ends_towching(arc0: &Arc, arc1: &Arc) -> bool {
 
 // If arcs are really intersecting, but not just touching at ends, return true
 // In other words, do we need to split arcs further?
-pub(crate) fn if_really_intersecting_arc_arc(arc0: &Arc, arc1: &Arc) -> bool {
+pub fn if_really_intersecting_arc_arc(arc0: &Arc, arc1: &Arc) -> bool {
     match int_arc_arc(arc0, arc1) {
         ArcArcConfig::NoIntersection() => false,
         ArcArcConfig::NonCocircularOnePoint(_) => true,

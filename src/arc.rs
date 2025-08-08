@@ -53,7 +53,7 @@ pub struct Arc {
     pub r: f64,
     /// non-unique id, used for debugging and
     /// checking parts coming from the same segment
-    pub(crate) id: usize,
+    pub id: usize,
 }
 
 // Implemented because id is different in tests
@@ -113,7 +113,7 @@ impl Arc {
 
     /// Set the id of the arc.
     #[inline]
-    pub(crate) fn id(&mut self, id: usize) {
+    pub fn id(&mut self, id: usize) {
         self.id = id;
     }
 
@@ -123,7 +123,7 @@ impl Arc {
     ///
     /// True if the radius is finite, false if it represents a line segment
     #[inline]
-    pub(crate) fn is_arc(&self) -> bool {
+    pub fn is_arc(&self) -> bool {
         self.r != f64::INFINITY
     }
 
@@ -133,7 +133,7 @@ impl Arc {
     ///
     /// True if the radius is infinite, false if it represents a circular arc
     #[inline]
-    pub(crate) fn is_line(&self) -> bool {
+    pub fn is_line(&self) -> bool {
         self.r == f64::INFINITY
     }
 
@@ -253,10 +253,84 @@ mod test_arc {
     }
 
     #[test]
+    fn test_id_set() {
+        let mut arc = arc(point(1.0, 1.0), point(1.0, 3.0), point(2.0, -1.0), 1.0);
+        arc.id(42);
+        assert!(arc.id == 42);
+    }
+
+    #[test]
     fn test_is_arc() {
         let arc = arcline(point(1.0, 1.0), point(1.0, 3.0));
         assert!(arc.is_line());
         assert!(!arc.is_arc());
+    }
+
+    #[test]
+    fn test_contains_orientation() {
+        // CCW quarter-circle from (1,0) to (0,1) centered at (0,0)
+        let a = Arc::new(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+        // Point at 45 degrees should be contained
+        assert!(a.contains(point(0.7071067811865476, 0.7071067811865476)));
+        // Point outside arc span should not
+        assert!(!a.contains(point(0.7071067811865476, -0.7071067811865476)));
+        // Endpoints are considered contained (collinear => orient2d >= 0)
+        assert!(a.contains(point(1.0, 0.0)));
+        assert!(a.contains(point(0.0, 1.0)));
+    }
+
+    #[test]
+    fn test_contains_order2d() {
+        let a = point(0.0, 0.0);
+        let b = point(1.0, 0.0);
+        // Left of AB is positive orientation
+        let p_left = point(0.5, 1.0);
+        assert!(Arc::contains_order2d(a, b, p_left) > 0.0);
+        // Right of AB is negative orientation
+        let p_right = point(0.5, -1.0);
+        assert!(Arc::contains_order2d(a, b, p_right) < 0.0);
+        // Collinear is zero
+        let p_col = point(0.5, 0.0);
+        assert!(Arc::contains_order2d(a, b, p_col) == 0.0);
+    }
+
+    #[test]
+    fn test_arcline_creation() {
+        // Test that arcline creates a line segment (infinite radius)
+        let line_arc = arcline(point(0.0, 0.0), point(5.0, 5.0));
+        assert!(line_arc.is_line());
+        assert!(!line_arc.is_arc());
+        assert_eq!(line_arc.r, f64::INFINITY);
+        assert_eq!(line_arc.a, point(0.0, 0.0));
+        assert_eq!(line_arc.b, point(5.0, 5.0));
+    }
+
+    #[test]
+    fn test_arc_reverse() {
+        let original = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+        let reversed = original.reverse();
+        
+        // Check that endpoints are swapped
+        assert_eq!(reversed.a, original.b);
+        assert_eq!(reversed.b, original.a);
+        // Center and radius should remain the same
+        assert_eq!(reversed.c, original.c);
+        assert_eq!(reversed.r, original.r);
+    }
+
+    #[test]
+    fn test_arc_translate() {
+        let mut arc = Arc::new(point(1.0, 1.0), point(2.0, 2.0), point(1.5, 1.5), 0.5);
+        let translation = point(10.0, -5.0);
+        
+        arc.translate(translation);
+        
+        // All points should be translated
+        assert_eq!(arc.a, point(11.0, -4.0));
+        assert_eq!(arc.b, point(12.0, -3.0));
+        assert_eq!(arc.c, point(11.5, -3.5));
+        // Radius should remain unchanged
+        assert_eq!(arc.r, 0.5);
     }
 
     #[test]
@@ -917,7 +991,7 @@ pub fn arc_g_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
 
 #[cfg(test)]
 mod test_arc_g_from_points {
-    use crate::close_enough;
+    use crate::prelude::*;
 
     use super::*;
 

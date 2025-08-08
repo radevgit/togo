@@ -1,9 +1,7 @@
 #![allow(dead_code)]
 
-use crate::int_line_circle::LineCircleConfig;
-use crate::interval::interval;
-use crate::line::line;
-use crate::{Point, circle::Circle, int_line_circle::int_line_circle, segment::Segment};
+use crate::prelude::*;
+
 
 // #00025
 /// Represents the configuration of the intersection between a segment and a circle.

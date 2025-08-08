@@ -1,15 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{
-    Arc,
-    circle::circle,
-    dist_line_circle::{DistLineCircleConfig, dist_line_circle},
-    dist_point_arc::dist_point_arc_dist,
-    dist_point_segment::dist_point_segment,
-    int_segment_arc::{SegmentArcConfig, int_segment_arc},
-    segment::Segment,
-    utils::min_4,
-};
+use crate::prelude::*;
 
 /// Computes the distance between a segment and an arc.
 ///

@@ -8,12 +8,7 @@ use std::{fs::File, io::Write};
 
 use robust::{Coord, orient2d};
 
-use crate::arc::arc_circle_parametrization;
-use crate::circle::{Circle, circle};
-use crate::offset_raw::OffsetRaw;
-use crate::pvertex::Polyline;
-use crate::segment::{Segment, segment};
-use crate::{Arc, Point};
+use crate::prelude::*;
 
 /// Utility for generating SVG output for visualization of geometric operations.
 ///

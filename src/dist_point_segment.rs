@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
-use crate::segment::Segment;
-use crate::Point;
+use crate::prelude::*;
 
 /// Computes the distance between a point and a line segment.
 /// 

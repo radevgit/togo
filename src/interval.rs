@@ -71,4 +71,17 @@ mod test_contains {
         let i0 = Interval::new(1.0, 2.0);
         assert!(i0.contains(1.0 + f64::EPSILON));
     }
+
+    #[test]
+    fn test_contains_boundaries() {
+        let i0 = Interval::new(-2.0, 3.0);
+        // inclusive bounds
+        assert!(i0.contains(-2.0));
+        assert!(i0.contains(3.0));
+        // outside
+    assert!(!i0.contains(-2.0 - 1e-12));
+    assert!(!i0.contains(3.0 + 1e-12));
+        // interior
+        assert!(i0.contains(0.0));
+    }
 }

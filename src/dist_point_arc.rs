@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{Arc, Point, circle::circle, dist_point_circle::dist_point_circle};
+use crate::prelude::*;
 
 /// Configuration for the distance between a point and an arc.
 #[derive(Debug, PartialEq)]
@@ -61,7 +61,7 @@ pub fn dist_point_arc(p: &Point, arc: &Arc) -> DistPointArcConfig {
     }
 }
 
-pub(crate) fn dist_point_arc_dist(p: &Point, arc: &Arc) -> f64 {
+pub fn dist_point_arc_dist(p: &Point, arc: &Arc) -> f64 {
     match dist_point_arc(p, arc) {
         DistPointArcConfig::OnePoint(dist, _) => dist,
         DistPointArcConfig::Equidistant(dist, _) => dist,

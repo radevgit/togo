@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{Point, segment::Segment};
+use crate::prelude::*;
 
 /// Represents the configuration of the intersection between a segment and a point.
 #[derive(Debug, PartialEq)]
@@ -15,11 +15,7 @@ pub fn int_segment_point(_segment0: &Segment, _point1: &Point) -> SegmentPointCo
 
 #[cfg(test)]
 mod test_int_segment_point {
-    use crate::dist_point_segment;
-    use crate::point::point;
-    use crate::segment::segment;
-
-    use super::*;
+    use crate::prelude::*;
 
     #[test]
     fn test_no_intersection() {

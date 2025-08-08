@@ -519,3 +519,38 @@ mod test_diff_of_prod {
         assert_eq!(res0, res1);
     }
 }
+
+#[cfg(test)]
+mod test_sum_min_close {
+    use super::*;
+
+    #[test]
+    fn test_sum_of_prod_basic() {
+        // Exact representable case
+        let v = sum_of_prod(0.5, 2.0, 0.25, 4.0);
+        assert_eq!(v, 2.0);
+        // Mixed signs
+        let v2 = sum_of_prod(3.0, -2.0, 4.0, 0.5);
+        assert_eq!(v2, -6.0 + 2.0);
+    }
+
+    #[test]
+    fn test_min_3_4_5() {
+        assert_eq!(min_3(3.0, 2.0, 1.0), 1.0);
+        assert_eq!(min_3(-1.0, -2.0, 0.0), -2.0);
+
+        assert_eq!(min_4(4.0, 3.0, 2.0, 1.0), 1.0);
+        assert_eq!(min_4(-1.0, -2.0, -3.0, 0.0), -3.0);
+
+        assert_eq!(min_5(5.0, 4.0, 3.0, 2.0, 1.0), 1.0);
+        assert_eq!(min_5(-1.0, -2.0, -3.0, -4.0, 0.0), -4.0);
+    }
+
+    #[test]
+    fn test_close_enough_bounds() {
+        // Strict comparison: |a-b| < eps
+        assert!(close_enough(1.0, 1.0009, 0.001));
+    assert!(!close_enough(1.0, 1.002, 0.001));
+        assert!(close_enough(-1.0, -1.0005, 0.001));
+    }
+}

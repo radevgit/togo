@@ -1,12 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{
-    circle::Circle, Point,
-    dist_line_circle::{DistLineCircleConfig, dist_line_circle},
-    dist_point_circle::dist_point_circle,
-    line::line,
-    segment::Segment,
-};
+use crate::prelude::*;
 
 #[derive(Debug, PartialEq)]
 pub enum DistSegmentCircleConfig {
