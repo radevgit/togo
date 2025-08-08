@@ -17,7 +17,7 @@ Add to Cargo.toml
 base-geom = "0.0.1-alpha.1"
 ```
 
-### Creating and working with points
+### Creating and working with points (vectors)
 ```
 use base_geom::{Point, point};
 // Create points using the constructor or convenience function
@@ -52,15 +52,15 @@ use base_geom::{point, circle, dist_point_circle, dist_point_segment, segment};
 let p = point(10.0, 0.0);
 let c = circle(point(0.0, 0.0), 5.0);
 let (dist, closest, _is_equidistant) = dist_point_circle(&p, &c);
-assert_eq!(dist, 5.0); // Point is 5 units outside the circle
+assert_eq!(dist, 5.0);
 // Distance from point to segment returns (distance, closest_point)
 let seg = segment(point(0.0, 0.0), point(5.0, 0.0));
 let p = point(2.5, 3.0);
 let (dist, _closest) = dist_point_segment(&p, &seg);
-assert_eq!(dist, 3.0); // Point is 3 units above the segment
+assert_eq!(dist, 3.0);
 ```
 
-### Intersection tests
+### Intersection computations
 ```
 use base_geom::{circle, int_circle_circle, point, CircleCircleConfig};
 // Test intersection between two circles
@@ -81,7 +81,12 @@ match result {
 ```
 
 ### Working with arcs
-NOTE: Arcs are always CCW (counter-clockwise) in this library.
+
+
+> [!CAUTION]
+> ⚠️ Arcs are always CCW (counter-clockwise) in this library.
+
+
 ```
 use base_geom::{arc, point, Arc};
 // Create an arc from three points and radius (start, end, center, radius)
