@@ -14,7 +14,7 @@ It is intended for use in my other projects, and **may not implement** all possi
 
 Add to Cargo.toml
 ```
-base-geom = "0.0.1-alpha.1"
+base-geom = "0.0.1"
 ```
 
 ### Creating and working with points (vectors)
