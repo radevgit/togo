@@ -1,4 +1,6 @@
 # BaseGeom
+![Build](https://github.com/radevgit/base-geom/actions/workflows/rust.yml/badge.svg)
+
 
 ## Basic 2D geometric operations
 
