@@ -1,7 +1,6 @@
 [package]
 name = "base-geom"
 description = "A library for 2D geometry, providing robust geometric algorithms and data structures."
-publish = false
 version = "0.0.1-alpha.1"
 rust-version = "1.88"
 edition = "2024"
