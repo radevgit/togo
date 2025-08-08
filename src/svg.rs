@@ -8,7 +8,7 @@ use std::{fs::File, io::Write};
 
 use robust::{Coord, orient2d};
 
-use base_geom::prelude::*;
+use crate::prelude::*;
 
 /// Utility for generating SVG output for visualization of geometric operations.
 ///

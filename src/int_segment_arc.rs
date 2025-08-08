@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use base_geom::prelude::*;
+use crate::prelude::*;
 
 // #00024
 /// Represents the configuration of the intersection between a segment and an arc.

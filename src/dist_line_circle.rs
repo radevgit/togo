@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use base_geom::prelude::*;
+use crate::prelude::*;
 
 /// Configuration for the distance between a segment and a circle.
 #[derive(Debug, PartialEq)]

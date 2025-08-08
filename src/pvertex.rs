@@ -2,7 +2,7 @@
 
 use std::fmt::Display;
 
-use base_geom::prelude::*;
+use crate::prelude::*;
 
 /// A polyline vertex that defines either a line segment or an arc segment.
 ///

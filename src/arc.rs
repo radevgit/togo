@@ -990,7 +990,7 @@ pub fn arc_g_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
 
 #[cfg(test)]
 mod test_arc_g_from_points {
-    use base_geom::prelude::*;
+    use crate::prelude::*;
 
     use super::*;
 

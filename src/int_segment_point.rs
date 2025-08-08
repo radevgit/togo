@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use base_geom::prelude::*;
+use crate::prelude::*;
 
 /// Represents the configuration of the intersection between a segment and a point.
 #[derive(Debug, PartialEq)]
@@ -15,7 +15,7 @@ pub fn int_segment_point(_segment0: &Segment, _point1: &Point) -> SegmentPointCo
 
 #[cfg(test)]
 mod test_int_segment_point {
-    use base_geom::prelude::*;
+    use crate::prelude::*;
 
     #[test]
     fn test_no_intersection() {
