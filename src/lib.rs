@@ -381,7 +381,7 @@ pub mod prelude {
     pub use crate::interval::{Interval, interval};
     pub use crate::line::{Line, line};
     pub use crate::offset_raw::{OffsetRaw, offsetraw};
-    pub use crate::point::{Point, point};
+    pub use crate::point::{Point, point, points_order};
     pub use crate::pvertex::{
         PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
         pvertex,

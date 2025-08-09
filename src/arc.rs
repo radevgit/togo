@@ -9,7 +9,7 @@ use std::{fmt::Display, sync::atomic::AtomicUsize};
 pub type Arcline = Vec<Arc>;
 
 static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
-const EPS_COLLAPSED: f64 = 1E-8; 
+const EPS_COLLAPSED: f64 = 1E-8;
 
 /// An arc segment defined by start point, end point, center, and radius.
 ///
@@ -80,7 +80,7 @@ impl Arc {
     /// # Returns
     ///
     /// A new Arc instance with a unique internal ID
-    /// 
+    ///
     /// <div class="warning">Arcs are always CCW (counter-clockwise) in this library!</div>
     ///
     /// # Examples
@@ -121,14 +121,14 @@ impl Arc {
     /// # Returns
     ///
     /// True if the radius is finite, false if it represents a line segment
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use base_geom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(arc.is_arc()); // Has finite radius
-    /// 
+    ///
     /// let line = arcline(point(0.0, 0.0), point(1.0, 0.0));
     /// assert!(!line.is_arc()); // Has infinite radius (line segment)
     /// ```
@@ -142,14 +142,14 @@ impl Arc {
     /// # Returns
     ///
     /// True if the radius is infinite, false if it represents a circular arc
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use base_geom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(!arc.is_line()); // Has finite radius
-    /// 
+    ///
     /// let line = arcline(point(0.0, 0.0), point(1.0, 0.0));
     /// assert!(line.is_line()); // Has infinite radius (line segment)
     /// ```
@@ -186,15 +186,15 @@ impl Arc {
     }
 
     /// Returns a reversed copy of this Arc.
-    /// 
+    ///
     /// The reversed arc (all arcs are CCW) is not the same as original arc, but complement of the circle.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A new Arc with start and end points swapped
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use base_geom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
@@ -209,6 +209,7 @@ impl Arc {
     #[inline]
     /// Checks if the arc contains the given point,
     /// where the point is a result of intersection.
+    /// <div class="warning">This does not work for points not on the circle!</div>
     ///
     /// # Arguments
     ///
@@ -243,34 +244,25 @@ impl Arc {
     // fn simple_orient2d(p: Coord<f64>, q: Coord<f64>, r: Coord<f64>) -> f64 {
     //     (q.x - p.x) * (r.y - q.y) - (q.y - p.y) * (r.x - q.x)
     // }
-
-    #[inline]
-    /// a, b, p - points on arc using robust order
-    pub fn contains_order2d(a: Point, b: Point, p: Point) -> f64 {
-        let pa = Coord { x: a.x, y: a.y };
-        let pb = Coord { x: b.x, y: b.y };
-        let pp = Coord { x: p.x, y: p.y };
-        orient2d(pa, pb, pp)
-    }
 }
 
 /// Creates a new Arc with the given parameters.
-/// 
+///
 /// This is a convenience function equivalent to `Arc::new(a, b, c, r)`.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `a` - The start point of the arc
 /// * `b` - The end point of the arc  
 /// * `c` - The center point of the arc
 /// * `r` - The radius of the arc
-/// 
+///
 /// # Returns
-/// 
+///
 /// A new Arc instance
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
 /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
@@ -284,22 +276,22 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 }
 
 /// Creates a line segment represented as an Arc with infinite radius.
-/// 
+///
 /// This function creates an Arc that represents a straight line segment
-/// between two points. The arc uses infinite radius to distinguish it 
+/// between two points. The arc uses infinite radius to distinguish it
 /// from curved arcs.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `a` - The start point of the line segment
 /// * `b` - The end point of the line segment
-/// 
+///
 /// # Returns
-/// 
+///
 /// An Arc representing a line segment with infinite radius
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
 /// let line = arcline(point(0.0, 0.0), point(1.0, 1.0));
@@ -361,21 +353,6 @@ mod test_arc {
     }
 
     #[test]
-    fn test_contains_order2d() {
-        let a = point(0.0, 0.0);
-        let b = point(1.0, 0.0);
-        // Left of AB is positive orientation
-        let p_left = point(0.5, 1.0);
-        assert!(Arc::contains_order2d(a, b, p_left) > 0.0);
-        // Right of AB is negative orientation
-        let p_right = point(0.5, -1.0);
-        assert!(Arc::contains_order2d(a, b, p_right) < 0.0);
-        // Collinear is zero
-        let p_col = point(0.5, 0.0);
-        assert!(Arc::contains_order2d(a, b, p_col) == 0.0);
-    }
-
-    #[test]
     fn test_arcline_creation() {
         // Test that arcline creates a line segment (infinite radius)
         let line_arc = arcline(point(0.0, 0.0), point(5.0, 5.0));
@@ -390,7 +367,7 @@ mod test_arc {
     fn test_arc_reverse() {
         let original = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
         let reversed = original.reverse();
-        
+
         // Check that endpoints are swapped
         assert_eq!(reversed.a, original.b);
         assert_eq!(reversed.b, original.a);
@@ -403,9 +380,9 @@ mod test_arc {
     fn test_arc_translate() {
         let mut arc = Arc::new(point(1.0, 1.0), point(2.0, 2.0), point(1.5, 1.5), 0.5);
         let translation = point(10.0, -5.0);
-        
+
         arc.translate(translation);
-        
+
         // All points should be translated
         assert_eq!(arc.a, point(11.0, -4.0));
         assert_eq!(arc.b, point(12.0, -3.0));
@@ -494,21 +471,21 @@ mod test_arc {
 // }
 
 /// Checks if the arc has a collapsed radius.
-/// 
+///
 /// An arc is considered to have a collapsed radius if the radius is smaller
 /// than the given epsilon threshold or if it's NaN.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `r` - The radius to check
 /// * `eps` - The epsilon threshold for comparison
-/// 
+///
 /// # Returns
-/// 
+///
 /// True if the radius is collapsed (too small or NaN), false otherwise
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
 /// assert!(arc_is_collapsed_radius(0.0001, 0.01)); // Radius too small
@@ -525,28 +502,28 @@ pub fn arc_is_collapsed_radius(r: f64, eps: f64) -> bool {
 }
 
 /// Checks if the arc has collapsed endpoints.
-/// 
+///
 /// An arc is considered to have collapsed endpoints if the start and end
 /// points are too close to each other within the given epsilon threshold.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `a` - The start point of the arc
 /// * `b` - The end point of the arc  
 /// * `eps` - The epsilon threshold for distance comparison
-/// 
+///
 /// # Returns
-/// 
+///
 /// True if the endpoints are too close together, false otherwise
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
 /// let p1 = point(0.0, 0.0);
 /// let p2 = point(0.0001, 0.0);
 /// let p3 = point(1.0, 0.0);
-/// 
+///
 /// assert!(arc_is_collapsed_ends(p1, p2, 0.01)); // Points too close
 /// assert!(!arc_is_collapsed_ends(p1, p3, 0.01)); // Points far enough apart
 /// ```
@@ -558,39 +535,39 @@ pub fn arc_is_collapsed_ends(a: Point, b: Point, eps: f64) -> bool {
 }
 
 /// Checks if an arc has inconsistent geometry.
-/// 
+///
 /// An arc is considered inconsistent if the center point is not equidistant
 /// from both endpoints within the given epsilon threshold. This validates
 /// that the arc's center and radius are geometrically consistent.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `a` - The start point of the arc
 /// * `b` - The end point of the arc
 /// * `c` - The center point of the arc
 /// * `r` - The radius of the arc
 /// * `eps` - The epsilon threshold for distance comparison
-/// 
+///
 /// # Returns
-/// 
+///
 /// True if the arc geometry is inconsistent, false if it's valid
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
-/// 
+///
 /// // Consistent arc: center is equidistant from both endpoints
 /// let start = point(0.0, 0.0);
 /// let end = point(2.0, 0.0);
 /// let center = point(1.0, 0.0);
 /// let radius = 1.0;
 /// assert!(!arc_is_not_consistent(start, end, center, radius, 1e-10));
-/// 
+///
 /// // Inconsistent arc: center is not equidistant from endpoints
 /// let bad_center = point(0.5, 0.0);
 /// assert!(arc_is_not_consistent(start, end, bad_center, radius, 1e-10));
-/// 
+///
 /// // Another inconsistent case: wrong radius
 /// assert!(arc_is_not_consistent(start, end, center, 2.0, 1e-10));
 /// ```
@@ -605,37 +582,38 @@ pub fn arc_is_not_consistent(a: Point, b: Point, c: Point, r: f64, eps: f64) -> 
 }
 
 /// Validates if an arc is geometrically valid.
-/// 
+///
 /// An arc is considered valid if it doesn't have a collapsed radius,
-/// doesn't have collapsed endpoints, and has consistent geometry 
+/// doesn't have collapsed endpoints, and has consistent geometry
 /// (the center point is equidistant from both endpoints).
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `seg` - The arc to validate
 /// * `eps` - The epsilon threshold for validation checks
-/// 
+///
 /// # Returns
-/// 
+///
 /// True if the arc is valid, false if it's degenerate or inconsistent
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
 /// let valid_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
 /// assert!(arc_check(&valid_arc, 1e-10));
-/// 
+///
 /// let invalid_arc = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.5), 1.0);
 /// assert!(!arc_check(&invalid_arc, 1e-10)); // Collapsed endpoints
-/// 
+///
 /// let inconsistent_arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(0.5, 0.0), 2.0);
 /// assert!(!arc_check(&inconsistent_arc, 1e-10)); // Inconsistent geometry
 /// ```
 pub fn arc_check(seg: &Arc, eps: f64) -> bool {
-    if arc_is_collapsed_radius(seg.r, eps) 
-    || arc_is_collapsed_ends(seg.a, seg.b, eps)
-    || arc_is_not_consistent(seg.a, seg.b, seg.c, seg.r, eps) {
+    if arc_is_collapsed_radius(seg.r, eps)
+        || arc_is_collapsed_ends(seg.a, seg.b, eps)
+        || arc_is_not_consistent(seg.a, seg.b, seg.c, seg.r, eps)
+    {
         return false;
     }
     true
@@ -721,7 +699,10 @@ mod test_arc_validation {
         assert!(!arc_is_collapsed_radius(EPS_COLLAPSED * 2.0, EPS_COLLAPSED));
 
         // Exactly at the boundary should be collapsed
-        assert!(arc_is_collapsed_radius(EPS_COLLAPSED - f64::EPSILON, EPS_COLLAPSED));
+        assert!(arc_is_collapsed_radius(
+            EPS_COLLAPSED - f64::EPSILON,
+            EPS_COLLAPSED
+        ));
     }
 
     #[test]
@@ -741,18 +722,46 @@ mod test_arc_validation {
     #[test]
     fn test_arc_is_collapsed_ends_normal_points() {
         // Normal separated points should not be collapsed
-        assert!(!arc_is_collapsed_ends(point(0.0, 0.0), point(1.0, 0.0), EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_ends(point(0.0, 0.0), point(0.0, 1.0), EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_ends(point(-1.0, -1.0), point(1.0, 1.0), EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_ends(point(100.0, 200.0), point(300.0, 400.0), EPS_COLLAPSED));
+        assert!(!arc_is_collapsed_ends(
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            EPS_COLLAPSED
+        ));
+        assert!(!arc_is_collapsed_ends(
+            point(0.0, 0.0),
+            point(0.0, 1.0),
+            EPS_COLLAPSED
+        ));
+        assert!(!arc_is_collapsed_ends(
+            point(-1.0, -1.0),
+            point(1.0, 1.0),
+            EPS_COLLAPSED
+        ));
+        assert!(!arc_is_collapsed_ends(
+            point(100.0, 200.0),
+            point(300.0, 400.0),
+            EPS_COLLAPSED
+        ));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_identical_points() {
         // Identical points should be collapsed
-        assert!(arc_is_collapsed_ends(point(0.0, 0.0), point(0.0, 0.0), EPS_COLLAPSED));
-        assert!(arc_is_collapsed_ends(point(1.0, 1.0), point(1.0, 1.0), EPS_COLLAPSED));
-        assert!(arc_is_collapsed_ends(point(-5.0, 10.0), point(-5.0, 10.0), EPS_COLLAPSED));
+        assert!(arc_is_collapsed_ends(
+            point(0.0, 0.0),
+            point(0.0, 0.0),
+            EPS_COLLAPSED
+        ));
+        assert!(arc_is_collapsed_ends(
+            point(1.0, 1.0),
+            point(1.0, 1.0),
+            EPS_COLLAPSED
+        ));
+        assert!(arc_is_collapsed_ends(
+            point(-5.0, 10.0),
+            point(-5.0, 10.0),
+            EPS_COLLAPSED
+        ));
     }
 
     #[test]
@@ -787,7 +796,12 @@ mod test_arc_validation {
         let valid_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
         assert!(arc_check(&valid_arc1, EPS_COLLAPSED));
 
-        let valid_arc2 = arc(point(-1.0, -1.0), point(1.0, 1.0), point(0.0, 0.0), std::f64::consts::SQRT_2);
+        let valid_arc2 = arc(
+            point(-1.0, -1.0),
+            point(1.0, 1.0),
+            point(0.0, 0.0),
+            std::f64::consts::SQRT_2,
+        );
         assert!(arc_check(&valid_arc2, EPS_COLLAPSED));
 
         // Line segments (infinite radius) should also be valid if endpoints are separated
@@ -838,29 +852,19 @@ mod test_arc_validation {
     fn test_arc_check_edge_cases() {
         // Test with very large coordinates - ensure consistent geometry
         let large_coord_arc = arc(
-            point(1E10, 1E10), 
-            point(1E10 + 1.0, 1E10), 
-            point(1E10 + 0.5, 1E10), 
-            0.5
+            point(1E10, 1E10),
+            point(1E10 + 1.0, 1E10),
+            point(1E10 + 0.5, 1E10),
+            0.5,
         );
         assert!(arc_check(&large_coord_arc, EPS_COLLAPSED));
 
         // Test with very small but valid radius - ensure consistent geometry
-        let small_radius_arc = arc(
-            point(0.0, 0.0), 
-            point(1.0, 0.0), 
-            point(0.5, 0.0), 
-            0.5
-        );
+        let small_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
         assert!(arc_check(&small_radius_arc, EPS_COLLAPSED));
 
         // Test with large radius
-        let large_radius_arc = arc(
-            point(0.0, 0.0), 
-            point(1E-6, 0.0), 
-            point(0.0, 1E6), 
-            1E6
-        );
+        let large_radius_arc = arc(point(0.0, 0.0), point(1E-6, 0.0), point(0.0, 1E6), 1E6);
         assert!(arc_check(&large_radius_arc, EPS_COLLAPSED));
     }
 }
@@ -871,30 +875,30 @@ mod test_arc_validation {
 const ZERO: f64 = 0f64;
 const MIN_BULGE: f64 = 1E-8;
 /// Creates an arc from two points and a bulge parameter.
-/// 
+///
 /// This function creates an arc that connects two points using a bulge parameter
-/// to define the curvature. The bulge represents the ratio of the sagitta 
+/// to define the curvature. The bulge represents the ratio of the sagitta
 /// (the perpendicular distance from the chord midpoint to the arc) to half the chord length.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `pp1` - The first point of the arc
 /// * `pp2` - The second point of the arc
 /// * `bulge` - The bulge parameter controlling the arc curvature
-/// 
+///
 /// # Returns
-/// 
+///
 /// An Arc connecting the two points with the specified curvature that is CCW
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
-/// 
+///
 /// // Create a semicircle arc
 /// let arc = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1.0);
 /// assert!(arc.is_arc());
-/// 
+///
 /// // Create a line (very small bulge)
 /// let line = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
 /// assert!(line.is_line());
@@ -1181,32 +1185,32 @@ mod test_arc_circle_parametrization {
 // }
 
 /// Calculates the bulge parameter for an arc given start point, end point, center, and radius.
-/// 
+///
 /// This function computes the bulge parameter that would be needed to create an arc
 /// connecting points a and b with the given center c and radius r. The bulge represents
 /// the ratio used in arc parametrization.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `a` - The start point of the arc
 /// * `b` - The end point of the arc
 /// * `c` - The center point of the arc
 /// * `r` - The radius of the arc
-/// 
+///
 /// # Returns
-/// 
+///
 /// The bulge parameter for the arc, or 0.0 if the arc is invalid
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use base_geom::prelude::*;
-/// 
+///
 /// let start = point(0.0, 0.0);
 /// let end = point(2.0, 0.0);
 /// let center = point(1.0, 0.0);
 /// let radius = 1.0;
-/// 
+///
 /// let bulge = arc_bulge_from_points(start, end, center, radius);
 /// // The bulge parameter can be used to recreate the arc
 /// ```
@@ -1232,7 +1236,7 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
         // Invalid case - radius too small for the chord length
         return 0f64;
     }
-    
+
     let seg = if perp <= 0f64 {
         // small arc
         r - (0.5 * ddd.sqrt())
@@ -1240,7 +1244,7 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
         // large arc
         r + (0.5 * ddd.sqrt())
     };
-    
+
     // The original formula was returning 2.0 * seg / dist
     // But to match arc_circle_parametrization, we need to return the actual bulge
     // The relationship is: bulge = dist / (2 * seg)
@@ -1248,7 +1252,7 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     if seg.abs() < 1E-10 {
         return 0f64;
     }
-    
+
     return dist / (2.0 * seg);
 }
 
@@ -1280,13 +1284,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
         let bulge = 0.3; // Small positive bulge
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // Should be reasonably close to original bulge
         assert!(close_enough(bulge, result, TEST_EPS));
         assert!(result.is_finite());
@@ -1298,13 +1302,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
         let bulge = 1.5; // Large positive bulge
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // Should be reasonably close to original bulge
         assert!(close_enough(bulge, result, TEST_EPS));
         assert!(result.is_finite());
@@ -1316,13 +1320,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
         let bulge = 1.0; // Semicircle
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // For a semicircle, the function should return a finite positive value
         assert!(close_enough(bulge, result, TEST_EPS));
         assert!(result.is_finite());
@@ -1334,13 +1338,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(1.0, 1.0);
         let bulge = 0.41421356; // Approximates tan(π/8) for quarter circle
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // Should be reasonably close to original bulge
         assert!(close_enough(bulge, result, TEST_EPS));
         assert!(result.is_finite());
@@ -1352,10 +1356,10 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(1.0, 0.0);
         let bulge = 1e-9; // Very small bulge, should create near-line
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // For very small bulge, arc_circle_parametrization returns a line segment
         if arc.r == f64::INFINITY {
             // Line segment case - arc_g_from_points should handle this gracefully
@@ -1376,10 +1380,10 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
         let bulge = 0.0; // Zero bulge creates line segment
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // For zero bulge, arc_circle_parametrization returns a line segment
         if arc.r == f64::INFINITY {
             // Line segment case - arc_g_from_points should handle this gracefully
@@ -1400,13 +1404,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(100.0, 0.0);
         let bulge = 0.01; // Small bulge creates large radius
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // Should be positive and finite
         assert!(close_enough(bulge, result, TEST_EPS));
         assert!(result.is_finite());
@@ -1418,13 +1422,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
         let bulge = 1.0; // Semicircle
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // Should be positive and finite
         assert!(close_enough(bulge, result, TEST_EPS));
         assert!(result.is_finite());
@@ -1436,19 +1440,28 @@ mod test_arc_g_from_points {
         let a = point(1.0, 2.0);
         let b = point(3.0, 4.0);
         let bulge = 0.5;
-        
+
         // Create arc from parametrization
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let calculated_bulge = arc_bulge_from_points(a, b, arc.c, arc.r);
-        
+
         // Debug: print both values
-        println!("Original bulge: {}, Calculated bulge: {}, Ratio: {}", bulge, calculated_bulge, calculated_bulge / bulge);
-        
+        println!(
+            "Original bulge: {}, Calculated bulge: {}, Ratio: {}",
+            bulge,
+            calculated_bulge,
+            calculated_bulge / bulge
+        );
+
         // Should match the original bulge within numerical precision
-        assert!((calculated_bulge - bulge).abs() < 1e-10, 
-                "Expected {}, got {}", bulge, calculated_bulge);
+        assert!(
+            (calculated_bulge - bulge).abs() < 1e-10,
+            "Expected {}, got {}",
+            bulge,
+            calculated_bulge
+        );
     }
 
     #[test]
@@ -1457,13 +1470,13 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 2.0);
         let bulge = -0.8;
-        
+
         // Create arc from parametrization (should convert to CCW)
         let arc = arc_circle_parametrization(a, b, bulge);
-        
+
         // Calculate bulge back from points
         let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-        
+
         // Should return positive value (CCW orientation)
         assert!(close_enough(-bulge, calculated_bulge, TEST_EPS));
         assert!(calculated_bulge.is_finite());
@@ -1475,23 +1488,27 @@ mod test_arc_g_from_points {
         let test_bulges = [0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
         let a = point(0.0, 0.0);
         let b = point(1.0, 0.0);
-        
+
         for &bulge in &test_bulges {
             // Create arc from parametrization
             let arc = arc_circle_parametrization(a, b, bulge);
-            
+
             // Skip line segments (bulge = 0 case)
             if arc.r == f64::INFINITY {
                 continue;
             }
-            
+
             // Calculate bulge back from points
             let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-            
+
             // Should match the original bulge within numerical precision
-            assert!((calculated_bulge - bulge).abs() < 1e-10, 
-                    "Bulge {} resulted in {} (difference: {})", 
-                    bulge, calculated_bulge, (calculated_bulge - bulge).abs());
+            assert!(
+                (calculated_bulge - bulge).abs() < 1e-10,
+                "Bulge {} resulted in {} (difference: {})",
+                bulge,
+                calculated_bulge,
+                (calculated_bulge - bulge).abs()
+            );
         }
     }
 
@@ -1499,26 +1516,31 @@ mod test_arc_g_from_points {
     fn test_different_point_positions() {
         // Test with different start/end point configurations
         let test_cases = [
-            (point(0.0, 0.0), point(1.0, 0.0)),   // Horizontal
-            (point(0.0, 0.0), point(0.0, 1.0)),   // Vertical
-            (point(0.0, 0.0), point(1.0, 1.0)),   // Diagonal
-            (point(-1.0, -1.0), point(1.0, 1.0)), // Diagonal through origin
+            (point(0.0, 0.0), point(1.0, 0.0)),     // Horizontal
+            (point(0.0, 0.0), point(0.0, 1.0)),     // Vertical
+            (point(0.0, 0.0), point(1.0, 1.0)),     // Diagonal
+            (point(-1.0, -1.0), point(1.0, 1.0)),   // Diagonal through origin
             (point(10.0, 20.0), point(30.0, 40.0)), // Larger coordinates
         ];
-        
+
         let bulge = 0.5;
-        
+
         for (a, b) in test_cases.iter() {
             // Create arc from parametrization
             let arc = arc_circle_parametrization(*a, *b, bulge);
-            
+
             // Calculate bulge back from points
             let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-            
+
             // Should match the original bulge within numerical precision
-            assert!((calculated_bulge - bulge).abs() < 1e-10, 
-                    "Points {:?} -> {:?}: expected {}, got {}", 
-                    a, b, bulge, calculated_bulge);
+            assert!(
+                (calculated_bulge - bulge).abs() < 1e-10,
+                "Points {:?} -> {:?}: expected {}, got {}",
+                a,
+                b,
+                bulge,
+                calculated_bulge
+            );
         }
     }
 }

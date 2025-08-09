@@ -4,8 +4,9 @@
 
 ## Basic 2D geometric operations
 
-The intention of this library is to provide a foundation for 2D geometric operations, 
-including distance computations, intersection tests.
+The intention of this library is to provide a foundation for 2D geometric operations. 
+It includes mostly basic operations like point manipulation and distance/intersection
+between line segments and circle arcs.
 
 It is intended for use in my other projects, and **may not implement** all possible geometric operations.
 
@@ -14,7 +15,7 @@ It is intended for use in my other projects, and **may not implement** all possi
 
 Add to Cargo.toml
 ```
-base-geom = "0.0.1"
+base-geom = "0.0.5"
 ```
 
 ### Creating and working with points (vectors)

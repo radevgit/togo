@@ -79,6 +79,53 @@ pub fn point(x: f64, y: f64) -> Point {
     Point::new(x, y)
 }
 
+/// Computes the 2D orientation test for three points.
+///
+/// This function determines the orientation of point `p` relative to the directed
+/// line from point `a` to point `b`. It uses the robust `orient2d` predicate
+/// which computes the sign of the determinant:
+///
+/// ```text
+/// | ax  ay  1 |
+/// | bx  by  1 |  
+/// | px  py  1 |
+/// ```
+///
+/// This is equivalent to twice the signed area of the triangle formed by the three points.
+///
+/// # Returns
+///
+/// * Positive value: `p` is to the left of the directed line from `a` to `b`
+/// * Negative value: `p` is to the right of the directed line from `a` to `b`  
+/// * Zero: The three points are collinear
+///
+/// # Examples
+///
+/// ```
+/// use base_geom::prelude::*;
+///
+/// let a = point(0.0, 0.0);
+/// let b = point(1.0, 0.0);
+///
+/// // Point to the left of the line (positive orientation)
+/// let p_left = point(0.5, 1.0);
+/// assert!(points_order(a, b, p_left) > 0.0);
+///
+/// // Point to the right of the line (negative orientation)  
+/// let p_right = point(0.5, -1.0);
+/// assert!(points_order(a, b, p_right) < 0.0);
+///
+/// // Collinear point (zero orientation)
+/// let p_collinear = point(0.5, 0.0);
+/// assert_eq!(points_order(a, b, p_collinear), 0.0);
+/// ```
+pub fn points_order(a: Point, b: Point, p: Point) -> f64 {
+    let pa = Coord { x: a.x, y: a.y };
+    let pb = Coord { x: b.x, y: b.y };
+    let pp = Coord { x: p.x, y: p.y };
+    orient2d(pa, pb, pp)
+}
+
 impl Display for Point {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "[{:.20}, {:.20}]", self.x, self.y)
@@ -946,5 +993,105 @@ mod test_point {
         let zero = point(0.0, 0.0);
         let display_zero = format!("{}", zero);
         assert!(display_zero.contains("0.00000000000000000000"));
+    }
+
+    #[test]
+    fn test_points_order() {
+        // Test with simple horizontal line - this pattern works reliably
+        let a = point(0.0, 0.0);
+        let b = point(2.0, 0.0);
+        let p_above = point(1.0, 1.0);  // Above line, positive orientation
+        let p_below = point(1.0, -1.0); // Below line, negative orientation
+        
+        assert!(points_order(a, b, p_above) > 0.0);
+        assert!(points_order(a, b, p_below) < 0.0);
+        
+        // Test with 3 points on unit circle (all points by construction lie on same circle)
+        let radius = 1.0;
+        let a_circle = point(radius, 0.0);        // (1, 0)
+        let b_circle = point(0.0, radius);        // (0, 1)
+        let p_circle = point(-radius, 0.0);       // (-1, 0)
+        
+        // This gives a specific orientation value for these circle points
+        let circle_result = points_order(a_circle, b_circle, p_circle);
+        assert!(circle_result.is_finite());
+        assert!(circle_result > 0.0); // Based on our testing, this is positive
+    }
+
+    #[test]
+    fn test_points_order_comprehensive() {
+        // Test with larger scale using reliable horizontal line pattern
+        let a = point(0.0, 0.0);
+        let b = point(10.0, 0.0);
+        let p_above = point(5.0, 3.0);  // Above line, positive orientation
+        let p_below = point(5.0, -3.0); // Below line, negative orientation
+        
+        let result_above = points_order(a, b, p_above);
+        let result_below = points_order(a, b, p_below);
+        
+        assert!(result_above > 0.0);
+        assert!(result_below < 0.0);
+        
+        // Test with 3 points on larger circle (all on same circle by construction)
+        let radius = 5.0;
+        let center_x = 0.0;
+        let center_y = 0.0;
+        
+        // Points at specific angles on circle
+        let angle_a = 0.0f64;  // 0°
+        let angle_b = std::f64::consts::PI / 3.0;  // 60°
+        let angle_p = 2.0 * std::f64::consts::PI / 3.0;  // 120°
+        
+        let a_circle = point(center_x + radius * angle_a.cos(), center_y + radius * angle_a.sin());
+        let b_circle = point(center_x + radius * angle_b.cos(), center_y + radius * angle_b.sin());
+        let p_circle = point(center_x + radius * angle_p.cos(), center_y + radius * angle_p.sin());
+        
+        let circle_result = points_order(a_circle, b_circle, p_circle);
+        assert!(circle_result.is_finite());
+        
+        // Test order independence - swapping a and b should negate result
+        let result_forward = points_order(a, b, p_above);
+        let result_backward = points_order(b, a, p_above);
+        assert!((result_forward + result_backward).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_points_order_edge_cases() {
+        // Test with very small circle using sin/cos
+        let tiny_radius = 1e-6;
+        let tiny_a = point(tiny_radius * 0.0f64.cos(), tiny_radius * 0.0f64.sin());        // 0°
+        let tiny_b = point(tiny_radius * (std::f64::consts::PI/2.0).cos(), tiny_radius * (std::f64::consts::PI/2.0).sin()); // 90°
+        let tiny_p = point(tiny_radius * std::f64::consts::PI.cos(), tiny_radius * std::f64::consts::PI.sin());  // 180°
+        
+        let tiny_result = points_order(tiny_a, tiny_b, tiny_p);
+        assert!(tiny_result.is_finite());
+        assert!(tiny_result > 0.0);
+        
+        // Test with large circle using sin/cos
+        let large_radius = 1e6;
+        let large_a = point(large_radius * 0.0f64.cos(), large_radius * 0.0f64.sin());        // 0°
+        let large_b = point(large_radius * (std::f64::consts::PI/2.0).cos(), large_radius * (std::f64::consts::PI/2.0).sin()); // 90°
+        let large_p = point(large_radius * std::f64::consts::PI.cos(), large_radius * std::f64::consts::PI.sin());  // 180°
+        
+        let large_result = points_order(large_a, large_b, large_p);
+        assert!(large_result > 0.0);
+        
+        // Test with identical points (degenerate case)
+        let same_point = point(1.0, 1.0);
+        let degenerate_result = points_order(same_point, same_point, same_point);
+        assert_eq!(degenerate_result, 0.0);
+        
+        // Test with points very close together on unit circle
+        let angle1 = 0.0f64;
+        let angle2 = 1e-6f64; // Very small angle difference
+        let angle3 = std::f64::consts::PI; // Opposite side
+        
+        let close_a = point(angle1.cos(), angle1.sin());
+        let close_b = point(angle2.cos(), angle2.sin());
+        let close_p = point(angle3.cos(), angle3.sin());
+        
+        let close_result = points_order(close_a, close_b, close_p);
+        assert!(close_result.is_finite());
+        assert!(close_result.abs() > 0.0);
     }
 }
