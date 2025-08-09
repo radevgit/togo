@@ -373,17 +373,20 @@ mod svg;
 
 pub mod prelude {
     // Re-export core types and functions
-    pub use crate::arc::{Arc, arc, arcline, arc_circle_parametrization};
+    pub use crate::arc::{
+        Arc, arc, arc_check, arc_circle_parametrization, arc_g_from_points,
+        arc_is_collapsed_ends, arc_is_collapsed_radius, arc_is_not_consistent, arcline,
+    };
     pub use crate::circle::{Circle, circle};
     pub use crate::interval::{Interval, interval};
     pub use crate::line::{Line, line};
+    pub use crate::offset_raw::{OffsetRaw, offsetraw};
     pub use crate::point::{Point, point};
     pub use crate::pvertex::{
         PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
         pvertex,
     };
     pub use crate::segment::{Segment, segment};
-    pub use crate::offset_raw::{OffsetRaw, offsetraw};  
     pub use crate::svg::{SVG, svg};
 
     // Re-export distance computation functions
@@ -405,12 +408,13 @@ pub mod prelude {
     pub use crate::int_line_line::{LineLineConfig, int_line_line};
     pub use crate::int_segment_arc::{SegmentArcConfig, int_segment_arc};
     pub use crate::int_segment_circle::{SegmentCircleConfig, int_segment_circle};
-    pub use crate::int_segment_point::{int_segment_point, SegmentPointConfig};
+    pub use crate::int_segment_point::{SegmentPointConfig, int_segment_point};
     pub use crate::int_segment_segment::{SegmentSegmentConfig, int_segment_segment};
 
     // Re-export utility functions
     pub use crate::utils::{
-        almost_equal_as_int, close_enough, diff_of_prod, next, prev, sum_of_prod, min_3, min_4, min_5
+        almost_equal_as_int, close_enough, diff_of_prod, min_3, min_4, min_5, next, prev,
+        sum_of_prod,
     };
 }
 
