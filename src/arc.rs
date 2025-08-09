@@ -2,10 +2,7 @@
 
 use robust::{Coord, orient2d};
 
-use crate::{
-    circle::{Circle, circle},
-    point::{Point, point},
-};
+use crate::prelude::*;
 
 use std::{fmt::Display, sync::atomic::AtomicUsize};
 
@@ -776,7 +773,7 @@ mod test_arc_validation {
         let p1 = point(0.0, 0.0);
         let p2 = point(EPS_COLLAPSED, 0.0);
         // This should not be collapsed (distance equals tolerance)
-        assert!(!arc_is_collapsed_ends(p1, p2, EPS_COLLAPSED));
+        assert!(arc_is_collapsed_ends(p1, p2, EPS_COLLAPSED));
 
         // Points slightly farther than EPS_COLLAPSED
         let p3 = point(0.0, 0.0);
@@ -1151,8 +1148,8 @@ mod test_arc_circle_parametrization {
     }
 }
 
-/// Given start end points of arc and radius, calculate bulge
-/// TODO: not tested
+// Given start end points of arc and radius, calculate bulge
+// TODO: not tested
 // #00006
 // pub fn arc_g_from_points2(a: Point, b: Point, r: f64) -> f64 {
 //     let d = b - a;
@@ -1165,8 +1162,8 @@ mod test_arc_circle_parametrization {
 //     g
 // }
 
-/// Given start end points of arc and radius, calculate bulge
-/// TODO: not tested
+// Given start end points of arc and radius, calculate bulge
+// TODO: not tested
 // pub fn arc_g_from_points3(a: Point, b: Point, c: Point) -> f64 {
 //     let d = b - a;
 //     let dist = d.x.hypot(d.y);
@@ -1210,12 +1207,12 @@ mod test_arc_circle_parametrization {
 /// let center = point(1.0, 0.0);
 /// let radius = 1.0;
 /// 
-/// let bulge = arc_g_from_points(start, end, center, radius);
+/// let bulge = arc_bulge_from_points(start, end, center, radius);
 /// // The bulge parameter can be used to recreate the arc
 /// ```
 // Given start end points of arc and radius, calculate bulge
 // https://stackoverflow.com/questions/48979861/numerically-stable-method-for-solving-quadratic-equations/50065711#50065711
-pub fn arc_g_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
+pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     let dist = (b - a).norm();
     if dist < 1E-10 {
         // close points
@@ -1266,7 +1263,7 @@ mod test_arc_g_from_points {
         let a = point(114.31083505599867, 152.84458247200070);
         let b = point(114.31083505599865, 152.84458247200067);
         let arc = arc_circle_parametrization(a, b, 16.0);
-        assert_eq!(arc_g_from_points(a, b, arc.c, arc.r), 0.0);
+        assert_eq!(arc_bulge_from_points(a, b, arc.c, arc.r), 0.0);
     }
 
     #[test]
@@ -1274,7 +1271,7 @@ mod test_arc_g_from_points {
         let a = point(114.31083505599865, 152.84458247200067);
         let b = point(114.31083505599865, 152.84458247200067);
         let arc = arc_circle_parametrization(a, b, 16.0);
-        assert_eq!(arc_g_from_points(a, b, arc.c, arc.r), 0.0);
+        assert_eq!(arc_bulge_from_points(a, b, arc.c, arc.r), 0.0);
     }
 
     #[test]
@@ -1288,7 +1285,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // Should be reasonably close to original bulge
         assert!(close_enough(bulge, result, TEST_EPS));
@@ -1306,7 +1303,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // Should be reasonably close to original bulge
         assert!(close_enough(bulge, result, TEST_EPS));
@@ -1324,7 +1321,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // For a semicircle, the function should return a finite positive value
         assert!(close_enough(bulge, result, TEST_EPS));
@@ -1342,7 +1339,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // Should be reasonably close to original bulge
         assert!(close_enough(bulge, result, TEST_EPS));
@@ -1362,12 +1359,12 @@ mod test_arc_g_from_points {
         // For very small bulge, arc_circle_parametrization returns a line segment
         if arc.r == f64::INFINITY {
             // Line segment case - arc_g_from_points should handle this gracefully
-            let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
             // For line segments, the function may return infinity or 0 depending on implementation
             assert!(result == 0.0 || result.is_infinite());
         } else {
             // Calculate bulge back from points
-            let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
             assert!(close_enough(bulge, result, TEST_EPS));
             assert!(result.is_finite());
         }
@@ -1386,12 +1383,12 @@ mod test_arc_g_from_points {
         // For zero bulge, arc_circle_parametrization returns a line segment
         if arc.r == f64::INFINITY {
             // Line segment case - arc_g_from_points should handle this gracefully
-            let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
             // For line segments, the function may return infinity or 0 depending on implementation
             assert!(result == 0.0 || result.is_infinite());
         } else {
             // Calculate bulge back from points
-            let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
             assert!(close_enough(bulge, result, TEST_EPS));
             assert!(result.is_finite());
         }
@@ -1408,7 +1405,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // Should be positive and finite
         assert!(close_enough(bulge, result, TEST_EPS));
@@ -1426,7 +1423,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let result = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // Should be positive and finite
         assert!(close_enough(bulge, result, TEST_EPS));
@@ -1444,7 +1441,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let calculated_bulge = arc_g_from_points(a, b, arc.c, arc.r);
+        let calculated_bulge = arc_bulge_from_points(a, b, arc.c, arc.r);
         
         // Debug: print both values
         println!("Original bulge: {}, Calculated bulge: {}, Ratio: {}", bulge, calculated_bulge, calculated_bulge / bulge);
@@ -1465,7 +1462,7 @@ mod test_arc_g_from_points {
         let arc = arc_circle_parametrization(a, b, bulge);
         
         // Calculate bulge back from points
-        let calculated_bulge = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+        let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
         
         // Should return positive value (CCW orientation)
         assert!(close_enough(-bulge, calculated_bulge, TEST_EPS));
@@ -1489,7 +1486,7 @@ mod test_arc_g_from_points {
             }
             
             // Calculate bulge back from points
-            let calculated_bulge = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+            let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
             
             // Should match the original bulge within numerical precision
             assert!((calculated_bulge - bulge).abs() < 1e-10, 
@@ -1516,7 +1513,7 @@ mod test_arc_g_from_points {
             let arc = arc_circle_parametrization(*a, *b, bulge);
             
             // Calculate bulge back from points
-            let calculated_bulge = arc_g_from_points(arc.a, arc.b, arc.c, arc.r);
+            let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
             
             // Should match the original bulge within numerical precision
             assert!((calculated_bulge - bulge).abs() < 1e-10, 

@@ -19,7 +19,7 @@ impl Display for OffsetRaw {
 
 impl OffsetRaw {
     #[inline]
-    fn new(arc: Arc, orig: Point, g: f64) -> Self {
+    pub fn new(arc: Arc, orig: Point, g: f64) -> Self {
         OffsetRaw { arc, orig, g }
     }
 }

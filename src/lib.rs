@@ -374,7 +374,7 @@ mod svg;
 pub mod prelude {
     // Re-export core types and functions
     pub use crate::arc::{
-        Arc, arc, arc_check, arc_circle_parametrization, arc_g_from_points,
+        Arc, arc, arc_check, arc_circle_parametrization, arc_bulge_from_points,
         arc_is_collapsed_ends, arc_is_collapsed_radius, arc_is_not_consistent, arcline,
     };
     pub use crate::circle::{Circle, circle};
@@ -400,21 +400,21 @@ pub mod prelude {
     pub use crate::dist_segment_segment::dist_segment_segment;
 
     // Re-export intersection computation functions
-    pub use crate::int_arc_arc::{ArcArcConfig, int_arc_arc};
+    pub use crate::int_arc_arc::{ArcArcConfig, int_arc_arc, if_really_intersecting_arc_arc};
     pub use crate::int_circle_circle::{CircleCircleConfig, int_circle_circle};
     pub use crate::int_interval_interval::{IntervalConfig, int_interval_interval};
     pub use crate::int_line_arc::{LineArcConfig, int_line_arc};
     pub use crate::int_line_circle::{LineCircleConfig, int_line_circle};
     pub use crate::int_line_line::{LineLineConfig, int_line_line};
-    pub use crate::int_segment_arc::{SegmentArcConfig, int_segment_arc};
+    pub use crate::int_segment_arc::{SegmentArcConfig, int_segment_arc, if_really_intersecting_segment_arc};
     pub use crate::int_segment_circle::{SegmentCircleConfig, int_segment_circle};
     pub use crate::int_segment_point::{SegmentPointConfig, int_segment_point};
-    pub use crate::int_segment_segment::{SegmentSegmentConfig, int_segment_segment};
+    pub use crate::int_segment_segment::{SegmentSegmentConfig, int_segment_segment, if_really_intersecting_segment_segment};
 
     // Re-export utility functions
     pub use crate::utils::{
-        almost_equal_as_int, close_enough, diff_of_prod, min_3, min_4, min_5, next, prev,
-        sum_of_prod,
+        almost_equal_as_int, close_enough, diff_of_prod, min_3, min_4, min_5, next, 
+        perturbed_ulps_as_int, prev, sum_of_prod,
     };
 }
 

@@ -92,7 +92,7 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
 /// assert!(!close_enough(1.0, 1.1, 0.01));
 /// ```
 pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
-    return (a - b).abs() < eps;
+    return (a - b).abs() <= eps;
 }
 
 /// Perturbs a floating-point value by a specified number of ULPs.
