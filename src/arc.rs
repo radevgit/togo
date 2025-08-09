@@ -246,7 +246,7 @@ impl Arc {
 
     #[inline]
     /// a, b, p - points on arc using robust order
-    pub(crate) fn contains_order2d(a: Point, b: Point, p: Point) -> f64 {
+    pub fn contains_order2d(a: Point, b: Point, p: Point) -> f64 {
         let pa = Coord { x: a.x, y: a.y };
         let pb = Coord { x: b.x, y: b.y };
         let pp = Coord { x: p.x, y: p.y };
