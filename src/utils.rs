@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-//use std::mem::transmute;
 
 const ALMOST_EQUAL_C: u64 = 0x8000_0000_0000_0000 as u64;
 const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
@@ -115,13 +114,11 @@ pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
 ///
 /// This function is unsafe and should only be used for testing. It does not
 /// handle edge cases like overflow or underflow properly.
-///
-/// # Panics
-///
-/// Panics if f is 0.0 and c is -1 (would create invalid bit pattern).
-// Changes float with small number of ULPs
 pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
-    debug_assert!(!(f == 0.0 && c == -1));
+    // Special case: f == 0.0 and c == -1 should return -0.0 (valid bit pattern)
+    if f == 0.0 && c == -1 {
+        return -0.0;
+    }
     let mut f_i: i64 = f.to_bits() as i64;
     f_i += c;
     f64::from_bits(f_i as u64)
@@ -129,6 +126,16 @@ pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
 
 #[cfg(test)]
 mod test_almost_equal_as_int {
+    #[test]
+    fn test_perturbed_ulps_as_int_zero_minus_one() {
+        // f = 0.0, c = -1 should return -0.0
+        let result = perturbed_ulps_as_int(0.0, -1);
+        assert_eq!(result, -0.0);
+        // Check that -0.0 and 0.0 are considered almost equal
+        assert!(almost_equal_as_int(result, 0.0, 0));
+        // Check that the bit pattern is correct
+        assert_eq!(result.to_bits(), (-0.0f64).to_bits());
+    }
     use super::*;
 
     #[test]
