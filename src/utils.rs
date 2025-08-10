@@ -83,7 +83,7 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
 ///
 /// # Returns
 ///
-/// True if |a - b| < eps
+/// True if |a - b| <= eps
 ///
 /// # Examples
 ///
@@ -120,7 +120,6 @@ pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
 ///
 /// Panics if f is 0.0 and c is -1 (would create invalid bit pattern).
 // Changes float with small number of ULPs
-// Unsafe! Only for tests
 pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
     debug_assert!(!(f == 0.0 && c == -1));
     let mut f_i: i64 = f.to_bits() as i64;

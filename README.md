@@ -71,10 +71,17 @@ It is intended for use in my other projects, and **may not implement** all possi
 - normalize
 - almost_eq (ULP-s)
 - close_enough (eps)
-- diff_of_prod
-- sum_of_prod
 - lerp
 - sort_colinear_points
+
+## Utilities functions
+- almost_equal_as_int (ULP-s)
+- perturbed_ulps_as_int (ULP-s)
+- close_enough (eps)
+- diff_of_prod
+- sum_of_prod
+
+
 
 ## Examples
 
