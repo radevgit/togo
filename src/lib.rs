@@ -217,11 +217,6 @@
 //! // Check if two floats are almost equal using integer comparison
 //! assert!(almost_equal_as_int(1.0, 1.0, 0));
 //!
-//! // Get next/previous indices in a cyclic array
-//! assert_eq!(next(0, 5), 1);  // next index in array of size 5
-//! assert_eq!(next(4, 5), 0);  // wraps around
-//! assert_eq!(prev(0, 5), 4);  // previous index wraps around
-//! assert_eq!(prev(1, 5), 0);  // previous index
 //! ```
 //!
 //! ## Arc-arc intersection

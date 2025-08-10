@@ -15,7 +15,7 @@ It is intended for use in my other projects, and **may not implement** all possi
 
 Add to Cargo.toml
 ```
-base-geom = "0.1.0"
+base-geom = "0.1.1"
 ```
 
 ### Creating and working with points (vectors)
@@ -190,11 +190,6 @@ assert!(close_enough(1.0, 1.0000001, 1e-5));
 assert!(!close_enough(1.0, 1.1, 1e-5));
 // Check if two floats are almost equal using integer comparison
 assert!(almost_equal_as_int(1.0, 1.0, 0));
-// Get next/previous indices in a cyclic array
-assert_eq!(next(0, 5), 1);  // next index in array of size 5
-assert_eq!(next(4, 5), 0);  // wraps around
-assert_eq!(prev(0, 5), 4);  // previous index wraps around
-assert_eq!(prev(1, 5), 0);  // previous index
 ```
 
 ### Arc-arc intersection

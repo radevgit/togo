@@ -562,14 +562,19 @@ pub fn arc_is_collapsed_ends(a: Point, b: Point, eps: f64) -> bool {
 /// let end = point(2.0, 0.0);
 /// let center = point(1.0, 0.0);
 /// let radius = 1.0;
-/// assert!(!arc_is_not_consistent(start, end, center, radius, 1e-10));
+/// let mut arc = arc(start, end, center, radius);
+/// assert!(!arc_is_not_consistent(&arc, 1e-10));
 ///
 /// // Inconsistent arc: center is not equidistant from endpoints
 /// let bad_center = point(0.5, 0.0);
-/// assert!(arc_is_not_consistent(start, end, bad_center, radius, 1e-10));
-///
+/// let mut arc2 = arc.clone();
+/// arc2.c = bad_center;
+/// assert!(arc_is_not_consistent(&arc2, 1e-10));
+/// 
 /// // Another inconsistent case: wrong radius
-/// assert!(arc_is_not_consistent(start, end, center, 2.0, 1e-10));
+/// let mut arc3 = arc.clone();
+/// arc3.r = 2.0;
+/// assert!(arc_is_not_consistent(&arc3, 1e-10));
 /// ```
 pub fn arc_is_not_consistent(arc: &Arc, eps: f64) -> bool {
     // Check if the radius is consistent with the center and endpoints
