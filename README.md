@@ -2,6 +2,13 @@
 ![Build](https://github.com/radevgit/basegeom/actions/workflows/rust.yml/badge.svg)
 
 
+## Adding the library to your project
+
+Add to Cargo.toml in [dependencies] section
+```
+basegeom = "0.2.0"
+```
+
 ## Basic 2D geometric operations
 
 The intention of this library is to provide a foundation for 2D geometric operations. 
@@ -11,12 +18,63 @@ between line segments and circle arcs.
 It is intended for use in my other projects, and **may not implement** all possible geometric operations.
 
 
-## Examples
 
-Add to Cargo.toml
-```
-basegeom = "0.2.0"
-```
+## Implemented Features
+
+- Point creation and manipulation
+- Line segments and circle arcs
+- Distance calculations between points, line segments, and circle arcs
+- Intersection tests for various geometric primitives
+- Arc representation and manipulation
+- Support for polylines and vertex manipulation
+
+## Distance Functions
+- prelude::dist_line_circle
+- prelude::dist_point_arc
+- prelude::dist_point_arc_dist
+- prelude::dist_point_circle
+- prelude::dist_point_segment
+- prelude::dist_segment_arc
+- prelude::dist_segment_circle
+- prelude::dist_segment_segment
+
+## Intersection Functions
+- prelude::int_arc_arc
+- prelude::int_circle_circle
+- prelude::int_interval_interval
+- prelude::int_line_arc
+- prelude::int_line_circle
+- prelude::int_line_line
+- prelude::int_segment_arc
+- prelude::int_segment_circle
+- prelude::int_segment_point
+- prelude::int_segment_segment
+- prelude::if_really_intersecting_arc_arc
+- prelude::if_really_intersecting_segment_arc
+- prelude::if_really_intersecting_segment_segment
+
+## Geometric Primitives
+
+- Points
+- Line Segments
+- Circles
+- Arcs
+- Polylines
+
+## Point (vector) Manipulation
+- add, sub, neg, mul(f64), div(f64)
+- dot
+- perp
+- norm
+- normalize
+- almost_eq
+- close_enough
+- diff_of_prod
+- sum_of_prod
+- lerp
+- sort_colinear_points
+
+## Examples
 
 ### Creating and working with points (vectors)
 ```

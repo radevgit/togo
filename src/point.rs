@@ -173,6 +173,8 @@ macro_rules! ImplBinaryOp {
 ImplBinaryOp!(Add, add, +);
 ImplBinaryOp!(Sub, sub, -);
 
+
+/// Implements negation of a point.
 impl Neg for Point {
     type Output = Self;
     #[inline]
@@ -184,6 +186,7 @@ impl Neg for Point {
     }
 }
 
+/// Implements multiplication of a point by a scalar.
 impl Mul<f64> for Point {
     type Output = Self;
     #[inline]
@@ -195,6 +198,7 @@ impl Mul<f64> for Point {
     }
 }
 
+/// Implements division of a point by a scalar.
 impl Div<f64> for Point {
     type Output = Self;
     #[inline]
@@ -239,7 +243,7 @@ impl Point {
     //     self.x * other.y - self.y * other.x
     // }
 
-    // Improved perp using Kahan method
+    /// Improved perp using Kahan method
     #[inline]
     pub fn perp(&self, other: Self) -> f64 {
         diff_of_prod(self.x, other.y, self.y, other.x)
@@ -368,7 +372,7 @@ impl Point {
         return (self.x - other.x).abs() <= eps && (self.y - other.y).abs() <= eps;
     }
 
-    // diff_of_prod for points
+    /// diff_of_prod for points
     #[inline]
     pub fn diff_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
         Point {
@@ -377,7 +381,7 @@ impl Point {
         }
     }
 
-    // sum_of_prod for points
+    /// sum_of_prod for points
     #[inline]
     pub fn sum_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
         Point {
