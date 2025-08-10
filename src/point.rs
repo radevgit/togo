@@ -390,7 +390,7 @@ impl Point {
         }
     }
 
-    /// Linearly interpolate between two vectors.
+    /// Linearly interpolate between two points.
     #[inline]
     pub fn lerp(self, other: Point, t: f64) -> Point {
         self + (other - self) * t
@@ -399,10 +399,10 @@ impl Point {
     /// Sorts four collinear points.
     ///
     /// This function sorts four points that are expected to be collinear,
-    /// and are usually a result of two collinear segments overlapping.
+    /// and are usually a result of intersection of two collinear segments overlapping.
     /// 
-    /// Sort using sort networks
-    /// Ascending or descending order is not important
+    /// Sort using sort networks.
+    /// Ascending or descending order is not important.
     pub fn sort_colinear_points(
         a: Point,
         b: Point,
