@@ -40,7 +40,7 @@ pub enum CircleCircleConfig {
 /// 
 /// # Examples
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// 
 /// let circle0 = circle(point(0.0, 0.0), 1.0);
 /// let circle1 = circle(point(1.0, 0.0), 1.0);

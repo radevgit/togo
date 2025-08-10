@@ -31,7 +31,7 @@ const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let a = 1.0f64;
 /// let b = 1.0000000000000002f64; // Next representable value after 1.0
@@ -88,7 +88,7 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// assert!(close_enough(1.0, 1.001, 0.01));
 /// assert!(!close_enough(1.0, 1.1, 0.01));
@@ -305,7 +305,7 @@ mod test_almost_equal_as_int {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// // This would suffer from catastrophic cancellation with naive computation
 /// let result = diff_of_prod(1e16, 1.0, 1e16, 1.0000000000000001);
@@ -348,7 +348,7 @@ pub fn diff_of_prod(a: f64, b: f64, c: f64, d: f64) -> f64 {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let result = sum_of_prod(1.5, 2.0, 3.0, 4.0); // 1.5×2.0 + 3.0×4.0 = 15.0
 /// ```

@@ -48,7 +48,7 @@ pub enum ArcArcConfig {
 ///
 /// # Examples
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// // Define two arcs
 /// let arc0 = arc(point(0.0, 0.0), point(1.0, 1.0), point(1.0, 0.0), 1.0);
 /// let arc1 = arc(point(0.0, 2.0), point(1.0, 1.0), point(1.0, 2.0), 1.0);

@@ -12,7 +12,7 @@ use crate::point::Point;
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let seg = Segment::new(point(0.0, 0.0), point(3.0, 4.0));
 /// ```
@@ -29,7 +29,6 @@ impl Display for Segment {
 }
 
 impl Segment {
-    #[doc(hidden)]
     /// Creates a new line segment between two points.
     ///
     /// # Arguments
@@ -40,7 +39,7 @@ impl Segment {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let seg = Segment::new(point(0.0, 0.0), point(1.0, 1.0));
     /// ```
@@ -62,7 +61,7 @@ impl Segment {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let seg = segment(point(0.0, 0.0), point(1.0, 1.0));
 /// ```
@@ -72,7 +71,6 @@ pub fn segment(p0: Point, p1: Point) -> Segment {
 }
 
 impl Segment {
-    #[doc(hidden)]
     /// Converts the segment to centered form representation.
     ///
     /// This representation is useful for certain geometric algorithms that work
@@ -88,7 +86,7 @@ impl Segment {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let seg = segment(point(0.0, 0.0), point(4.0, 0.0));
     /// let (center, direction, extent) = seg.get_centered_form();

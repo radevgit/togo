@@ -29,7 +29,7 @@ use crate::prelude::*;
 /// # Examples
 /// 
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// 
 /// let p = point(1.0, 1.0);
 /// let seg = segment(point(0.0, 0.0), point(2.0, 0.0));

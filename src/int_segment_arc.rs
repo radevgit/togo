@@ -31,7 +31,7 @@ pub enum SegmentArcConfig {
 ///
 /// # Examples
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// let segment = Segment::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let arc = Arc::new(point(0.0, 1.0), point(1.0, 0.0), point(1.0, 1.0), 1.0);
 /// let result = int_segment_arc(&segment, &arc);

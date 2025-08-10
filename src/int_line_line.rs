@@ -31,7 +31,7 @@ const ZERO: f64 = 0f64;
 ///
 /// # Examples
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// let line0 = Line::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let line1 = Line::new(point(0.0, 2.0), point(1.0, -1.0));
 /// let result = int_line_line(&line0, &line1);

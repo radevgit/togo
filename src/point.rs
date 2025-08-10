@@ -13,13 +13,13 @@ const ZERO: f64 = 0f64;
 
 /// A 2D point with double precision floating point coordinates.
 ///
-/// This is a fundamental data type used throughout the base-geom library
+/// This is a fundamental data type used throughout the basegeom library
 /// to represent positions and vectors in 2D space.
 ///
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let p1 = point(3.0, 4.0);
 /// let p2 = point(1.0, 2.0);
@@ -34,7 +34,6 @@ pub struct Point {
 }
 
 impl Point {
-    #[doc(hidden)]
     /// Creates a new point with the given coordinates.
     ///
     /// # Arguments
@@ -45,7 +44,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let p = Point::new(3.0, 4.0);
     /// assert_eq!(p.x, 3.0);
@@ -68,7 +67,7 @@ impl Point {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let p = point(3.0, 4.0);
 /// assert_eq!(p.x, 3.0);
@@ -102,7 +101,7 @@ pub fn point(x: f64, y: f64) -> Point {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let a = point(0.0, 0.0);
 /// let b = point(1.0, 0.0);
@@ -208,7 +207,6 @@ impl Div<f64> for Point {
 }
 
 impl Point {
-    #[doc(hidden)]
     /// Computes the dot product of this point with another point.
     ///
     /// Uses improved precision via the Kahan summation method.
@@ -224,7 +222,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let p1 = point(3.0, 4.0);
     /// let p2 = point(1.0, 2.0);
@@ -241,14 +239,12 @@ impl Point {
     //     self.x * other.y - self.y * other.x
     // }
 
-    #[doc(hidden)]
     // Improved perp using Kahan method
     #[inline]
     pub fn perp(&self, other: Self) -> f64 {
         diff_of_prod(self.x, other.y, self.y, other.x)
     }
 
-    #[doc(hidden)]
     /// Computes the Euclidean norm (magnitude) of this point when treated as a vector.
     ///
     /// # Returns
@@ -258,7 +254,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
     /// let magnitude = p.norm(); // sqrt(3² + 4²) = 5.0
@@ -281,7 +277,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
     /// let (normalized, magnitude) = p.normalize();
@@ -335,7 +331,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let p1 = point(1.0, 2.0);
     /// let p2 = point(1.0000001, 2.0000001);
@@ -361,7 +357,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let p1 = point(1.0, 2.0);
     /// let p2 = point(1.001, 2.001);

@@ -27,7 +27,7 @@ const EPS_COLLAPSED: f64 = 1E-8;
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let start = point(0.0, 1.0);
 /// let end = point(1.0, 0.0);
@@ -86,7 +86,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// // Create a quarter circle arc
     /// let arc = Arc::new(
@@ -125,7 +125,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(arc.is_arc()); // Has finite radius
     ///
@@ -146,7 +146,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(!arc.is_line()); // Has finite radius
     ///
@@ -167,7 +167,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let mut arc = Arc::new(
     ///     point(0.0, 0.0),
@@ -196,7 +196,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// let reversed = arc.reverse();
     /// ```
@@ -205,7 +205,6 @@ impl Arc {
         Arc::new(self.b, self.a, self.c, self.r)
     }
 
-    #[doc(hidden)]
     #[inline]
     /// Checks if the arc contains the given point,
     /// where the point is a result of intersection.
@@ -221,7 +220,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     /// let arc0 = arc(point(0.0, 0.0), point(1.0, 1.0), point(0.5, 0.5), 1.0);
     /// assert!(arc0.contains(point(1.0, 0.0))); // Point on the arc
     /// assert!(!arc0.contains(point(0.0, 1.0))); // Point outside the arc
@@ -264,7 +263,7 @@ impl Arc {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
 /// assert_eq!(arc.a, point(0.0, 0.0));
 /// assert_eq!(arc.b, point(1.0, 0.0));
@@ -293,7 +292,7 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// let line = arcline(point(0.0, 0.0), point(1.0, 1.0));
 /// assert!(line.is_line());
 /// assert!(!line.is_arc());
@@ -487,7 +486,7 @@ mod test_arc {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// assert!(arc_is_collapsed_radius(0.0001, 0.01)); // Radius too small
 /// assert!(arc_is_collapsed_radius(f64::NAN, 0.01)); // NaN radius
 /// assert!(!arc_is_collapsed_radius(1.0, 0.01)); // Valid radius
@@ -519,7 +518,7 @@ pub fn arc_is_collapsed_radius(r: f64, eps: f64) -> bool {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// let p1 = point(0.0, 0.0);
 /// let p2 = point(0.0001, 0.0);
 /// let p3 = point(1.0, 0.0);
@@ -555,7 +554,7 @@ pub fn arc_is_collapsed_ends(a: Point, b: Point, eps: f64) -> bool {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// // Consistent arc: center is equidistant from both endpoints
 /// let start = point(0.0, 0.0);
@@ -604,7 +603,7 @@ pub fn arc_is_not_consistent(arc: &Arc, eps: f64) -> bool {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 /// let valid_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
 /// assert!(arc_check(&valid_arc, 1e-10));
 ///
@@ -910,7 +909,7 @@ const MIN_BULGE: f64 = 1E-8;
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// // Create a semicircle arc
 /// let arc = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1.0);
@@ -1221,7 +1220,7 @@ mod test_arc_circle_parametrization {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let start = point(0.0, 0.0);
 /// let end = point(2.0, 0.0);

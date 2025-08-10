@@ -10,7 +10,6 @@
 //     line::Line, bezierc::BezierC, Point
 // };
 
-// #[doc(hidden)]
 // #[derive(Debug, Copy, Clone, PartialEq)]
 // pub(crate) struct BezierQ {
 //     pub p0: Point,

@@ -8,7 +8,7 @@ use std::fmt::Display;
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let circle = Circle::new(point(0.0, 0.0), 5.0);
 /// ```
@@ -28,7 +28,6 @@ impl Display for Circle {
 }
 
 impl Circle {
-    #[doc(hidden)]
     /// Creates a new circle with the specified center and radius.
     ///
     /// # Arguments
@@ -39,7 +38,7 @@ impl Circle {
     /// # Examples
     ///
     /// ```
-    /// use base_geom::prelude::*;
+    /// use basegeom::prelude::*;
     ///
     /// let circle = Circle::new(point(3.0, 4.0), 5.0);
     /// ```
@@ -61,7 +60,7 @@ impl Circle {
 /// # Examples
 ///
 /// ```
-/// use base_geom::prelude::*;
+/// use basegeom::prelude::*;
 ///
 /// let circle = circle(point(3.0, 4.0), 5.0);
 /// ```
