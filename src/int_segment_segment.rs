@@ -247,7 +247,7 @@ mod test_int_segment_segment {
                 assert!(p3.close_enough(point(3.0, 3.0), ulp));
                 assert!(if_really_intersecting_segment_segment(&s0, &s1) == true);
             }
-            _ => panic!("Unexpected SegmentConfig variant"),
+            _ => assert!(false),
         }
     }
 
@@ -265,7 +265,7 @@ mod test_int_segment_segment {
                 assert!(p3.close_enough(point(-4.0, -4.0), ulp));
                 assert!(if_really_intersecting_segment_segment(&s0, &s1) == true);
             }
-            _ => panic!("Unexpected SegmentConfig variant"),
+            _ => assert!(false),
         }
     }
 

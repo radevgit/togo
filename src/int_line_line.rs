@@ -39,7 +39,7 @@ const ZERO: f64 = 0f64;
 ///     LineLineConfig::OnePoint(p, s0, s1) => {
 ///         assert_eq!(p, point(1.0, 1.0));
 ///     }
-///     _ => panic!("Expected one point intersection"),
+///     _ => assert!(false),
 /// }
 /// ```
 pub fn int_line_line(line0: &Line, line1: &Line) -> LineLineConfig {

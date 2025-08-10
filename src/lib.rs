@@ -81,7 +81,7 @@
 //!     },
 //!     _ => {
 //!         // No intersection or other cases
-//!         panic!("Expected intersection points");
+//!         assert!(false);
 //!     }
 //! }
 //! ```
@@ -182,7 +182,7 @@
 //!         // Line intersects circle at two points
 //!         assert!(true);
 //!     },
-//!     _ => panic!("Expected two intersection points"),
+//!     _ => assert!(false),
 //! }
 //! ```
 //!
@@ -201,7 +201,7 @@
 //!         // Segments intersect at one point (should be around (1,1))
 //!         assert!(point(1.0, 1.0).close_enough(pt, 1e-10));
 //!     },
-//!     _ => panic!("Expected one intersection point"),
+//!     _ => assert!(false),
 //! }
 //! ```
 //!
