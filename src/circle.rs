@@ -5,9 +5,6 @@ use std::fmt::Display;
 
 /// A circle defined by a center point and radius.
 ///
-/// Circles are used in various geometric computations throughout the offsetting
-/// algorithm, particularly for arc-line and arc-arc intersections.
-///
 /// # Examples
 ///
 /// ```

@@ -2,6 +2,8 @@
 
 use crate::prelude::*;
 
+
+/// Configuration for the distance computation between a segment and a circle.
 #[derive(Debug, PartialEq)]
 pub enum DistSegmentCircleConfig {
     OnePoint(f64, Point),

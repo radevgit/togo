@@ -13,7 +13,7 @@ const ZERO: f64 = 0f64;
 
 /// A 2D point with double precision floating point coordinates.
 ///
-/// This is a fundamental data type used throughout the offsetting library
+/// This is a fundamental data type used throughout the base-geom library
 /// to represent positions and vectors in 2D space.
 ///
 /// # Examples
@@ -396,12 +396,14 @@ impl Point {
         self + (other - self) * t
     }
 
-    /// Sorts four points in parallel.
+    /// Sorts four collinear points.
     ///
-    /// This function sorts four points that are expected to be collinear.
-    /// Sort 4 points on a line (from two segments), using sort networks
+    /// This function sorts four points that are expected to be collinear,
+    /// and are usually a result of two collinear segments overlapping.
+    /// 
+    /// Sort using sort networks
     /// Ascending or descending order is not important
-    pub fn sort_parallel_points(
+    pub fn sort_colinear_points(
         a: Point,
         b: Point,
         c: Point,
@@ -520,7 +522,7 @@ mod test_point {
         let b = point(3.0, 3.0);
         let c = point(2.0, 2.0);
         let d = point(4.0, 4.0);
-        let (e, f, g, h) = Point::sort_parallel_points(a, b, c, d);
+        let (e, f, g, h) = Point::sort_colinear_points(a, b, c, d);
         assert_eq!(e, a);
         assert_eq!(f, c);
         assert_eq!(g, b);
@@ -533,7 +535,7 @@ mod test_point {
         let b = point(3.0, 3.0);
         let c = point(4.0, 4.0);
         let d = point(2.0, 2.0);
-        let (e, f, g, h) = Point::sort_parallel_points(a, b, c, d);
+        let (e, f, g, h) = Point::sort_colinear_points(a, b, c, d);
         assert_eq!(e, a);
         assert_eq!(f, d);
         assert_eq!(g, b);
@@ -546,7 +548,7 @@ mod test_point {
         let b = point(2.0, 2.0);
         let c = point(4.0, 4.0);
         let d = point(-1.0, -1.0);
-        let (e, f, g, h) = Point::sort_parallel_points(a, b, c, d);
+        let (e, f, g, h) = Point::sort_colinear_points(a, b, c, d);
         assert_eq!(e, c);
         assert_eq!(f, b);
         assert_eq!(g, a);

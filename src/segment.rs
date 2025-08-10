@@ -5,8 +5,8 @@ use crate::point::Point;
 
 /// A line segment defined by two endpoints.
 ///
-/// Segments are fundamental geometric primitives used throughout the offsetting
-/// algorithm for representing straight line portions of polylines and for
+/// Segments are fundamental geometric primitives.
+/// They are used for representing straight line portions of polylines and for
 /// geometric intersection calculations.
 ///
 /// # Examples

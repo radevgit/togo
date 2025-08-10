@@ -11,6 +11,7 @@ pub enum DistPointArcConfig {
 
 // #00012
 /// Computes the distance between a point and an arc.
+/// 
 /// This function finds the shortest distance from a point to an arc,
 /// along with the closest point on the arc.
 ///
@@ -61,6 +62,7 @@ pub fn dist_point_arc(p: &Point, arc: &Arc) -> DistPointArcConfig {
     }
 }
 
+/// Computes the distance from a point to an arc and returns just the distance.
 pub fn dist_point_arc_dist(p: &Point, arc: &Arc) -> f64 {
     match dist_point_arc(p, arc) {
         DistPointArcConfig::OnePoint(dist, _) => dist,

@@ -59,7 +59,7 @@ pub fn int_segment_arc(segment: &Segment, arc: &Arc) -> SegmentArcConfig {
             let b0 = arc.contains(p0);
             let b1 = arc.contains(p1);
             if b0 && b1 {
-                if are_both_ends_towching(arc, segment) {
+                if are_both_ends_touching(arc, segment) {
                     return SegmentArcConfig::TwoPointsTouching(p0, p1, t0, t1);
                 } else {
                     return SegmentArcConfig::TwoPoints(p0, p1, t0, t1);
@@ -92,11 +92,11 @@ fn are_ends_towching(arc: &Arc, segment: &Segment) -> bool {
     }
 }
 
-fn are_both_ends_towching(arc: &Arc, segment: &Segment) -> bool {
+fn are_both_ends_touching(arc: &Arc, segment: &Segment) -> bool {
     (arc.a == segment.a && arc.b == segment.b) || (arc.b == segment.a && arc.a == segment.b)
 }
 
-/// Checks if a segment and an arc are really intersecting.
+/// If segment and arc are really intersecting, but not just touching at ends.
 pub fn if_really_intersecting_segment_arc(segment: &Segment, arc: &Arc) -> bool {
     let sc_res = int_segment_arc(segment, &arc);
     match sc_res {

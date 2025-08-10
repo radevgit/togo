@@ -11,7 +11,7 @@ pub type Arcline = Vec<Arc>;
 static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
 const EPS_COLLAPSED: f64 = 1E-8;
 
-/// An arc segment defined by start point, end point, center, and radius.
+/// An arc segment (CCW) defined by start point, end point, center, and radius.
 ///
 /// Arcs are fundamental geometric primitives.
 /// <div class="warning">NOTE: Arcs are always CCW (counter-clockwise) in this library.</div>
@@ -571,11 +571,11 @@ pub fn arc_is_collapsed_ends(a: Point, b: Point, eps: f64) -> bool {
 /// // Another inconsistent case: wrong radius
 /// assert!(arc_is_not_consistent(start, end, center, 2.0, 1e-10));
 /// ```
-pub fn arc_is_not_consistent(a: Point, b: Point, c: Point, r: f64, eps: f64) -> bool {
+pub fn arc_is_not_consistent(arc: &Arc, eps: f64) -> bool {
     // Check if the radius is consistent with the center and endpoints
-    let dist_a_c = (a - c).norm();
-    let dist_b_c = (b - c).norm();
-    if (dist_a_c - r).abs() > eps || (dist_b_c - r).abs() > eps {
+    let dist_a_c = (arc.a - arc.c).norm();
+    let dist_b_c = (arc.b - arc.c).norm();
+    if (dist_a_c - arc.r).abs() > eps || (dist_b_c - arc.r).abs() > eps {
         return true; // Inconsistent radius
     }
     false
@@ -610,11 +610,17 @@ pub fn arc_is_not_consistent(a: Point, b: Point, c: Point, r: f64, eps: f64) -> 
 /// assert!(!arc_check(&inconsistent_arc, 1e-10)); // Inconsistent geometry
 /// ```
 pub fn arc_check(seg: &Arc, eps: f64) -> bool {
-    if arc_is_collapsed_radius(seg.r, eps)
-        || arc_is_collapsed_ends(seg.a, seg.b, eps)
-        || arc_is_not_consistent(seg.a, seg.b, seg.c, seg.r, eps)
-    {
-        return false;
+    if seg.is_line() {
+        if arc_is_collapsed_ends(seg.a, seg.b, eps) {
+            return false;
+        }
+    }
+    if seg.is_arc() {
+        if arc_is_collapsed_ends(seg.a, seg.b, eps) 
+        || arc_is_collapsed_radius(seg.r, eps)
+        || arc_is_not_consistent(seg, eps) {
+            return false;
+        }
     }
     true
 }
@@ -866,6 +872,12 @@ mod test_arc_validation {
         // Test with large radius
         let large_radius_arc = arc(point(0.0, 0.0), point(1E-6, 0.0), point(0.0, 1E6), 1E6);
         assert!(arc_check(&large_radius_arc, EPS_COLLAPSED));
+    }
+
+    #[test]
+    fn test_arc_is_not_consistent() {
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 1.0), point(0.5, 0.5), 1.0);
+        assert!(arc_is_not_consistent(&arc1, 1e-10));
     }
 }
 

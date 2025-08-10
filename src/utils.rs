@@ -4,7 +4,9 @@
 
 const ALMOST_EQUAL_C: u64 = 0x8000_0000_0000_0000 as u64;
 const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
-/// Compares two f64 values for approximate equality using ULP (Units in the Last Place) comparison.
+/// Compares two f64 values for approximate equality
+/// 
+/// Use ULP (Units in the Last Place) comparison.
 ///
 /// This function provides a robust way to compare floating-point numbers by converting
 /// them to their bit representation and comparing the integer difference. This method
@@ -124,83 +126,6 @@ pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
     let mut f_i: i64 = f.to_bits() as i64;
     f_i += c;
     f64::from_bits(f_i as u64)
-}
-/// Returns the next index in a cyclic array/polyline.
-///
-/// This function handles wraparound for circular data structures like closed polylines.
-///
-/// # Arguments
-///
-/// * `ind` - Current index
-/// * `size` - Size of the array/polyline
-///
-/// # Returns
-///
-/// The next index, wrapping to 0 if at the end
-///
-/// # Examples
-///
-/// ```
-/// use base_geom::prelude::*;
-///
-/// assert_eq!(next(0, 5), 1);
-/// assert_eq!(next(4, 5), 0); // Wraps around
-/// ```
-#[inline]
-pub fn next(ind: usize, size: usize) -> usize {
-    if (ind + 1) < size {
-        return ind + 1;
-    }
-    0
-}
-
-/// Returns the previous index in a cyclic array/polyline.
-///
-/// This function handles wraparound for circular data structures like closed polylines.
-///
-/// # Arguments
-///
-/// * `ind` - Current index  
-/// * `size` - Size of the array/polyline
-///
-/// # Returns
-///
-/// The previous index, wrapping to size-1 if at the beginning
-///
-/// # Examples
-///
-/// ```
-/// use base_geom::prelude::*;
-///
-/// assert_eq!(prev(1, 5), 0);
-/// assert_eq!(prev(0, 5), 4); // Wraps around
-/// ```
-#[inline]
-pub fn prev(ind: usize, size: usize) -> usize {
-    if ind > 0 {
-        return ind - 1;
-    }
-    size - 1
-}
-
-#[cfg(test)]
-mod test_next_prev {
-    use super::*;
-
-    #[test]
-    fn test_next() {
-        assert_eq!(next(0, 3), 1);
-        assert_eq!(next(1, 3), 2);
-        assert_eq!(next(2, 3), 0);
-        assert_eq!(next(3, 3), 0);
-    }
-
-    #[test]
-    fn test_prev() {
-        assert_eq!(prev(2, 3), 1);
-        assert_eq!(prev(1, 3), 0);
-        assert_eq!(prev(0, 3), 2);
-    }
 }
 
 #[cfg(test)]

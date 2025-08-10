@@ -2,8 +2,9 @@
 
 //! Basic 2D geometric operations.
 //!
-//! The intention of this library is to provide a foundation for 2D geometric operations,
-//! including distance computations, intersection tests.
+//! The intention of this library is to provide a foundation for 2D geometric operations. 
+//! It includes mostly basic operations like point manipulation and distance/intersection
+//! between line segments and circle arcs.
 //!  
 //! It is intended for use in my other projects, and may not implement all possible geometric operations.
 //!
@@ -146,8 +147,8 @@
 //! let polyline = vec![p1, p2, p3];
 //!
 //! // Translate the polyline (returns a new polyline)
-//! let offset = point(2.0, 3.0);
-//! let translated = polyline_translate(&polyline, offset);
+//! let pp = point(2.0, 3.0);
+//! let translated = polyline_translate(&polyline, pp);
 //! assert_eq!(translated[0].p.x, 2.0);
 //! assert_eq!(translated[0].p.y, 3.0);
 //! ```
@@ -363,10 +364,10 @@ mod int_segment_point;
 mod int_segment_segment;
 
 // Bézier curve support (experimental)
-mod bezier_offset;
-mod bezierc;
-mod bezierpath;
-mod bezierq;
+// mod bezier_offset;
+// mod bezierc;
+// mod bezierpath;
+// mod bezierq;
 
 // Visualization and debugging
 mod svg;
@@ -417,8 +418,8 @@ pub mod prelude {
 
     // Re-export utility functions
     pub use crate::utils::{
-        almost_equal_as_int, close_enough, diff_of_prod, min_3, min_4, min_5, next,
-        perturbed_ulps_as_int, prev, sum_of_prod,
+        almost_equal_as_int, close_enough, diff_of_prod, min_3, min_4, min_5,
+        perturbed_ulps_as_int, sum_of_prod,
     };
 }
 

@@ -14,7 +14,7 @@ use crate::prelude::*;
 ///
 /// This struct provides methods to render various geometric primitives (points, lines,
 /// arcs, circles) to an SVG file. It's primarily used for debugging and visualizing
-/// the results of offset operations.
+/// the results of geometric operations.
 ///
 /// # Examples
 ///
@@ -60,8 +60,9 @@ impl SVG {
     }
 }
 
-/// Creates a new SVG context with default output path "/tmp/out.svg".
+/// Creates a new SVG context.
 ///
+/// The default output path is "/tmp/out.svg".
 /// This is a convenience function equivalent to `SVG::new(xsize, ysize, "")`.
 ///
 /// # Arguments

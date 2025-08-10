@@ -55,6 +55,7 @@ impl Line {
 }
 
 /// Creates a new line with the specified origin and direction.
+/// 
 /// This is a convenience function equivalent to `Line::new(origin, dir)`.
 #[inline]
 pub fn line(origin: Point, dir: Point) -> Line {

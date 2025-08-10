@@ -4,10 +4,14 @@ use std::fmt::Display;
 
 use crate::prelude::*;
 
+/// This is used in offsetting operations (offroad package).
 #[derive(Debug, PartialEq, Clone)]
 pub struct OffsetRaw {
+    /// The arc being offset.
     pub arc: Arc,
-    pub orig: Point, // original point p0
+    /// The original point before offsetting.
+    pub orig: Point,
+    /// The distance of the offset.
     pub g: f64,
 }
 
@@ -18,12 +22,14 @@ impl Display for OffsetRaw {
 }
 
 impl OffsetRaw {
+    /// Creates a new OffsetRaw instance.
     #[inline]
     pub fn new(arc: Arc, orig: Point, g: f64) -> Self {
         OffsetRaw { arc, orig, g }
     }
 }
 
+/// Creates a new OffsetRaw instance.
 #[inline]
 pub fn offsetraw(arc: Arc, orig: Point, g: f64) -> OffsetRaw {
     OffsetRaw::new(arc, orig, g)
@@ -43,8 +49,6 @@ mod test_offset_raw {
         assert_eq!(off.g, 0.25);
         // Check Display has brackets and three components
         let s = format!("{}", off);
-        assert!(s.starts_with("["));
-        assert!(s.contains("], ["));
-        assert!(s.ends_with("]"));
+        assert_eq!(s, format!("[{}, {}, {}]", a, o, 0.25));
     }
 }

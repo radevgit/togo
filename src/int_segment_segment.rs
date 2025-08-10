@@ -136,7 +136,7 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
                 IntervalConfig::NoOverlap() => return SegmentSegmentConfig::NoIntersection(),
                 IntervalConfig::Overlap(_, _) => {
                     let (p0, p1, p2, p3) =
-                        Point::sort_parallel_points(segment0.a, segment0.b, segment1.a, segment1.b);
+                        Point::sort_colinear_points(segment0.a, segment0.b, segment1.a, segment1.b);
                     if are_both_ends_towching(&segment0, &segment1) {
                         return SegmentSegmentConfig::TwoPointsTouching(
                             segment0.a, segment0.b, segment1.a, segment1.b,
@@ -174,8 +174,9 @@ fn are_both_ends_towching(segment0: &Segment, segment1: &Segment) -> bool {
         || (segment0.b == segment1.a && segment0.a == segment1.b)
 }
 
-// If segments are really intersecting, but not just touching at ends, return true
-// In other words, do we need to split segments further?
+/// If segments are really intersecting, but not just touching at ends.
+/// 
+/// In other words, do we need to split segments further?
 pub fn if_really_intersecting_segment_segment(part0: &Segment, part1: &Segment) -> bool {
 
     match int_segment_segment(&part0, &part1) {
