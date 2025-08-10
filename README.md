@@ -29,37 +29,39 @@ It is intended for use in my other projects, and **may not implement** all possi
 - Support for polylines and vertex manipulation
 
 ## Distance Functions
-- prelude::dist_line_circle
-- prelude::dist_point_arc
-- prelude::dist_point_arc_dist
-- prelude::dist_point_circle
-- prelude::dist_point_segment
-- prelude::dist_segment_arc
-- prelude::dist_segment_circle
-- prelude::dist_segment_segment
+- dist_line_circle
+- dist_point_arc
+- dist_point_arc_dist
+- dist_point_circle
+- dist_point_segment
+- dist_segment_arc
+- dist_segment_circle
+- dist_segment_segment
 
 ## Intersection Functions
-- prelude::int_arc_arc
-- prelude::int_circle_circle
-- prelude::int_interval_interval
-- prelude::int_line_arc
-- prelude::int_line_circle
-- prelude::int_line_line
-- prelude::int_segment_arc
-- prelude::int_segment_circle
-- prelude::int_segment_point
-- prelude::int_segment_segment
-- prelude::if_really_intersecting_arc_arc
-- prelude::if_really_intersecting_segment_arc
-- prelude::if_really_intersecting_segment_segment
+- int_arc_arc
+- int_circle_circle
+- int_interval_interval
+- int_line_arc
+- int_line_circle
+- int_line_line
+- int_segment_arc
+- int_segment_circle
+- int_segment_point
+- int_segment_segment
+- if_really_intersecting_arc_arc
+- if_really_intersecting_segment_arc
+- if_really_intersecting_segment_segment
 
 ## Geometric Primitives
 
 - Points
 - Line Segments
 - Circles
-- Arcs
+- Circle Arcs
 - Polylines
+- Intervals
+- PVertices (point, bulge)
 
 ## Point (vector) Manipulation
 - add, sub, neg, mul(f64), div(f64)
@@ -67,8 +69,8 @@ It is intended for use in my other projects, and **may not implement** all possi
 - perp
 - norm
 - normalize
-- almost_eq
-- close_enough
+- almost_eq (ULP-s)
+- close_enough (eps)
 - diff_of_prod
 - sum_of_prod
 - lerp

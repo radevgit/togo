@@ -233,7 +233,6 @@ impl Point {
     /// let dot = p1.dot(p2); // 3*1 + 4*2 = 11.0
     /// ```
     #[inline]
-    // improved dot using Kahan method
     pub fn dot(&self, other: Self) -> f64 {
         sum_of_prod(self.x, other.x, self.y, other.y)
     }
@@ -243,7 +242,25 @@ impl Point {
     //     self.x * other.y - self.y * other.x
     // }
 
-    /// Improved perp using Kahan method
+    /// Computes the perp product (cross product) of this point with another point.
+    ///
+    /// # Arguments
+    ///
+    /// * `other` - The other point
+    ///
+    /// # Returns
+    ///
+    /// The perp product as a f64
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    ///
+    /// let p1 = point(3.0, 4.0);
+    /// let p2 = point(1.0, 2.0);
+    /// let perp = p1.perp(p2); // 3*2 - 4*1 = 2.0
+    /// ```
     #[inline]
     pub fn perp(&self, other: Self) -> f64 {
         diff_of_prod(self.x, other.y, self.y, other.x)
@@ -372,23 +389,23 @@ impl Point {
         return (self.x - other.x).abs() <= eps && (self.y - other.y).abs() <= eps;
     }
 
-    /// diff_of_prod for points
-    #[inline]
-    pub fn diff_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
-        Point {
-            x: diff_of_prod(self.x, a, other.x, b),
-            y: diff_of_prod(self.y, a, other.y, b),
-        }
-    }
+    // /// diff_of_prod for points
+    // #[inline]
+    // pub fn diff_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
+    //     Point {
+    //         x: diff_of_prod(self.x, a, other.x, b),
+    //         y: diff_of_prod(self.y, a, other.y, b),
+    //     }
+    // }
 
-    /// sum_of_prod for points
-    #[inline]
-    pub fn sum_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
-        Point {
-            x: sum_of_prod(self.x, a, other.x, b),
-            y: sum_of_prod(self.y, a, other.y, b),
-        }
-    }
+    // /// sum_of_prod for points
+    // #[inline]
+    // pub fn sum_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
+    //     Point {
+    //         x: sum_of_prod(self.x, a, other.x, b),
+    //         y: sum_of_prod(self.y, a, other.y, b),
+    //     }
+    // }
 
     /// Linearly interpolate between two points.
     #[inline]
@@ -788,63 +805,63 @@ mod test_point {
         assert!(p19.close_enough(p20, 0.011)); // > epsilon
     }
 
-    #[test]
-    fn test_diff_of_prod() {
-        let p1 = point(2.0, 3.0);
-        let p2 = point(4.0, 5.0);
-        let a = 2.0;
-        let b = 3.0;
+    // #[test]
+    // fn test_diff_of_prod() {
+    //     let p1 = point(2.0, 3.0);
+    //     let p2 = point(4.0, 5.0);
+    //     let a = 2.0;
+    //     let b = 3.0;
         
-        let result = p1.diff_of_prod(a, p2, b);
-        // Expected: Point(p1.x * a - p2.x * b, p1.y * a - p2.y * b)
-        // = Point(2.0 * 2.0 - 4.0 * 3.0, 3.0 * 2.0 - 5.0 * 3.0)
-        // = Point(4.0 - 12.0, 6.0 - 15.0)
-        // = Point(-8.0, -9.0)
-        assert_eq!(result, point(-8.0, -9.0));
+    //     let result = p1.diff_of_prod(a, p2, b);
+    //     // Expected: Point(p1.x * a - p2.x * b, p1.y * a - p2.y * b)
+    //     // = Point(2.0 * 2.0 - 4.0 * 3.0, 3.0 * 2.0 - 5.0 * 3.0)
+    //     // = Point(4.0 - 12.0, 6.0 - 15.0)
+    //     // = Point(-8.0, -9.0)
+    //     assert_eq!(result, point(-8.0, -9.0));
 
-        // Test with zero
-        let zero = point(0.0, 0.0);
-        let p3 = point(1.0, 1.0);
-        let result_zero = zero.diff_of_prod(1.0, p3, 1.0);
-        assert_eq!(result_zero, point(-1.0, -1.0));
+    //     // Test with zero
+    //     let zero = point(0.0, 0.0);
+    //     let p3 = point(1.0, 1.0);
+    //     let result_zero = zero.diff_of_prod(1.0, p3, 1.0);
+    //     assert_eq!(result_zero, point(-1.0, -1.0));
 
-        // Test with identity
-        let p4 = point(5.0, 7.0);
-        let result_identity = p4.diff_of_prod(1.0, zero, 0.0);
-        assert_eq!(result_identity, p4);
-    }
+    //     // Test with identity
+    //     let p4 = point(5.0, 7.0);
+    //     let result_identity = p4.diff_of_prod(1.0, zero, 0.0);
+    //     assert_eq!(result_identity, p4);
+    // }
 
-    #[test]
-    fn test_sum_of_prod() {
-        let p1 = point(2.0, 3.0);
-        let p2 = point(4.0, 5.0);
-        let a = 2.0;
-        let b = 3.0;
+    // #[test]
+    // fn test_sum_of_prod() {
+    //     let p1 = point(2.0, 3.0);
+    //     let p2 = point(4.0, 5.0);
+    //     let a = 2.0;
+    //     let b = 3.0;
         
-        let result = p1.sum_of_prod(a, p2, b);
-        // Expected: Point(p1.x * a + p2.x * b, p1.y * a + p2.y * b)
-        // = Point(2.0 * 2.0 + 4.0 * 3.0, 3.0 * 2.0 + 5.0 * 3.0)
-        // = Point(4.0 + 12.0, 6.0 + 15.0)
-        // = Point(16.0, 21.0)
-        assert_eq!(result, point(16.0, 21.0));
+    //     let result = p1.sum_of_prod(a, p2, b);
+    //     // Expected: Point(p1.x * a + p2.x * b, p1.y * a + p2.y * b)
+    //     // = Point(2.0 * 2.0 + 4.0 * 3.0, 3.0 * 2.0 + 5.0 * 3.0)
+    //     // = Point(4.0 + 12.0, 6.0 + 15.0)
+    //     // = Point(16.0, 21.0)
+    //     assert_eq!(result, point(16.0, 21.0));
 
-        // Test with zero
-        let zero = point(0.0, 0.0);
-        let p3 = point(1.0, 1.0);
-        let result_zero = zero.sum_of_prod(1.0, p3, 1.0);
-        assert_eq!(result_zero, point(1.0, 1.0));
+    //     // Test with zero
+    //     let zero = point(0.0, 0.0);
+    //     let p3 = point(1.0, 1.0);
+    //     let result_zero = zero.sum_of_prod(1.0, p3, 1.0);
+    //     assert_eq!(result_zero, point(1.0, 1.0));
 
-        // Test with identity
-        let p4 = point(5.0, 7.0);
-        let result_identity = p4.sum_of_prod(1.0, zero, 0.0);
-        assert_eq!(result_identity, p4);
+    //     // Test with identity
+    //     let p4 = point(5.0, 7.0);
+    //     let result_identity = p4.sum_of_prod(1.0, zero, 0.0);
+    //     assert_eq!(result_identity, p4);
 
-        // Test weighted average-like operation
-        let p5 = point(0.0, 0.0);
-        let p6 = point(10.0, 20.0);
-        let result_weighted = p5.sum_of_prod(0.3, p6, 0.7);
-        assert_eq!(result_weighted, point(7.0, 14.0));
-    }
+    //     // Test weighted average-like operation
+    //     let p5 = point(0.0, 0.0);
+    //     let p6 = point(10.0, 20.0);
+    //     let result_weighted = p5.sum_of_prod(0.3, p6, 0.7);
+    //     assert_eq!(result_weighted, point(7.0, 14.0));
+    // }
 
     #[test]
     fn test_lerp() {
