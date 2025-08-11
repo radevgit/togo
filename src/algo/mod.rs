@@ -5,13 +5,16 @@
 
 #![allow(dead_code)]
 
+use crate::prelude::*;
+
 // Re-export algorithm submodules here when they are added
 // pub mod triangulation;
-// pub mod convex_hull;
+pub mod convex_hull;
 // pub mod closest_pair;
 
-// For now, include a simple example algorithm
-use crate::prelude::*;
+// Re-export all public types and functions for easy access
+pub use convex_hull::pointline_convex_hull;
+
 
 /// Calculates the area of a simple polygon defined by a series of points.
 ///
@@ -145,3 +148,4 @@ mod tests {
         assert!(!is_convex_pointline(&concave));
     }
 }
+
