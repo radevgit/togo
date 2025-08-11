@@ -129,7 +129,7 @@ impl Arc {
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(arc.is_arc()); // Has finite radius
     ///
-    /// let line = arcline(point(0.0, 0.0), point(1.0, 0.0));
+    /// let line = arcseg(point(0.0, 0.0), point(1.0, 0.0));
     /// assert!(!line.is_arc()); // Has infinite radius (line segment)
     /// ```
     #[inline]
@@ -150,7 +150,7 @@ impl Arc {
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(!arc.is_line()); // Has finite radius
     ///
-    /// let line = arcline(point(0.0, 0.0), point(1.0, 0.0));
+    /// let line = arcseg(point(0.0, 0.0), point(1.0, 0.0));
     /// assert!(line.is_line()); // Has infinite radius (line segment)
     /// ```
     #[inline]
@@ -293,15 +293,17 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 ///
 /// ```
 /// use basegeom::prelude::*;
-/// let line = arcline(point(0.0, 0.0), point(1.0, 1.0));
+/// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
 /// assert!(line.is_line());
 /// assert!(!line.is_arc());
 /// assert_eq!(line.r, f64::INFINITY);
 /// ```
 #[inline]
-pub fn arcline(a: Point, b: Point) -> Arc {
+pub fn arcseg(a: Point, b: Point) -> Arc {
     Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
 }
+
+
 
 #[cfg(test)]
 mod test_arc {
@@ -333,7 +335,7 @@ mod test_arc {
 
     #[test]
     fn test_is_arc() {
-        let arc = arcline(point(1.0, 1.0), point(1.0, 3.0));
+        let arc = arcseg(point(1.0, 1.0), point(1.0, 3.0));
         assert!(arc.is_line());
         assert!(!arc.is_arc());
     }
@@ -352,9 +354,9 @@ mod test_arc {
     }
 
     #[test]
-    fn test_arcline_creation() {
-        // Test that arcline creates a line segment (infinite radius)
-        let line_arc = arcline(point(0.0, 0.0), point(5.0, 5.0));
+    fn test_arcseg_creation() {
+        // Test that arcseg creates a line segment (infinite radius)
+        let line_arc = arcseg(point(0.0, 0.0), point(5.0, 5.0));
         assert!(line_arc.is_line());
         assert!(!line_arc.is_arc());
         assert_eq!(line_arc.r, f64::INFINITY);
@@ -392,7 +394,7 @@ mod test_arc {
 
     #[test]
     fn test_copy() {
-        let arc = arcline(point(1.0, 1.0), point(1.0, 3.0));
+        let arc = arcseg(point(1.0, 1.0), point(1.0, 3.0));
         let arc2 = arc;
         assert_eq!(arc, arc2);
     }
@@ -815,7 +817,7 @@ mod test_arc_validation {
         assert!(arc_check(&valid_arc2, EPS_COLLAPSED));
 
         // Line segments (infinite radius) should also be valid if endpoints are separated
-        let valid_line = arcline(point(0.0, 0.0), point(10.0, 0.0));
+        let valid_line = arcseg(point(0.0, 0.0), point(10.0, 0.0));
         assert!(arc_check(&valid_line, EPS_COLLAPSED));
     }
 
@@ -844,7 +846,7 @@ mod test_arc_validation {
         assert!(!arc_check(&collapsed_ends_arc2, EPS_COLLAPSED));
 
         // Line segments with collapsed endpoints should also fail
-        let collapsed_line = arcline(point(1.0, 1.0), point(1.0, 1.0));
+        let collapsed_line = arcseg(point(1.0, 1.0), point(1.0, 1.0));
         assert!(!arc_check(&collapsed_line, EPS_COLLAPSED));
     }
 
@@ -925,7 +927,7 @@ pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
     let mut bulge = bulge;
     if bulge.abs() < MIN_BULGE || p1.close_enough(p2, EPS_COLLAPSED) {
         // create line
-        return arcline(pp1, pp2);
+        return arcseg(pp1, pp2);
     }
     if bulge < 0f64 {
         // make arc CCW
@@ -1100,14 +1102,14 @@ mod test_arc_circle_parametrization {
     fn test_arc_circle_parametrization_bulge_zero() {
         // the function should return CCW arc
         let arc0 = arc_circle_parametrization(point(1.0, 0.0), point(2.0, 1.0), 0.0);
-        assert_eq!(arc0, arcline(point(1.0, 0.0), point(2.0, 1.0),),);
+        assert_eq!(arc0, arcseg(point(1.0, 0.0), point(2.0, 1.0),),);
     }
 
     #[test]
     fn test_arc_circle_parametrization_the_same_points() {
         // the function should return CCW arc
         let arc0 = arc_circle_parametrization(point(2.0, 1.0), point(2.0, 1.0), 1.0);
-        assert_eq!(arc0, arcline(point(2.0, 1.0), point(2.0, 1.0),),);
+        assert_eq!(arc0, arcseg(point(2.0, 1.0), point(2.0, 1.0),),);
     }
 
     #[test]
@@ -1164,7 +1166,7 @@ mod test_arc_circle_parametrization {
     fn test_arc_circle_parametrization_line() {
         // should return line
         let line0 = arc_circle_parametrization(point(100.0, 100.0), point(300.0, 100.0), 0.0);
-        assert_eq!(line0, arcline(point(100.0, 100.0), point(300.0, 100.0)));
+        assert_eq!(line0, arcseg(point(100.0, 100.0), point(300.0, 100.0)));
     }
 }
 

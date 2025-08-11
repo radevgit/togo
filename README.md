@@ -6,7 +6,7 @@
 
 Add to Cargo.toml in [dependencies] section
 ```
-basegeom = "0.2.1"
+basegeom = "0.2.3"
 ```
 
 ## Basic 2D geometric operations

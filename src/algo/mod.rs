@@ -80,7 +80,7 @@ pub fn is_convex_polygon(points: &[Point]) -> bool {
         let p2 = points[(i + 1) % n];
         let p3 = points[(i + 2) % n];
 
-        let cross = (p2.x - p1.x) * (p3.y - p2.y) - (p2.y - p1.y) * (p3.x - p2.x);
+        let cross = (p2 - p1).perp(p3 - p2);
         
         if cross != 0.0 {
             let current_sign = if cross > 0.0 { 1 } else { -1 };
