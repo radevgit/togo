@@ -328,7 +328,7 @@ mod arc;
 mod circle;
 mod line;
 mod point;
-mod pvertex;
+mod polyline;
 mod segment;
 
 // Geometric algorithms and utilities
@@ -376,7 +376,7 @@ pub mod prelude {
     pub use crate::interval::{Interval, interval};
     pub use crate::line::{Line, line};
     pub use crate::point::{Point, point, points_order};
-    pub use crate::pvertex::{
+    pub use crate::polyline::{
         PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
         pvertex,
     };
