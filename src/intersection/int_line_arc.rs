@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{arc::Arc, circle::circle, int_line_circle::int_line_circle, line::Line, point::Point};
+use crate::{arc::Arc, circle::circle, intersection::int_line_circle::int_line_circle, line::Line, point::Point, prelude::LineCircleConfig};
 
 // #00021
 /// Represents the configuration of the intersection between a line and an arc.
@@ -37,17 +37,17 @@ pub fn int_line_arc(line: &Line, arc: &Arc) -> LineArcConfig {
     let circle = circle(arc.c, arc.r);
     let lc_result = int_line_circle(line, &circle);
     match lc_result {
-        crate::int_line_circle::LineCircleConfig::NoIntersection() => {
+        LineCircleConfig::NoIntersection() => {
             return LineArcConfig::NoIntersection();
         }
-        crate::int_line_circle::LineCircleConfig::OnePoint(p0, t0) => {
+        LineCircleConfig::OnePoint(p0, t0) => {
             if arc.contains(p0) {
                 return LineArcConfig::OnePoint(p0, t0);
             } else {
                 return LineArcConfig::NoIntersection();
             }
         }
-        crate::int_line_circle::LineCircleConfig::TwoPoints(p0, p1, t0, t1) => {
+        LineCircleConfig::TwoPoints(p0, p1, t0, t1) => {
             let b0 = arc.contains(p0); // TODO: with eps?
             let b1 = arc.contains(p1);
             if b0 && b1 {

@@ -122,7 +122,7 @@ mod test_dist_segment_circle {
 
     use crate::{
         circle::circle,
-        dist_segment_circle::DistSegmentCircleConfig,
+        distance::dist_segment_circle::DistSegmentCircleConfig,
         point::point,
         segment::{Segment, segment},
     };

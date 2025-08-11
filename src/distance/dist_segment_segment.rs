@@ -2,7 +2,7 @@
 
 
 use crate::{
-    dist_point_segment::dist_point_segment, int_segment_segment::{int_segment_segment, SegmentSegmentConfig},
+    distance::dist_point_segment::dist_point_segment, intersection::int_segment_segment::{int_segment_segment, SegmentSegmentConfig},
     segment::Segment, utils::min_4
 };
 
@@ -62,7 +62,7 @@ pub fn dist_segment_segment(seg0: &Segment, seg1: &Segment) -> f64 {
 mod test_distance_segment_segment {
     use crate::point::point;
     use crate::segment::segment;
-    use crate::dist_segment_segment::{dist_segment_segment, ONE, ZERO};
+    use crate::distance::dist_segment_segment::{dist_segment_segment, ONE, ZERO};
 
     #[test]
     fn test_same_line_no_intersect() {

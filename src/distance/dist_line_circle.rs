@@ -127,7 +127,7 @@ pub fn dist_line_circle(line: &Line, circle: &Circle) -> DistLineCircleConfig {
 #[cfg(test)]
 mod test_dist_line_circle {
     use crate::circle::circle;
-    use crate::dist_line_circle::DistLineCircleConfig;
+    use crate::distance::dist_line_circle::DistLineCircleConfig;
     use crate::line::{Line, line};
     use crate::point::point;
     use crate::segment::segment;

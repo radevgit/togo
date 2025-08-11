@@ -3,8 +3,8 @@
 
 use robust::orient2d;
 
-use crate::int_interval_interval::{int_interval_interval, IntervalConfig};
-use crate::int_line_line::{int_line_line, LineLineConfig};
+use crate::intersection::int_interval_interval::{int_interval_interval, IntervalConfig};
+use crate::intersection::int_line_line::{int_line_line, LineLineConfig};
 use crate::interval::interval;
 
 use crate::utils::close_enough;

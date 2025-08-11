@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
 use crate::arc::arc;
-use crate::int_circle_circle::CircleCircleConfig;
-use crate::{arc::Arc, circle::circle, int_circle_circle::int_circle_circle, point::Point};
+use crate::intersection::int_circle_circle::CircleCircleConfig;
+use crate::{arc::Arc, circle::circle, intersection::int_circle_circle::int_circle_circle, point::Point};
 
 // #00018
 /// Configuration for arc-arc intersection results.

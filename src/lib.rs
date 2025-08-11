@@ -332,42 +332,25 @@ mod polyline;
 mod segment;
 
 // Geometric algorithms and utilities
+pub mod algo;
 mod interval;
 mod utils;
 
 // Distance computation modules
-mod dist_arc_arc;
-mod dist_line_circle;
-mod dist_point_arc;
-mod dist_point_circle;
-mod dist_point_segment;
-mod dist_segment_arc;
-mod dist_segment_circle;
-mod dist_segment_segment;
+pub mod distance;
 
 // Intersection computation modules
-mod int_arc_arc;
-mod int_circle_circle;
-mod int_interval_interval;
-mod int_line_arc;
-mod int_line_circle;
-mod int_line_line;
-mod int_segment_arc;
-mod int_segment_circle;
-mod int_segment_point;
-mod int_segment_segment;
+pub mod intersection;
 
 // Bézier curve support (experimental)
-// mod bezier_offset;
-// mod bezierc;
-// mod bezierpath;
-// mod bezierq;
+pub mod bezier;
 
 // Visualization and debugging
 mod svg;
 
 pub mod prelude {
     // Re-export core types and functions
+    pub use crate::algo::{is_convex_polygon, polygon_area};
     pub use crate::arc::{
         Arc, arc, arc_bulge_from_points, arc_check, arc_circle_parametrization,
         arc_is_collapsed_ends, arc_is_collapsed_radius, arc_is_not_consistent, arcline,
@@ -384,29 +367,20 @@ pub mod prelude {
     pub use crate::svg::{SVG, svg};
 
     // Re-export distance computation functions
-    pub use crate::dist_arc_arc::dist_arc_arc;
-    pub use crate::dist_line_circle::{DistLineCircleConfig, dist_line_circle};
-    pub use crate::dist_point_arc::{DistPointArcConfig, dist_point_arc, dist_point_arc_dist};
-    pub use crate::dist_point_circle::dist_point_circle;
-    pub use crate::dist_point_segment::dist_point_segment;
-    pub use crate::dist_segment_arc::dist_segment_arc;
-    pub use crate::dist_segment_circle::{DistSegmentCircleConfig, dist_segment_circle};
-    pub use crate::dist_segment_segment::dist_segment_segment;
+    pub use crate::distance::{
+        DistLineCircleConfig, DistPointArcConfig, DistSegmentCircleConfig, dist_arc_arc,
+        dist_line_circle, dist_point_arc, dist_point_arc_dist, dist_point_circle,
+        dist_point_segment, dist_segment_arc, dist_segment_circle, dist_segment_segment,
+    };
 
     // Re-export intersection computation functions
-    pub use crate::int_arc_arc::{ArcArcConfig, if_really_intersecting_arc_arc, int_arc_arc};
-    pub use crate::int_circle_circle::{CircleCircleConfig, int_circle_circle};
-    pub use crate::int_interval_interval::{IntervalConfig, int_interval_interval};
-    pub use crate::int_line_arc::{LineArcConfig, int_line_arc};
-    pub use crate::int_line_circle::{LineCircleConfig, int_line_circle};
-    pub use crate::int_line_line::{LineLineConfig, int_line_line};
-    pub use crate::int_segment_arc::{
-        SegmentArcConfig, if_really_intersecting_segment_arc, int_segment_arc,
-    };
-    pub use crate::int_segment_circle::{SegmentCircleConfig, int_segment_circle};
-    pub use crate::int_segment_point::{SegmentPointConfig, int_segment_point};
-    pub use crate::int_segment_segment::{
-        SegmentSegmentConfig, if_really_intersecting_segment_segment, int_segment_segment,
+    pub use crate::intersection::{
+        ArcArcConfig, CircleCircleConfig, IntervalConfig, LineArcConfig, LineCircleConfig,
+        LineLineConfig, SegmentArcConfig, SegmentCircleConfig, SegmentPointConfig,
+        SegmentSegmentConfig, if_really_intersecting_arc_arc, if_really_intersecting_segment_arc,
+        if_really_intersecting_segment_segment, int_arc_arc, int_circle_circle,
+        int_interval_interval, int_line_arc, int_line_circle, int_line_line, int_segment_arc,
+        int_segment_circle, int_segment_point, int_segment_segment,
     };
 
     // Re-export utility functions
@@ -414,6 +388,9 @@ pub mod prelude {
         almost_equal_as_int, close_enough, diff_of_prod, min_3, min_4, min_5,
         perturbed_ulps_as_int, sum_of_prod,
     };
+
+    // Note: Bézier curve support is experimental and not yet exported
+    // pub use crate::bezier::*;
 }
 
 #[cfg(test)]
