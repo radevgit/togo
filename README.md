@@ -15,7 +15,7 @@ The intention of this library is to provide a foundation for 2D geometric operat
 It includes mostly basic operations like point manipulation and distance/intersection
 between line segments and circle arcs.
 
-It is intended for use in my other projects, and **may not implement** all possible geometric operations.
+It is intended for use in My other projects, and **may not implement** all possible geometric operations.
 
 
 

@@ -285,18 +285,6 @@ impl SVG {
             self.polysegments(s, color);
         }
     }
-
-    pub fn offset_raws_single(&mut self, segments: &Vec<OffsetRaw>, color: &str) {
-        for s in segments.iter() {
-            self.offset_segment(&s.arc, color);
-        }
-    }
-
-    pub fn offset_raws(&mut self, segments: &Vec<Vec<OffsetRaw>>, color: &str) {
-        for s in segments.iter() {
-            self.offset_raws_single(s, color);
-        }
-    }
 }
 
 #[cfg(test)]
