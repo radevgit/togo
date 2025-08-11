@@ -81,7 +81,9 @@ It is intended for use in My other projects, and **may not implement** all possi
 - diff_of_prod
 - sum_of_prod
 
-
+## Algorithms
+- Convex Hull (Pointline)
+- Convexity Detection (Pointline)
 
 ## Examples
 

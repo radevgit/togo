@@ -13,7 +13,7 @@ pub mod convex_hull;
 // pub mod closest_pair;
 
 // Re-export all public types and functions for easy access
-pub use convex_hull::pointline_convex_hull;
+pub use convex_hull::{pointline_convex_hull, arcline_convex_hull};
 
 
 /// Calculates the area of a simple polygon defined by a series of points.
