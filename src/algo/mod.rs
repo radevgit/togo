@@ -30,7 +30,7 @@ use crate::prelude::*;
 ///
 /// ```
 /// use basegeom::prelude::*;
-/// use basegeom::algo::polygon_area;
+/// use basegeom::algo::pointline_area;
 ///
 /// let square = vec![
 ///     point(0.0, 0.0),
@@ -38,10 +38,10 @@ use crate::prelude::*;
 ///     point(1.0, 1.0),
 ///     point(0.0, 1.0),
 /// ];
-/// let area = polygon_area(&square);
+/// let area = pointline_area(&square);
 /// assert_eq!(area, 1.0);
 /// ```
-pub fn polygon_area(points: &[Point]) -> f64 {
+pub fn pointline_area(points: &Pointline) -> f64 {
     if points.len() < 3 {
         return 0.0;
     }
@@ -66,8 +66,8 @@ pub fn polygon_area(points: &[Point]) -> f64 {
 ///
 /// # Returns
 ///
-/// `true` if the polygon is convex, `false` otherwise
-pub fn is_convex_polygon(points: &[Point]) -> bool {
+/// `true` if the pointline is convex, `false` otherwise
+pub fn is_convex_pointline(points: &Pointline) -> bool {
     if points.len() < 3 {
         return false;
     }
@@ -100,37 +100,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_polygon_area_square() {
+    fn test_pointline_area_square() {
         let square = vec![
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(1.0, 1.0),
             point(0.0, 1.0),
         ];
-        let area = polygon_area(&square);
+        let area = pointline_area(&square);
         assert_eq!(area, 1.0);
     }
 
     #[test]
-    fn test_polygon_area_triangle() {
+    fn test_pointline_area_triangle() {
         let triangle = vec![
             point(0.0, 0.0),
             point(2.0, 0.0),
             point(1.0, 2.0),
         ];
-        let area = polygon_area(&triangle);
+        let area = pointline_area(&triangle);
         assert_eq!(area, 2.0);
     }
 
     #[test]
-    fn test_is_convex_polygon_square() {
+    fn test_is_convex_pointline_square() {
         let square = vec![
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(1.0, 1.0),
             point(0.0, 1.0),
         ];
-        assert!(is_convex_polygon(&square));
+        assert!(is_convex_pointline(&square));
     }
 
     #[test]
@@ -142,6 +142,6 @@ mod tests {
             point(2.0, 2.0),
             point(0.0, 2.0),
         ];
-        assert!(!is_convex_polygon(&concave));
+        assert!(!is_convex_pointline(&concave));
     }
 }

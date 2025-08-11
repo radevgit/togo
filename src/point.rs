@@ -33,6 +33,8 @@ pub struct Point {
     pub y: f64,
 }
 
+pub type Pointline = Vec<Point>;
+
 impl Point {
     /// Creates a new point with the given coordinates.
     ///

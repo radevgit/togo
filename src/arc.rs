@@ -303,7 +303,12 @@ pub fn arcseg(a: Point, b: Point) -> Arc {
     Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
 }
 
-
+/// Translates Arcline by a given translation vector.
+pub fn arcline_translate(arc: &mut Arcline, translation: Point) {
+    for segment in arc.iter_mut() {
+        segment.translate(translation);
+    }
+}
 
 #[cfg(test)]
 mod test_arc {
@@ -432,6 +437,45 @@ mod test_arc {
         assert_eq!(double_reversed.c, original.c);
         assert_eq!(double_reversed.r, original.r);
     }
+
+    #[test]
+    fn test_arcline_translate_empty() {
+        // Test translating an empty arcline
+        let mut empty_arcline: Arcline = vec![];
+        let translation = point(5.0, -3.0);
+        arcline_translate(&mut empty_arcline, translation);
+        assert_eq!(empty_arcline.len(), 0);
+    }
+
+    #[test]
+    fn test_arcline_translate_single_arc() {
+        // Test translating an arcline with a single arc
+        let mut arcline = vec![arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0)];
+        let translation = point(10.0, 5.0);
+        arcline_translate(&mut arcline, translation);
+
+        assert_eq!(arcline.len(), 1);
+        assert_eq!(arcline[0].a, point(10.0, 5.0));
+        assert_eq!(arcline[0].b, point(12.0, 5.0));
+        assert_eq!(arcline[0].c, point(11.0, 5.0));
+        assert_eq!(arcline[0].r, 1.0); // Radius should remain unchanged
+    }
+
+    #[test]
+    fn test_arcline_translate_multiple_arcs() {
+        // Test translating an arcline with multiple arcs
+        let mut arcline = vec![
+            arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5),
+            arcseg(point(1.0, 0.0), point(3.0, 2.0)), // Line segment
+            arc(point(3.0, 2.0), point(3.0, 4.0), point(4.0, 3.0), 1.414213562373095),
+        ];
+        let translation = point(-2.0, 3.0);
+        arcline_translate(&mut arcline, translation);
+
+        assert_eq!(arcline.len(), 3);
+    }
+
+
 }
 
 /// Check if the arc contains the point.
