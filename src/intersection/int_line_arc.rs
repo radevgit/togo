@@ -66,7 +66,7 @@ pub fn int_line_arc(line: &Line, arc: &Arc) -> LineArcConfig {
 
 // Line Arc Intersect
 #[cfg(test)]
-mod line_arc_tests {
+mod test_int_line_arc {
     use crate::{
         arc::{arc, arc_circle_parametrization},
         line::line,
