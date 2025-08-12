@@ -227,8 +227,8 @@ impl SVG {
         }
     }
 
-    /// Draws an offset segment in the SVG format.
-    pub fn offset_segment(&mut self, off: &Arc, color: &str) {
+    /// Draws an arc segment in the SVG format.
+    pub fn arcsegment(&mut self, off: &Arc, color: &str) {
         if off.is_line() {
             // line segment
             let seg = segment(off.a, off.b);
@@ -244,9 +244,9 @@ impl SVG {
         //self.text(off.a, &off.id.to_string(), color);
     }
 
-    pub fn offset_segments_single(&mut self, offs: &Vec<Arc>, color: &str) {
+    pub fn arcline(&mut self, offs: &Arcline, color: &str) {
         for s in offs.iter() {
-            self.offset_segment(s, color);
+            self.arcsegment(s, color);
         }
     }
 
@@ -256,35 +256,35 @@ impl SVG {
         }
     }
 
-    pub fn offset_segments(&mut self, offs: &Vec<Vec<Arc>>, color: &str) {
+    pub fn arclines(&mut self, offs: &Vec<Arcline>, color: &str) {
         for s in offs.iter() {
-            self.offset_segments_single(s, color);
+            self.arcline(s, color);
         }
     }
 
-    pub fn polysegment(&mut self, off: &Arc, color: &str) {
-        if off.is_line() {
-            // line segment
-            let seg = segment(off.a, off.b);
-            self.line(&seg, color);
-        } else {
-            self.arc(off, color);
-        }
-        //self.circle(&circle(off.a, 0.3), "green");
-        //self.circle(&circle(off.b, 0.2), "green");
-    }
+    // pub fn polysegment(&mut self, off: &Arc, color: &str) {
+    //     if off.is_line() {
+    //         // line segment
+    //         let seg = segment(off.a, off.b);
+    //         self.line(&seg, color);
+    //     } else {
+    //         self.arc(off, color);
+    //     }
+    //     //self.circle(&circle(off.a, 0.3), "green");
+    //     //self.circle(&circle(off.b, 0.2), "green");
+    // }
 
-    pub fn polysegments(&mut self, vseg: &Vec<Arc>, color: &str) {
-        for s in vseg.iter() {
-            self.offset_segment(s, color);
-        }
-    }
+    // pub fn arcline(&mut self, vseg: &Vec<Arc>, color: &str) {
+    //     for s in vseg.iter() {
+    //         self.offset_segment(s, color);
+    //     }
+    // }
 
-    pub fn polyvsegments(&mut self, vseg: &Vec<Vec<Arc>>, color: &str) {
-        for s in vseg.iter() {
-            self.polysegments(s, color);
-        }
-    }
+    // pub fn arclines(&mut self, vseg: &Vec<Vec<Arc>>, color: &str) {
+    //     for s in vseg.iter() {
+    //         self.arcline(s, color);
+    //     }
+    // }
 }
 
 #[cfg(test)]

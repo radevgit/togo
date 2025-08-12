@@ -2,7 +2,7 @@
 name = "basegeom"
 description = "A library for 2D geometry, providing robust geometric algorithms for intersection/distance between circular arcs/line segments."
 version = "0.2.3"
-rust-version = "1.88"
+rust-version = "1.89"
 edition = "2024"
 categories = ["algorithms", "data-structures", "graphics", "mathematics"]
 keywords = ["intersection", "geometry", "arcs", "distance"]

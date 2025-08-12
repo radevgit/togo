@@ -670,8 +670,8 @@ mod test_int_arc_arc {
             85.0,
         );
         let res = int_arc_arc(&arc0, &arc1);
-        svg.offset_segment(&arc0, "black");
-        svg.offset_segment(&arc1, "black");
+        svg.arcsegment(&arc0, "black");
+        svg.arcsegment(&arc1, "black");
         svg.circle(&circle(arc0.c, 20.0), "blue");
         svg.circle(&circle(arc1.c, 85.0), "blue");
         let p = point(80.68522962987866, 124.80965843614482);
