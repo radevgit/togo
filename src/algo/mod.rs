@@ -15,7 +15,7 @@ pub mod tangent;
 
 // Re-export all public types and functions for easy access
 pub use convex_hull::{pointline_convex_hull, arcline_convex_hull};
-pub use tangent::{tangent_arc_arc, TangentArcArc};
+//pub use tangent::{tangent_arc_arc, TangentArcArc};
 
 
 /// Calculates the area of a simple polygon defined by a series of points.

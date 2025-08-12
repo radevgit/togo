@@ -360,7 +360,7 @@ mod test_pointline_convex_hull {
 
 #[cfg(test)]
 mod test_arcline_convex_hull {
-    use super::*;
+    //use super::*;
 
     // #[test]
     // fn test_arcline_convex_hull_empty() {
@@ -639,8 +639,8 @@ mod test_arcline_convex_hull {
 /// let hull = arcline_convex_hull(&arcs);
 /// assert_eq!(hull.len(), 4); // All segments are on the hull
 /// ```
-pub fn arcline_convex_hull(arcs: &Arcline) -> Arcline {
-    let mut res = Arcline::new();
+pub fn arcline_convex_hull(_arcs: &Arcline) -> Arcline {
+    let res = Arcline::new();
 
 
     res

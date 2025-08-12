@@ -6,6 +6,7 @@ use crate::prelude::*;
 
 use std::{fmt::Display, sync::atomic::AtomicUsize};
 
+/// A Arcline is a sequence of connected Arc-s forming a path.
 pub type Arcline = Vec<Arc>;
 
 static ID_COUNT: AtomicUsize = AtomicUsize::new(0);

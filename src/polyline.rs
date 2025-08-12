@@ -93,7 +93,7 @@ pub fn pvertex(p: Point, b: f64) -> PVertex {
     PVertex::new(p, b)
 }
 
-/// A polyline is a sequence of connected vertices forming a path.
+/// A Polyline is a sequence of connected PVertex-es forming a path.
 ///
 /// Each vertex defines the start of a segment, with the bulge factor
 /// determining whether the segment to the next vertex is straight or curved.
