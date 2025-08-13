@@ -46,7 +46,7 @@ impl Line {
     /// ```
     #[inline]
     pub fn unitdir(&self) -> Self {
-        let (dir, _) = self.dir.normalize();
+        let (dir, _) = self.dir.normalize(false);
         Line {
             origin: self.origin,
             dir,

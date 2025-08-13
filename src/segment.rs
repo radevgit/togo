@@ -95,7 +95,7 @@ impl Segment {
     pub fn get_centered_form(&self) -> (Point, Point, f64) {
         let center = (self.a + self.b) * 0.5;
         let dir = self.b - self.a;
-        let (dirn, norm) = dir.normalize();
+        let (dirn, norm) = dir.normalize(false);
         let extent = norm * 0.5;
         (center, dirn, extent)
     }

@@ -121,6 +121,7 @@ pub fn arcline_area(arcs: &Arcline) -> f64 {
     total_area
 }
 
+#[doc(hidden)]
 /// Computes the area contribution of a circular arc.
 ///
 /// For a circular arc, the area contribution is computed using Green's theorem,

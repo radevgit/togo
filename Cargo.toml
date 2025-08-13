@@ -1,6 +1,6 @@
 [package]
 name = "basegeom"
-description = "A library for 2D geometry, providing robust geometric algorithms for intersection/distance between circular arcs/line segments."
+description = "A library for 2D geometry, providing geometric algorithms for intersection/distance between circular arcs/line segments."
 version = "0.2.5"
 rust-version = "1.88"
 edition = "2024"

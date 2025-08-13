@@ -66,7 +66,7 @@ pub fn dist_line_circle(line: &Line, circle: &Circle) -> DistLineCircleConfig {
 
         // Compute the circle point closest to the line.
         if test > ZERO {
-            let (closestn, _) = closest[0][1].normalize();
+            let (closestn, _) = closest[0][1].normalize(false);
             closest[0][1] = closestn * radius;
         }
     } else {
@@ -221,7 +221,7 @@ mod test_dist_line_circle {
 
     #[test]
     fn test_circle_intersecting_line_02() {
-        let (dir, _) = point(0.0, -100.0).normalize();
+        let (dir, _) = point(0.0, -100.0).normalize(false);
         let line = line(point(1.0, 5.0), dir);
         let circle = circle(point(0.0, 0.0), 2.0);
         let res = super::dist_line_circle(&line, &circle);
