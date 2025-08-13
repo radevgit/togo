@@ -9,6 +9,8 @@
 basegeom = "0.2.5"
 ```
 
+Documentation: [<https://docs.rs/basegeom>](https://docs.rs/basegeom/0.2.5)
+
 ![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
 ## Basic 2D geometric operations
@@ -86,11 +88,14 @@ It is intended for use in My other projects, and **may not implement** all possi
 ## Algorithms
 - Convex Hull (Pointline)
 - Convexity Detection (Pointline)
+- Area Calculations (Pointline and Arcline)
+- Bounding Circle (Arc)
+- Bounding Rectangle (Arc)
 
 ## Examples
 
 ### Creating and working with points (vectors)
-```
+```rust
 use basegeom::prelude::*;
 // Create points using the constructor or convenience function
 let p1 = Point::new(1.0, 2.0);
@@ -105,7 +110,7 @@ assert!((distance - 2.828427124746190).abs() < 1e-10);
 ```
 
 ### Working with geometric primitives
-```
+```rust
 use basegeom::prelude::*;
 // Create a circle and segment
 let center = point(0.0, 0.0);
@@ -118,7 +123,7 @@ assert_eq!(seg.b.x, 3.0);
 ```
 
 ### Distance computations
-```
+```rust
 use basegeom::prelude::*;
 // Distance from point to circle returns (distance, closest_point, is_equidistant)
 let p = point(10.0, 0.0);
@@ -133,7 +138,7 @@ assert_eq!(dist, 3.0);
 ```
 
 ### Intersection computations
-```
+```rust
 use basegeom::prelude::*;
 // Test intersection between two circles
 let c1 = circle(point(0.0, 0.0), 3.0);
@@ -159,7 +164,7 @@ match result {
 > Arcs are always CCW (counter-clockwise) in this library.
 
 
-```
+```rust
 use basegeom::prelude::*;
 // Create an arc from three points and radius (start, end, center, radius)
 let start = point(1.0, 0.0);
@@ -173,7 +178,7 @@ assert_eq!(a.r, 1.0);     // Arc radius field is 'r'
 ```
 
 ### Working with lines
-```
+```rust
 use basegeom::prelude::*;
 // Create a line from a point and direction vector
 let origin = point(0.0, 0.0);
@@ -184,7 +189,7 @@ assert_eq!(l.dir, direction);
 ```
 
 ### Working with intervals
-```
+```rust
 use basegeom::prelude::*;
 // Create an interval (tuple struct with two f64 values)
 let iv = interval(1.0, 5.0);
@@ -196,7 +201,7 @@ assert!(!iv.contains(6.0));
 ```
 
 ### Working with polylines (PVertex)
-```
+```rust
 use basegeom::prelude::*;
 // Create vertices for a polyline
 let p1 = pvertex(point(0.0, 0.0), 0.0);
@@ -211,18 +216,18 @@ assert_eq!(translated[0].p.y, 3.0);
 ```
 
 ### Arc-arc distance computation
-```
+```rust
 use basegeom::prelude::*;
 // Create two separate arcs
 let a1 = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
 let a2 = arc(point(4.0, 0.0), point(2.0, 0.0), point(3.0, 0.0), 1.0);
 // Compute distance between arcs (returns just the distance as f64)
 let dist = dist_arc_arc(&a1, &a2);
-assert!(dist > 0.0); // Arcs should be separated
+assert_eq!(dist, 1.0); // Distance between the arc edges
 ```
 
 ### Line-circle intersection
-```
+```rust
 use basegeom::prelude::*;
 // Create a line and circle that intersect
 let l = line(point(-3.0, 0.0), point(1.0, 0.0)); // Horizontal line through origin
@@ -238,7 +243,7 @@ match result {
 ```
 
 ### Segment-segment intersection
-```
+```rust
 use basegeom::prelude::*;
 // Create two intersecting segments
 let seg1 = segment(point(0.0, 0.0), point(2.0, 2.0));
@@ -254,7 +259,7 @@ match result {
 ```
 
 ### Utility functions
-```
+```rust
 use basegeom::prelude::*;
 // Test floating point equality with tolerance
 assert!(close_enough(1.0, 1.0000001, 1e-5));
@@ -264,7 +269,7 @@ assert!(almost_equal_as_int(1.0, 1.0, 0));
 ```
 
 ### Arc-arc intersection
-```
+```rust
 use basegeom::prelude::*;
 // Create two intersecting arcs
 let a1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
@@ -283,7 +288,7 @@ let a1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
 ```
 
 ### Distance computations
-```
+```rust
 use basegeom::prelude::*;
     let l = line(point(0.0, 3.0), point(1.0, 0.0)); // Line with point and direction
     let c = circle(point(0.0, 0.0), 2.0);
@@ -310,7 +315,7 @@ use basegeom::prelude::*;
     assert_eq!(2.0, dist);
 ```
 
-```
+```rust
 use basegeom::prelude::*;
     // Distance from segment to circle
     let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
@@ -331,7 +336,7 @@ use basegeom::prelude::*;
 ```
 
 ### Intersection computations
-```
+```rust
 use basegeom::prelude::*;
 ), point(1.0, 0.0));
     let seg2 = segment(point(0.0, 2.0), point(1.0, 2.0));
@@ -340,7 +345,7 @@ use basegeom::prelude::*;
 ```
 
 ### Intersection computations
-```
+```rust
 use basegeom::prelude::*;
 // Interval-interval intersection
 let iv1 = interval(1.0, 5.0);
@@ -365,4 +370,93 @@ match result {
     },
     _ => assert!(false), // Accept other valid intersection results
 }
+```
+
+### Area Calculations
+```rust
+use basegeom::prelude::*;
+use basegeom::algo::{pointline_area, arcline_area};
+
+// Calculate area of a polygon defined by points
+let triangle = vec![
+    point(0.0, 0.0),
+    point(4.0, 0.0),
+    point(2.0, 3.0),
+    point(0.0, 0.0)  // Close the polygon
+];
+let area = pointline_area(&triangle);
+assert_eq!(area, 6.0); // Triangle area = 0.5 * base * height = 0.5 * 4 * 3 = 6
+
+// Calculate area of a shape with both line segments and arcs
+let square_with_arc = vec![
+    arc(point(0.0, 0.0), point(2.0, 0.0), point(0.0, 0.0), 0.0),  // Bottom edge (line)
+    arc(point(2.0, 0.0), point(2.0, 2.0), point(0.0, 0.0), 0.0),  // Right edge (line)
+    arc(point(2.0, 2.0), point(0.0, 2.0), point(1.0, 3.0), 1.0),  // Top edge (semicircle)
+    arc(point(0.0, 2.0), point(0.0, 0.0), point(0.0, 0.0), 0.0),  // Left edge (line)
+];
+let area_with_arc = arcline_area(&square_with_arc);
+// Area includes the square plus the semicircular bulge
+assert_eq!(area_with_arc, 5.356194490192345);
+```
+
+### Bounding Calculations
+```rust
+use basegeom::prelude::*;
+use basegeom::algo::{arc_bounding_circle, arc_bounding_rect};
+
+// Find the smallest circle that contains an arc
+let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+let bounding_circle = arc_bounding_circle(&quarter_arc);
+// For a quarter circle, the bounding circle is smaller than the arc's own circle
+assert_eq!(bounding_circle.r, 0.7071067811865476); // sqrt(2)/2
+
+// Find the smallest axis-aligned rectangle that contains an arc
+let semicircle = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
+let bounding_rect = arc_bounding_rect(&semicircle);
+// Rectangle should span from -1 to 1 in x, and include the arc's extremes
+assert_eq!(bounding_rect.p1.x, -1.0); // min_x
+assert_eq!(bounding_rect.p2.x, 1.0);  // max_x
+
+// Bounding rectangle for a line segment
+let line_segment = arcseg(point(1.0, 2.0), point(4.0, 6.0));
+let line_rect = arc_bounding_rect(&line_segment);
+assert_eq!(line_rect.p1, point(1.0, 2.0)); // Bottom-left corner
+assert_eq!(line_rect.p2, point(4.0, 6.0)); // Top-right corner
+```
+
+#### Convex Hull Computation
+```rust
+use basegeom::prelude::*;
+use basegeom::algo::{pointline_convex_hull, is_convex_pointline};
+
+// Find the convex hull of a set of points
+let points = vec![
+    point(0.0, 0.0),
+    point(2.0, 1.0),
+    point(1.0, 2.0),    // Interior point (will be excluded)
+    point(3.0, 0.0),
+    point(2.0, 3.0),
+    point(0.0, 2.0),
+];
+let hull = pointline_convex_hull(&points);
+// Hull should contain only the exterior points
+assert_eq!(hull.len(), 5); // 5 points on the convex hull
+
+// Check if a polygon is convex
+let convex_polygon = vec![
+    point(0.0, 0.0),
+    point(2.0, 0.0),
+    point(2.0, 2.0),
+    point(0.0, 2.0),
+];
+assert!(is_convex_pointline(&convex_polygon)); // Square is convex
+
+let concave_polygon = vec![
+    point(0.0, 0.0),
+    point(2.0, 0.0),
+    point(2.0, 2.0),
+    point(1.0, 1.0),    // Creates concave indentation
+    point(0.0, 2.0),
+];
+assert!(!is_convex_pointline(&concave_polygon)); // This shape is concave
 ```
