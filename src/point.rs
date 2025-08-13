@@ -303,7 +303,7 @@ impl Point {
     /// use basegeom::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
-    /// let (normalized, magnitude) = p.normalize();
+    /// let (normalized, magnitude) = p.normalize(false);
     /// // normalized will be approximately (0.6, 0.8)
     /// // magnitude will be 5.0
     /// ```
