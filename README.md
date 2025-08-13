@@ -11,7 +11,7 @@ To use the Offroad library in your project, add the following to your `Cargo.tom
 basegeom = "0.2.4"
 ```
 
-![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.svg "arc_segment_intersect")
+![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
 ## Basic 2D geometric operations
 
