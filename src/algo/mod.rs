@@ -18,7 +18,7 @@ pub mod bounding;
 // Re-export all public types and functions for easy access
 pub use convex_hull::{pointline_convex_hull, arcline_convex_hull};
 pub use area::{arcline_area, pointline_area};
-pub use bounding::arc_bounding_circle;
+pub use bounding::{arc_bounding_circle, arc_bounding_rect};
 //pub use tangent::{tangent_arc_arc, TangentArcArc};
 
 

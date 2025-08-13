@@ -329,6 +329,7 @@ mod circle;
 mod line;
 mod point;
 mod polyline;
+mod rect;
 mod segment;
 
 // Geometric algorithms and utilities
@@ -365,6 +366,7 @@ pub mod prelude {
         PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
         pvertex,
     };
+    pub use crate::rect::{Rect, rect};
     pub use crate::segment::{Segment, segment};
     pub use crate::svg::{SVG, svg};
 
