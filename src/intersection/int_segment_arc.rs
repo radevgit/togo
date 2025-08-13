@@ -138,7 +138,7 @@ mod test_int_segment_arc {
         };
 
         svg.arc(&arc, "red");
-        svg.line(&segment, "green");
+        svg.segment(&segment, "green");
         svg.circle(&circle(pc, 1.0), "black");
         svg.circle(&circle(pd, 1.0), "black");
         svg.write();

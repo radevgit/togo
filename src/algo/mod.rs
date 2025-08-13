@@ -11,57 +11,14 @@ use crate::prelude::*;
 // pub mod triangulation;
 pub mod convex_hull;
 pub mod tangent;
+pub mod area;
 // pub mod closest_pair;
 
 // Re-export all public types and functions for easy access
 pub use convex_hull::{pointline_convex_hull, arcline_convex_hull};
+pub use area::{arcline_area, pointline_area};
 //pub use tangent::{tangent_arc_arc, TangentArcArc};
 
-
-/// Calculates the area of a simple polygon defined by a series of points.
-///
-/// Uses the shoelace formula (also known as the surveyor's formula) to compute
-/// the area of a polygon given its vertices in order.
-///
-/// # Arguments
-///
-/// * `points` - A slice of points defining the polygon vertices in order
-///
-/// # Returns
-///
-/// The area of the polygon (positive for counter-clockwise orientation)
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// use basegeom::algo::pointline_area;
-///
-/// let square = vec![
-///     point(0.0, 0.0),
-///     point(1.0, 0.0),
-///     point(1.0, 1.0),
-///     point(0.0, 1.0),
-/// ];
-/// let area = pointline_area(&square);
-/// assert_eq!(area, 1.0);
-/// ```
-pub fn pointline_area(points: &Pointline) -> f64 {
-    if points.len() < 3 {
-        return 0.0;
-    }
-
-    let mut area = 0.0;
-    let n = points.len();
-    
-    for i in 0..n {
-        let j = (i + 1) % n;
-        area += points[i].x * points[j].y;
-        area -= points[j].x * points[i].y;
-    }
-    
-    area / 2.0
-}
 
 /// Checks if a polygon defined by points is convex.
 ///
@@ -105,29 +62,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_pointline_area_square() {
-        let square = vec![
-            point(0.0, 0.0),
-            point(1.0, 0.0),
-            point(1.0, 1.0),
-            point(0.0, 1.0),
-        ];
-        let area = pointline_area(&square);
-        assert_eq!(area, 1.0);
-    }
-
-    #[test]
-    fn test_pointline_area_triangle() {
-        let triangle = vec![
-            point(0.0, 0.0),
-            point(2.0, 0.0),
-            point(1.0, 2.0),
-        ];
-        let area = pointline_area(&triangle);
-        assert_eq!(area, 2.0);
-    }
-
-    #[test]
     fn test_is_convex_pointline_square() {
         let square = vec![
             point(0.0, 0.0),
@@ -150,4 +84,3 @@ mod tests {
         assert!(!is_convex_pointline(&concave));
     }
 }
-

@@ -138,7 +138,7 @@ impl SVG {
         self.s.push_str("\n");
     }
 
-    pub fn line(&mut self, segment: &Segment, color: &str) {
+    pub fn segment(&mut self, segment: &Segment, color: &str) {
         let mut s = String::new();
         write!(
             &mut s,
@@ -199,7 +199,7 @@ impl SVG {
         if g == 0f64 {
             // line segment
             let seg = segment(p0, p1);
-            self.line(&seg, color);
+            self.segment(&seg, color);
         } else {
             let arc = arc_circle_parametrization(p0, p1, g);
             self.arc(&arc, color);
@@ -232,7 +232,7 @@ impl SVG {
         if off.is_line() {
             // line segment
             let seg = segment(off.a, off.b);
-            self.line(&seg, color);
+            self.segment(&seg, color);
         } else {
             self.arc(off, color);
         }
@@ -266,7 +266,7 @@ impl SVG {
     //     if off.is_line() {
     //         // line segment
     //         let seg = segment(off.a, off.b);
-    //         self.line(&seg, color);
+    //         self.segment(&seg, color);
     //     } else {
     //         self.arc(off, color);
     //     }

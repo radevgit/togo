@@ -600,6 +600,8 @@ mod test_arcline_convex_hull {
     // }
 }
 
+
+#[doc(hidden)]
 /// Computes the convex hull of a set of arcs and line segments.
 ///
 /// This function computes the convex hull of an arcline (collection of arcs and line segments).
