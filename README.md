@@ -2,9 +2,7 @@
 ![Build](https://github.com/radevgit/basegeom/actions/workflows/rust.yml/badge.svg)
 
 
-## Adding the library to your project
-
-To use the Offroad library in your project, add the following to your `Cargo.toml`:
+## Adding the library to Cargo.toml
 
 ```toml
 [dependencies]
