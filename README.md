@@ -8,10 +8,11 @@
 [dependencies]
 basegeom = "0.2.5"
 ```
-
-Documentation: [<https://docs.rs/basegeom>](https://docs.rs/basegeom/0.2.5)
-
 ![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
+
+## Documentation
+
+[<https://docs.rs/basegeom>](https://docs.rs/basegeom/0.2.5)
 
 ## Basic 2D geometric operations
 
