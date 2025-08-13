@@ -12,11 +12,13 @@ use crate::prelude::*;
 pub mod convex_hull;
 pub mod tangent;
 pub mod area;
+pub mod bounding;
 // pub mod closest_pair;
 
 // Re-export all public types and functions for easy access
 pub use convex_hull::{pointline_convex_hull, arcline_convex_hull};
 pub use area::{arcline_area, pointline_area};
+pub use bounding::arc_bounding_circle;
 //pub use tangent::{tangent_arc_arc, TangentArcArc};
 
 
