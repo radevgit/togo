@@ -8,7 +8,7 @@ To use the Offroad library in your project, add the following to your `Cargo.tom
 
 ```toml
 [dependencies]
-basegeom = "0.2.5"
+basegeom = "0.2.4"
 ```
 
 ![](https://raw.githubusercontent.com/radevgit/offroad/refs/heads/main/examples/img/arc_segment_intersect.svg "arc_segment_intersect")
