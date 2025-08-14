@@ -126,6 +126,9 @@ pub type Polyline = Vec<PVertex>;
 /// let reversed = polyline_reverse(&original);
 /// ```
 pub fn polyline_reverse(poly: &Polyline) -> Polyline {
+    if poly.is_empty() {
+        return Vec::new();
+    }
     let last = poly.last().unwrap();
     let mut reverse = poly.clone();
     reverse.reverse();
@@ -328,5 +331,29 @@ mod test_pvertex {
         assert_eq!(reversed.len(), 1);
         assert_eq!(reversed[0].p, poly[0].p);
         assert_eq!(reversed[0].b, -poly[0].b);
+    }
+
+    #[test]
+    fn test_polyline_reverse_empty() {
+        // Edge case: empty polyline
+        let poly: Polyline = vec![];
+        let reversed = polyline_reverse(&poly);
+        assert_eq!(reversed.len(), 0);
+        assert_eq!(reversed, vec![]);
+    }
+
+    #[test]
+    fn test_polyline_reverse_all_zero_bulges() {
+        // Polyline with all zero bulges
+        let poly = vec![
+            pvertex(point(0.0, 0.0), 0.0),
+            pvertex(point(1.0, 0.0), 0.0),
+            pvertex(point(1.0, 1.0), 0.0),
+        ];
+        let reversed = polyline_reverse(&poly);
+        assert_eq!(reversed.len(), poly.len());
+        for v in reversed {
+            assert_eq!(v.b, 0.0);
+        }
     }
 }
