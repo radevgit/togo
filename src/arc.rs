@@ -111,6 +111,66 @@ impl Arc {
         Arc { a, b, c, r, id }
     }
 
+    /// Creates a new Arc with the given parameters.
+    ///
+    /// This is a convenience function equivalent to `Arc::new(a, b, c, r)`.
+    ///
+    /// # Arguments
+    ///
+    /// * `a` - The start point of the arc
+    /// * `b` - The end point of the arc  
+    /// * `c` - The center point of the arc
+    /// * `r` - The radius of the arc
+    ///
+    /// # Returns
+    ///
+    /// A new Arc instance
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
+    /// assert_eq!(arc.a, point(0.0, 0.0));
+    /// assert_eq!(arc.b, point(1.0, 0.0));
+    /// assert_eq!(arc.r, 1.0);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
+        Arc::new(a, b, c, r)
+    }
+
+    /// Creates a line segment represented as an Arc with infinite radius.
+    ///
+    /// This function creates an Arc that represents a straight line segment
+    /// between two points. The arc uses infinite radius to distinguish it
+    /// from curved arcs.
+    ///
+    /// # Arguments
+    ///
+    /// * `a` - The start point of the line segment
+    /// * `b` - The end point of the line segment
+    ///
+    /// # Returns
+    ///
+    /// An Arc representing a line segment with infinite radius
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    /// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
+    /// assert!(line.is_line());
+    /// assert!(!line.is_arc());
+    /// assert_eq!(line.r, f64::INFINITY);
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn arcseg(a: Point, b: Point) -> Arc {
+        Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
+    }
+
     /// Set the id of the arc.
     #[inline]
     pub fn id(&mut self, id: usize) {
@@ -250,73 +310,12 @@ impl Arc {
     // }
 }
 
-/// Creates a new Arc with the given parameters.
-///
-/// This is a convenience function equivalent to `Arc::new(a, b, c, r)`.
-///
-/// # Arguments
-///
-/// * `a` - The start point of the arc
-/// * `b` - The end point of the arc  
-/// * `c` - The center point of the arc
-/// * `r` - The radius of the arc
-///
-/// # Returns
-///
-/// A new Arc instance
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
-/// assert_eq!(arc.a, point(0.0, 0.0));
-/// assert_eq!(arc.b, point(1.0, 0.0));
-/// assert_eq!(arc.r, 1.0);
-/// ```
-#[inline]
-pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
-    Arc::new(a, b, c, r)
-}
-
-/// Creates a line segment represented as an Arc with infinite radius.
-///
-/// This function creates an Arc that represents a straight line segment
-/// between two points. The arc uses infinite radius to distinguish it
-/// from curved arcs.
-///
-/// # Arguments
-///
-/// * `a` - The start point of the line segment
-/// * `b` - The end point of the line segment
-///
-/// # Returns
-///
-/// An Arc representing a line segment with infinite radius
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
-/// assert!(line.is_line());
-/// assert!(!line.is_arc());
-/// assert_eq!(line.r, f64::INFINITY);
-/// ```
-#[inline]
-#[must_use]
-pub fn arcseg(a: Point, b: Point) -> Arc {
-    Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
-}
-
 /// Translates Arcline by a given translation vector.
 pub fn arcline_translate(arc: &mut Arcline, translation: Point) {
     for segment in arc.iter_mut() {
         segment.translate(translation);
     }
 }
-
-
 
 #[cfg(test)]
 mod test_arc {
@@ -489,8 +488,8 @@ mod test_arc {
     }
 }
 
-/// Check if the arc contains the point.
 // #00003 #00004
+// Check if the arc contains the point.
 // pub fn contains_ulps(self: Self, p: Point, ulps: i64) -> bool {
 //     let length = (p - self.c).norm();
 //     if almost_equal_as_int(length, self.r, ulps) {
@@ -938,15 +937,27 @@ mod test_arc_validation {
 
     #[test]
     fn test_arcline_reverse_basic() {
-        let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.5, 0.5), r: 1.0, id: 1 };
-        let arc2 = Arc { a: point(1.0, 0.0), b: point(1.0, 1.0), c: point(1.0, 0.5), r: 1.0, id: 2 };
+        let arc1 = Arc {
+            a: point(0.0, 0.0),
+            b: point(1.0, 0.0),
+            c: point(0.5, 0.5),
+            r: 1.0,
+            id: 1,
+        };
+        let arc2 = Arc {
+            a: point(1.0, 0.0),
+            b: point(1.0, 1.0),
+            c: point(1.0, 0.5),
+            r: 1.0,
+            id: 2,
+        };
         let arcline = vec![arc1, arc2];
         let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed.len(), 2);
         // For circular arcs (finite radius), endpoints should NOT be swapped - they remain CCW
-        assert_eq!(reversed[0].a, arc2.a);  // arc2 comes first, unchanged
+        assert_eq!(reversed[0].a, arc2.a); // arc2 comes first, unchanged
         assert_eq!(reversed[0].b, arc2.b);
-        assert_eq!(reversed[1].a, arc1.a);  // arc1 comes second, unchanged
+        assert_eq!(reversed[1].a, arc1.a); // arc1 comes second, unchanged
         assert_eq!(reversed[1].b, arc1.b);
         assert_eq!(reversed[0].id, arc2.id);
         assert_eq!(reversed[1].id, arc1.id);
@@ -955,13 +966,19 @@ mod test_arc_validation {
     #[test]
     fn test_arcline_reverse_empty() {
         let arcline: Vec<Arc> = vec![];
-    let reversed = arcline_reverse(&arcline);
+        let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed.len(), 0);
     }
 
     #[test]
     fn test_arcline_reverse_single_arc() {
-        let arc = Arc { a: point(2.0, 2.0), b: point(3.0, 3.0), c: point(2.5, 2.5), r: 2.0, id: 42 };
+        let arc = Arc {
+            a: point(2.0, 2.0),
+            b: point(3.0, 3.0),
+            c: point(2.5, 2.5),
+            r: 2.0,
+            id: 42,
+        };
         let arcline = vec![arc];
         let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed.len(), 1);
@@ -974,31 +991,55 @@ mod test_arc_validation {
     #[test]
     fn test_arcline_reverse_all_lines() {
         // All arcs are actually lines (r = infinity)
-        let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.0, 0.0), r: f64::INFINITY, id: 1 };
-        let arc2 = Arc { a: point(1.0, 0.0), b: point(2.0, 0.0), c: point(0.0, 0.0), r: f64::INFINITY, id: 2 };
+        let arc1 = Arc {
+            a: point(0.0, 0.0),
+            b: point(1.0, 0.0),
+            c: point(0.0, 0.0),
+            r: f64::INFINITY,
+            id: 1,
+        };
+        let arc2 = Arc {
+            a: point(1.0, 0.0),
+            b: point(2.0, 0.0),
+            c: point(0.0, 0.0),
+            r: f64::INFINITY,
+            id: 2,
+        };
         let arcline = vec![arc1, arc2];
         let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed[0].r, f64::INFINITY);
         assert_eq!(reversed[1].r, f64::INFINITY);
         // For line segments (infinite radius), endpoints should be swapped
-        assert_eq!(reversed[0].a, arc2.b);  // arc2 reversed: b->a
-        assert_eq!(reversed[0].b, arc2.a);  // arc2 reversed: a->b
-        assert_eq!(reversed[1].a, arc1.b);  // arc1 reversed: b->a  
-        assert_eq!(reversed[1].b, arc1.a);  // arc1 reversed: a->b
+        assert_eq!(reversed[0].a, arc2.b); // arc2 reversed: b->a
+        assert_eq!(reversed[0].b, arc2.a); // arc2 reversed: a->b
+        assert_eq!(reversed[1].a, arc1.b); // arc1 reversed: b->a  
+        assert_eq!(reversed[1].b, arc1.a); // arc1 reversed: a->b
     }
 
     #[test]
     fn test_arcline_reverse_all_arcs() {
         // All arcs are true arcs (finite radius)
-        let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.5, 0.5), r: 2.0, id: 1 };
-        let arc2 = Arc { a: point(1.0, 0.0), b: point(2.0, 0.0), c: point(1.5, 0.5), r: 2.0, id: 2 };
+        let arc1 = Arc {
+            a: point(0.0, 0.0),
+            b: point(1.0, 0.0),
+            c: point(0.5, 0.5),
+            r: 2.0,
+            id: 1,
+        };
+        let arc2 = Arc {
+            a: point(1.0, 0.0),
+            b: point(2.0, 0.0),
+            c: point(1.5, 0.5),
+            r: 2.0,
+            id: 2,
+        };
         let arcline = vec![arc1, arc2];
         let reversed = arcline_reverse(&arcline);
         assert!(reversed.iter().all(|arc| arc.r == 2.0));
         // For circular arcs (finite radius), endpoints should NOT be swapped - order is reversed but arcs stay CCW
-        assert_eq!(reversed[0].a, arc2.a);  // arc2 comes first, unchanged
+        assert_eq!(reversed[0].a, arc2.a); // arc2 comes first, unchanged
         assert_eq!(reversed[0].b, arc2.b);
-        assert_eq!(reversed[1].a, arc1.a);  // arc1 comes second, unchanged  
+        assert_eq!(reversed[1].a, arc1.a); // arc1 comes second, unchanged  
         assert_eq!(reversed[1].b, arc1.b);
     }
 }
@@ -1107,11 +1148,12 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     dist / (2.0 * seg)
 }
 
+const ZERO: f64 = 0f64;
+const MIN_BULGE: f64 = 1E-8;
 /// Returns the circle parameterization of the Arc. Without thetas.
 /// Much faster, avoids arctan()
 /// <div class="warning">There are two arcs. Always return CCW (Counter-Clockwise) oriented one!</div>
-const ZERO: f64 = 0f64;
-const MIN_BULGE: f64 = 1E-8;
+///
 /// Creates an arc from two points and a bulge parameter.
 ///
 /// This function creates an arc that connects two points using a bulge parameter
@@ -1165,7 +1207,6 @@ pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
     let r = 0.25 * t2 * (1.0 / bulge + bulge).abs();
     arc(p1, p2, point(cx, cy), r)
 }
-
 
 #[cfg(test)]
 mod test_arc_g_from_points {
@@ -1456,7 +1497,6 @@ mod test_arc_g_from_points {
     }
 }
 
-
 /// Reverses the direction of an arcline (sequence of CCW arcs).
 /// Each arc is reversed by swapping its start and end points, and the order of arcs is reversed.
 /// The orientation remains CCW for each arc.
@@ -1466,6 +1506,7 @@ mod test_arc_g_from_points {
 ///
 /// # Returns
 /// A new arcline with reversed direction
+#[must_use]
 pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
     let mut reversed: Vec<Arc> = Vec::with_capacity(arcs.len());
     for arc in arcs.iter().rev() {
