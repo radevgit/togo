@@ -44,6 +44,7 @@ impl Line {
     /// assert_eq!(unit_line.dir.norm(), 1.0);
     /// ```
     #[inline]
+    #[must_use]
     pub fn unitdir(&self) -> Self {
         let (dir, _) = self.dir.normalize(false);
         Line {

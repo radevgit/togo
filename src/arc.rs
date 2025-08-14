@@ -1515,7 +1515,7 @@ pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
         if arc.is_line() {
             reversed.push(arc.reverse());
         } else {
-            reversed.push(arc.clone());
+            reversed.push(*arc);
         }
     }
     reversed
