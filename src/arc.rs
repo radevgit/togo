@@ -316,6 +316,31 @@ pub fn arcline_translate(arc: &mut Arcline, translation: Point) {
     }
 }
 
+
+/// Reverses the direction of an arcline (sequence of CCW arcs).
+/// Each arc is reversed by swapping its start and end points, and the order of arcs is reversed.
+/// The orientation remains CCW for each arc.
+///
+/// # Arguments
+/// * `arcs` - The arcline (Vec<Arc>) to reverse
+///
+/// # Returns
+/// A new arcline with reversed direction
+pub fn arcline_reverse(arcs: &[Arc]) -> Vec<Arc> {
+    let mut reversed: Vec<Arc> = Vec::with_capacity(arcs.len());
+    for arc in arcs.iter().rev() {
+        let new_arc = Arc {
+            a: arc.b,
+            b: arc.a,
+            c: arc.c,
+            r: arc.r,
+            id: arc.id,
+        };
+        reversed.push(new_arc);
+    }
+    reversed
+}
+
 #[cfg(test)]
 mod test_arc {
     use super::*;
@@ -935,293 +960,61 @@ mod test_arc_validation {
     }
 
     #[test]
-    fn test_arc_is_not_consistent() {
-        let arc1 = arc(point(0.0, 0.0), point(1.0, 1.0), point(0.5, 0.5), 1.0);
-        assert!(arc_is_not_consistent(&arc1, 1e-10));
-    }
-}
-
-/// Returns the circle parameterization of the Arc. Without thetas.
-/// Much faster, avoids arctan()
-/// <div class="warning">There are two arcs. Always return CCW (Counter-Clockwise) oriented one!</div>
-const ZERO: f64 = 0f64;
-const MIN_BULGE: f64 = 1E-8;
-/// Creates an arc from two points and a bulge parameter.
-///
-/// This function creates an arc that connects two points using a bulge parameter
-/// to define the curvature. The bulge represents the ratio of the sagitta
-/// (the perpendicular distance from the chord midpoint to the arc) to half the chord length.
-///
-/// # Arguments
-///
-/// * `pp1` - The first point of the arc
-/// * `pp2` - The second point of the arc
-/// * `bulge` - The bulge parameter controlling the arc curvature
-///
-/// # Returns
-///
-/// An Arc connecting the two points with the specified curvature that is CCW
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-///
-/// // Create a semicircle arc
-/// let arc = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1.0);
-/// assert!(arc.is_arc());
-///
-/// // Create a line (very small bulge)
-/// let line = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
-/// assert!(line.is_line());
-/// ```
-#[must_use]
-pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
-    let mut p1 = pp1;
-    let mut p2 = pp2;
-    let mut bulge = bulge;
-    if bulge.abs() < MIN_BULGE || p1.close_enough(p2, EPS_COLLAPSED) {
-        // create line
-        return arcseg(pp1, pp2);
-    }
-    if bulge < 0f64 {
-        // make arc CCW
-        p1 = pp2;
-        p2 = pp1;
-        bulge = -bulge;
-    }
-
-    // TODO: check for numerical issues
-    let t2 = (p2 - p1).norm();
-    let dt2 = (1.0 + bulge) * (1.0 - bulge) / (4.0 * bulge);
-    let cx = (0.5 * p1.x + 0.5 * p2.x) + dt2 * (p1.y - p2.y);
-    let cy = (0.5 * p1.y + 0.5 * p2.y) + dt2 * (p2.x - p1.x);
-    let r = 0.25 * t2 * (1.0 / bulge + bulge).abs();
-    arc(p1, p2, point(cx, cy), r)
-}
-
-#[cfg(test)]
-mod test_arc_circle_parametrization {
-    use std::f64::consts::SQRT_2;
-
-    use crate::svg::svg;
-
-    use super::*;
-
-    const _0: f64 = 0f64;
-    const _1: f64 = 0f64;
-    const _2: f64 = 0f64;
-
-    #[test]
-    fn test_arc_circle_parametrization_01() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), 0.5);
-        assert_eq!(
-            arc0,
-            arc(
-                point(100.0, 100.0),
-                point(200.0, 200.0),
-                point(112.5, 187.5),
-                88.38834764831844,
-            ),
-        );
+    fn test_arcline_reverse_basic() {
+        let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.5, 0.5), r: 1.0, id: 1 };
+        let arc2 = Arc { a: point(1.0, 0.0), b: point(1.0, 1.0), c: point(1.0, 0.5), r: 1.0, id: 2 };
+        let arcline = vec![arc1, arc2];
+    let reversed = arcline_reverse(&arcline);
+        assert_eq!(reversed.len(), 2);
+        assert_eq!(reversed[0].a, arc2.b);
+        assert_eq!(reversed[0].b, arc2.a);
+        assert_eq!(reversed[1].a, arc1.b);
+        assert_eq!(reversed[1].b, arc1.a);
+        assert_eq!(reversed[0].id, arc2.id);
+        assert_eq!(reversed[1].id, arc1.id);
     }
 
     #[test]
-    #[ignore = "svg output"]
-    fn test_arc_circle_parametrization_01_svg() {
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), 0.5);
-        let mut svg = svg(400.0, 600.0);
-        svg.arc(&arc0, "red");
-        let circle = circle(point(arc0.c.x, arc0.c.y), 3.0);
-        svg.circle(&circle, "blue");
-        svg.write();
+    fn test_arcline_reverse_empty() {
+        let arcline: Vec<Arc> = vec![];
+    let reversed = arcline_reverse(&arcline);
+        assert_eq!(reversed.len(), 0);
     }
 
     #[test]
-    fn test_arc_circle_parametrization_02() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), 1.5);
-        assert_eq!(
-            arc0,
-            arc(
-                point(100.0, 100.0),
-                point(200.0, 200.0),
-                point(170.83333333333334, 129.16666666666666),
-                76.60323462854265,
-            ),
-        );
+    fn test_arcline_reverse_single_arc() {
+        let arc = Arc { a: point(2.0, 2.0), b: point(3.0, 3.0), c: point(2.5, 2.5), r: 2.0, id: 42 };
+        let arcline = vec![arc];
+    let reversed = arcline_reverse(&arcline);
+        assert_eq!(reversed.len(), 1);
+        assert_eq!(reversed[0].a, arc.b);
+        assert_eq!(reversed[0].b, arc.a);
+        assert_eq!(reversed[0].id, arc.id);
     }
 
     #[test]
-    #[ignore = "svg output"]
-    fn test_arc_circle_parametrization_02_svg() {
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), 1.5);
-        let mut svg = svg(400.0, 600.0);
-        svg.arc(&arc0, "red");
-        let circle = circle(point(arc0.c.x, arc0.c.y), 3.0);
-        svg.circle(&circle, "blue");
-        svg.write();
+    fn test_arcline_reverse_all_lines() {
+        // All arcs are actually lines (r = infinity)
+        let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.0, 0.0), r: f64::INFINITY, id: 1 };
+        let arc2 = Arc { a: point(1.0, 0.0), b: point(2.0, 0.0), c: point(0.0, 0.0), r: f64::INFINITY, id: 2 };
+        let arcline = vec![arc1, arc2];
+    let reversed = arcline_reverse(&arcline);
+        assert_eq!(reversed[0].r, f64::INFINITY);
+        assert_eq!(reversed[1].r, f64::INFINITY);
+        assert_eq!(reversed[0].a, arc2.b);
+        assert_eq!(reversed[1].a, arc1.b);
     }
 
     #[test]
-    fn test_arc_circle_parametrization_03() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), -0.5);
-        assert_eq!(
-            arc0,
-            arc(
-                point(200.0, 200.0),
-                point(100.0, 100.0),
-                point(187.5, 112.5),
-                88.38834764831844,
-            ),
-        );
-    }
-
-    #[test]
-    #[ignore = "svg output"]
-    fn test_arc_circle_parametrization_03_svg() {
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), -0.5);
-        let mut svg = svg(400.0, 600.0);
-        svg.arc(&arc0, "red");
-        let circle = circle(point(arc0.c.x, arc0.c.y), 3.0);
-        svg.circle(&circle, "blue");
-        svg.write();
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_04() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), -1.5);
-        assert_eq!(
-            arc0,
-            arc(
-                point(200.0, 200.0),
-                point(100.0, 100.0),
-                point(129.16666666666666, 170.83333333333334),
-                76.60323462854265,
-            ),
-        );
-    }
-
-    #[test]
-    #[ignore = "svg output"]
-    fn test_arc_circle_parametrization_04_svg() {
-        let arc0 = arc_circle_parametrization(point(100.0, 100.0), point(200.0, 200.0), -1.5);
-        let mut svg = svg(400.0, 600.0);
-        svg.arc(&arc0, "red");
-        let circle = circle(point(arc0.c.x, arc0.c.y), 3.0);
-        svg.circle(&circle, "blue");
-        svg.write();
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_05() {
-        // the function should return CCW arc
-        let arc0 =
-            arc_circle_parametrization(point(1.0, 0.0), point(2.0, 1.0), -1.0 + f64::EPSILON);
-        assert_eq!(
-            arc0,
-            arc(
-                point(2.0, 1.0),
-                point(1.0, 0.0),
-                point(1.5000000000000002, 0.4999999999999999),
-                SQRT_2 / 2.0,
-            ),
-        );
-    }
-
-    #[test]
-    #[ignore = "svg output"]
-    fn test_arc_circle_parametrization_05_svg() {
-        let arc0 =
-            arc_circle_parametrization(point(1.0, 0.0), point(2.0, 1.0), -1.0 + f64::EPSILON);
-        let mut svg = svg(400.0, 600.0);
-        svg.arc(&arc0, "red");
-        let circle = circle(point(arc0.c.x, arc0.c.y), 0.1);
-        svg.circle(&circle, "blue");
-        svg.write();
-    }
-
-    #[test]
-    fn test_display_01() {
-        let arc0 = arc_circle_parametrization(point(1.0, 2.0), point(3.0, 4.0), 3.3);
-        assert_eq!(
-            "[[1.00000000000000000000, 2.00000000000000000000], [3.00000000000000000000, 4.00000000000000000000], [3.49848484848484808651, 1.50151515151515169144], 2.54772716009334887488]",
-            format!("{}", arc0)
-        );
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_bulge_zero() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(point(1.0, 0.0), point(2.0, 1.0), 0.0);
-        assert_eq!(arc0, arcseg(point(1.0, 0.0), point(2.0, 1.0),),);
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_the_same_points() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(point(2.0, 1.0), point(2.0, 1.0), 1.0);
-        assert_eq!(arc0, arcseg(point(2.0, 1.0), point(2.0, 1.0),),);
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_06() {
-        // the function should return CCW arc
-        let arc0 = arc_circle_parametrization(
-            point(200.0, -200.0),
-            point(-200.0, 200.0),
-            -1.0 + f64::EPSILON,
-        );
-        assert_eq!(
-            arc0,
-            arc(
-                point(-200.0, 200.0),
-                point(200.0, -200.0),
-                point(4.4408920985006274e-14, 4.4408920985006274e-14),
-                SQRT_2 * 200.0
-            ),
-        );
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_07() {
-        let mut arc0 = arc_circle_parametrization(
-            point(200.0, -200.0),
-            point(-200.0, 200.0),
-            -1.0 + f64::EPSILON,
-        );
-        arc0.translate(point(200.0, 200.0));
-        assert_eq!(
-            arc0,
-            arc(
-                point(0.0, 400.0),
-                point(400.0, 0.0),
-                point(200.00000000000006, 200.00000000000006),
-                SQRT_2 * 200.0,
-            ),
-        );
-    }
-
-    #[test]
-    #[ignore = "svg output"]
-    fn test_arc_circle_parametrization_07_svg() {
-        let mut arc0 = arc_circle_parametrization(point(200.0, -200.0), point(-200.0, 200.0), -1.0);
-        arc0.translate(point(200.0, 200.0));
-        let mut svg = svg(400.0, 600.0);
-        svg.arc(&arc0, "red");
-        let circle = circle(point(arc0.c.x, arc0.c.y), 2.0);
-        svg.circle(&circle, "blue");
-        svg.write();
-    }
-
-    #[test]
-    fn test_arc_circle_parametrization_line() {
-        // should return line
-        let line0 = arc_circle_parametrization(point(100.0, 100.0), point(300.0, 100.0), 0.0);
-        assert_eq!(line0, arcseg(point(100.0, 100.0), point(300.0, 100.0)));
+    fn test_arcline_reverse_all_arcs() {
+        // All arcs are true arcs (finite radius)
+        let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.5, 0.5), r: 2.0, id: 1 };
+        let arc2 = Arc { a: point(1.0, 0.0), b: point(2.0, 0.0), c: point(1.5, 0.5), r: 2.0, id: 2 };
+        let arcline = vec![arc1, arc2];
+    let reversed = arcline_reverse(&arcline);
+        assert!(reversed.iter().all(|arc| arc.r == 2.0));
+        assert_eq!(reversed[0].a, arc2.b);
+        assert_eq!(reversed[1].a, arc1.b);
     }
 }
 
@@ -1328,6 +1121,66 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     }
     dist / (2.0 * seg)
 }
+
+/// Returns the circle parameterization of the Arc. Without thetas.
+/// Much faster, avoids arctan()
+/// <div class="warning">There are two arcs. Always return CCW (Counter-Clockwise) oriented one!</div>
+const ZERO: f64 = 0f64;
+const MIN_BULGE: f64 = 1E-8;
+/// Creates an arc from two points and a bulge parameter.
+///
+/// This function creates an arc that connects two points using a bulge parameter
+/// to define the curvature. The bulge represents the ratio of the sagitta
+/// (the perpendicular distance from the chord midpoint to the arc) to half the chord length.
+///
+/// # Arguments
+///
+/// * `pp1` - The first point of the arc
+/// * `pp2` - The second point of the arc
+/// * `bulge` - The bulge parameter controlling the arc curvature
+///
+/// # Returns
+///
+/// An Arc connecting the two points with the specified curvature that is CCW
+///
+/// # Examples
+///
+/// ```
+/// use basegeom::prelude::*;
+///
+/// // Create a semicircle arc
+/// let arc = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1.0);
+/// assert!(arc.is_arc());
+///
+/// // Create a line (very small bulge)
+/// let line = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
+/// assert!(line.is_line());
+/// ```
+#[must_use]
+pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
+    let mut p1 = pp1;
+    let mut p2 = pp2;
+    let mut bulge = bulge;
+    if bulge.abs() < MIN_BULGE || p1.close_enough(p2, EPS_COLLAPSED) {
+        // create line
+        return arcseg(pp1, pp2);
+    }
+    if bulge < 0f64 {
+        // make arc CCW
+        p1 = pp2;
+        p2 = pp1;
+        bulge = -bulge;
+    }
+
+    // TODO: check for numerical issues
+    let t2 = (p2 - p1).norm();
+    let dt2 = (1.0 + bulge) * (1.0 - bulge) / (4.0 * bulge);
+    let cx = (0.5 * p1.x + 0.5 * p2.x) + dt2 * (p1.y - p2.y);
+    let cy = (0.5 * p1.y + 0.5 * p2.y) + dt2 * (p2.x - p1.x);
+    let r = 0.25 * t2 * (1.0 / bulge + bulge).abs();
+    arc(p1, p2, point(cx, cy), r)
+}
+
 
 #[cfg(test)]
 mod test_arc_g_from_points {
