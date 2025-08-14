@@ -134,7 +134,7 @@
 //! assert!(!iv.contains(6.0));
 //! ```
 //!
-//! ## Working with polylines (PVertex)
+//! ## Working with polylines (`PVertex`)
 //!
 //! ```
 //! use basegeom::prelude::*;

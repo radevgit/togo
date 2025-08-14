@@ -22,7 +22,7 @@ const EPS_COLLAPSED: f64 = 1E-8;
 /// * `a` - Start point of the arc
 /// * `b` - End point of the arc  
 /// * `c` - Center point of the arc
-/// * `r` - Radius of the arc (f64::INFINITY indicates a line segment)
+/// * `r` - Radius of the arc (`f64::INFINITY` indicates a line segment)
 /// * `id` - Non-unique identifier used for debugging and tracking segments
 ///
 /// # Examples
@@ -76,7 +76,7 @@ impl Arc {
     /// * `a` - Start point of the arc
     /// * `b` - End point of the arc
     /// * `c` - Center point of the arc
-    /// * `r` - Radius of the arc (use linearc() for segments)
+    /// * `r` - Radius of the arc (use `arcseg()` for segments)
     ///
     /// # Returns
     ///
@@ -134,6 +134,7 @@ impl Arc {
     /// assert!(!line.is_arc()); // Has infinite radius (line segment)
     /// ```
     #[inline]
+    #[must_use]
     pub fn is_arc(&self) -> bool {
         self.r != f64::INFINITY
     }
@@ -155,6 +156,7 @@ impl Arc {
     /// assert!(line.is_line()); // Has infinite radius (line segment)
     /// ```
     #[inline]
+    #[must_use]
     pub fn is_line(&self) -> bool {
         self.r == f64::INFINITY
     }
@@ -202,6 +204,7 @@ impl Arc {
     /// let reversed = arc.reverse();
     /// ```
     #[inline]
+    #[must_use]
     pub fn reverse(&self) -> Arc {
         Arc::new(self.b, self.a, self.c, self.r)
     }
@@ -226,6 +229,7 @@ impl Arc {
     /// assert!(arc0.contains(point(1.0, 0.0))); // Point on the arc
     /// assert!(!arc0.contains(point(0.0, 1.0))); // Point outside the arc
     /// ```
+    #[must_use]
     pub fn contains(&self, p: Point) -> bool {
         let pa = Coord {
             x: self.a.x,
@@ -300,6 +304,7 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 /// assert_eq!(line.r, f64::INFINITY);
 /// ```
 #[inline]
+#[must_use]
 pub fn arcseg(a: Point, b: Point) -> Arc {
     Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
 }
@@ -662,6 +667,7 @@ pub fn arc_is_not_consistent(arc: &Arc, eps: f64) -> bool {
 /// let inconsistent_arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(0.5, 0.0), 2.0);
 /// assert!(!arc_check(&inconsistent_arc, 1e-10)); // Inconsistent geometry
 /// ```
+#[must_use]
 pub fn arc_check(seg: &Arc, eps: f64) -> bool {
     if seg.is_line() {
         if arc_is_collapsed_ends(seg.a, seg.b, eps) {
@@ -969,6 +975,7 @@ const MIN_BULGE: f64 = 1E-8;
 /// let line = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
 /// assert!(line.is_line());
 /// ```
+#[must_use]
 pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
     let mut p1 = pp1;
     let mut p2 = pp2;
@@ -1282,6 +1289,7 @@ mod test_arc_circle_parametrization {
 /// ```
 // Given start end points of arc and radius, calculate bulge
 // https://stackoverflow.com/questions/48979861/numerically-stable-method-for-solving-quadratic-equations/50065711#50065711
+#[must_use]
 pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     let dist = (b - a).norm();
     if dist < 1E-10 {
@@ -1318,8 +1326,7 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     if seg.abs() < 1E-10 {
         return 0f64;
     }
-
-    return dist / (2.0 * seg);
+    dist / (2.0 * seg)
 }
 
 #[cfg(test)]

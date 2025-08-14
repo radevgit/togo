@@ -120,6 +120,7 @@ pub fn point(x: f64, y: f64) -> Point {
 /// let p_collinear = point(0.5, 0.0);
 /// assert_eq!(points_order(a, b, p_collinear), 0.0);
 /// ```
+#[must_use]
 pub fn points_order(a: Point, b: Point, p: Point) -> f64 {
     let pa = Coord { x: a.x, y: a.y };
     let pb = Coord { x: b.x, y: b.y };
@@ -282,6 +283,7 @@ impl Point {
     /// let magnitude = p.norm(); // sqrt(3² + 4²) = 5.0
     /// ```
     #[inline]
+    #[must_use]
     pub fn norm(&self) -> f64 {
         (self.dot(*self)).sqrt()
     }
@@ -307,6 +309,7 @@ impl Point {
     /// // magnitude will be 5.0
     /// ```
     #[inline]
+    #[must_use]
     pub fn normalize(&self, robust: bool) -> (Point, f64) {
         if robust {
             let mut max_abs_comp = self.x.abs();
@@ -320,7 +323,7 @@ impl Point {
                 v = v / max_abs_comp;
                 let mut norm = v.norm();
                 v = v / norm;
-                norm = norm * max_abs_comp;
+                norm *= max_abs_comp;
                 (v, norm)
             } else {
                 (point(ZERO, ZERO), ZERO)
@@ -386,7 +389,7 @@ impl Point {
     /// ```
     #[inline]
     pub fn close_enough(&self, other: Self, eps: f64) -> bool {
-        return (self.x - other.x).abs() <= eps && (self.y - other.y).abs() <= eps;
+        (self.x - other.x).abs() <= eps && (self.y - other.y).abs() <= eps
     }
 
     // /// diff_of_prod for points
@@ -420,6 +423,7 @@ impl Point {
     ///
     /// Sort using sort networks.
     /// Ascending or descending order is not important.
+    #[must_use]
     pub fn sort_colinear_points(
         a: Point,
         b: Point,
@@ -444,19 +448,19 @@ impl Point {
             y: perp.y,
         };
         if orient2d(t0, tt.1, tt.3) < 0.0 {
-            tt = (tt.0, tt.3, tt.2, tt.1)
+            tt = (tt.0, tt.3, tt.2, tt.1);
         }
         if orient2d(t0, tt.0, tt.2) < 0.0 {
-            tt = (tt.2, tt.1, tt.0, tt.3)
+            tt = (tt.2, tt.1, tt.0, tt.3);
         }
         if orient2d(t0, tt.0, tt.1) < 0.0 {
-            tt = (tt.1, tt.0, tt.2, tt.3)
+            tt = (tt.1, tt.0, tt.2, tt.3);
         }
         if orient2d(t0, tt.2, tt.3) < 0.0 {
-            tt = (tt.0, tt.1, tt.3, tt.2)
+            tt = (tt.0, tt.1, tt.3, tt.2);
         }
         if orient2d(t0, tt.1, tt.2) < 0.0 {
-            tt = (tt.0, tt.2, tt.1, tt.3)
+            tt = (tt.0, tt.2, tt.1, tt.3);
         }
         let e = point(tt.0.x, tt.0.y);
         let f = point(tt.1.x, tt.1.y);

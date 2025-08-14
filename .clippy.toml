@@ -1,0 +1,3 @@
+# The maximum size (in bytes) to consider a Copy type for passing by value instead of by reference.
+# The default Clippy value is capped at 8 bytes, which was chosen to improve performance on 32-bit.
+trivial-copy-size-limit = 16

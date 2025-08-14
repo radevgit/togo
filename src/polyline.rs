@@ -229,7 +229,7 @@ pub fn polyline_translate(poly: &Polyline, translate: Point) -> Polyline {
 }
 
 #[cfg(test)]
-mod test_polyline {
+mod test_pvertex {
     use super::*;
     use crate::point::point;
 

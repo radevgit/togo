@@ -103,8 +103,7 @@ impl SVG {
 
         header.push_str(self.s.as_str());
 
-        let footer = r#"</svg>"#.to_owned();
-        header.push_str(footer.as_str());
+        header.push_str("</svg>");
         self.f.write_all(header.as_bytes()).expect("write failed");
     }
 
