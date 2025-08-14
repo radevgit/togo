@@ -74,33 +74,27 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
             }
         }
         (LineArcConfig::TwoPoints(p0, p1, _, _), LineArcConfig::OnePoint(p2, _)) => {
-            let dists = [(p0 - p2).norm(), (p1 - p2).norm()];
-            for &dist in &dists {
-                if dist < min_dist {
-                    min_dist = dist;
-                }
-            }
+            min_dist = min_3(
+                min_dist,
+                (p0 - p2).norm(),
+                (p1 - p2).norm(),
+            );
         }
         (LineArcConfig::OnePoint(p0, _), LineArcConfig::TwoPoints(p1, p2, _, _)) => {
-            let dists = [(p0 - p1).norm(), (p0 - p2).norm()];
-            for &dist in &dists {
-                if dist < min_dist {
-                    min_dist = dist;
-                }
-            }
+            min_dist = min_3(
+                min_dist,
+                (p0 - p1).norm(),
+                (p0 - p2).norm(),
+            );
         }
         (LineArcConfig::TwoPoints(p0, p1, _, _), LineArcConfig::TwoPoints(p2, p3, _, _)) => {
-            let dists = [
+            min_dist = min_5(
+                min_dist,
                 (p0 - p2).norm(),
                 (p0 - p3).norm(),
                 (p1 - p2).norm(),
                 (p1 - p3).norm(),
-            ];
-            for &dist in &dists {
-                if dist < min_dist {
-                    min_dist = dist;
-                }
-            }
+            );
         }
         _ => {
             // No intersection or no points on the line

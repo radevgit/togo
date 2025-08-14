@@ -127,14 +127,14 @@ pub type Polyline = Vec<PVertex>;
 /// ```
 pub fn polyline_reverse(poly: &Polyline) -> Polyline {
     let last = poly.last().unwrap();
-    let mut rev = poly.clone();
-    rev.reverse();
+    let mut reverse = poly.clone();
+    reverse.reverse();
     let mut res: Polyline = Vec::with_capacity(poly.len());
-    for i in 0..rev.len() - 1 {
-        let e = pvertex(rev[i].p, -rev[i + 1].b);
+    for i in 0..reverse.len() - 1 {
+        let e = pvertex(reverse[i].p, -reverse[i + 1].b);
         res.push(e);
     }
-    let e = pvertex(rev.last().unwrap().p, -last.b);
+    let e = pvertex(reverse.last().unwrap().p, -last.b);
     res.push(e);
 
     res
@@ -229,7 +229,7 @@ pub fn polyline_translate(poly: &Polyline, translate: Point) -> Polyline {
 }
 
 #[cfg(test)]
-mod test_pvertex {
+mod test_polyline {
     use super::*;
     use crate::point::point;
 
@@ -287,5 +287,46 @@ mod test_pvertex {
         let empty: Polyline = vec![];
         let translated = polyline_translate(&empty, point(10.0, 5.0));
         assert_eq!(translated.len(), 0);
+    }
+
+    #[test]
+    fn test_polyline_reverse_basic() {
+        // Basic reversal of a polyline
+        let poly = vec![
+            pvertex(point(0.0, 0.0), 0.5),
+            pvertex(point(1.0, 0.0), -0.3),
+            pvertex(point(1.0, 1.0), 0.0),
+        ];
+        let reversed = polyline_reverse(&poly);
+        assert_eq!(reversed.len(), poly.len());
+        // The points should be in reverse order
+        assert_eq!(reversed[0].p, poly[2].p);
+        assert_eq!(reversed[1].p, poly[1].p);
+        assert_eq!(reversed[2].p, poly[0].p);
+    }
+
+    #[test]
+    fn test_polyline_reverse_bulge_negation() {
+        // Bulge values should be negated and shifted according to the function logic
+        let poly = vec![
+            pvertex(point(0.0, 0.0), 0.5),
+            pvertex(point(1.0, 0.0), -0.3),
+            pvertex(point(1.0, 1.0), 0.7),
+        ];
+        let reversed = polyline_reverse(&poly);
+        // The bulge of each reversed vertex is the negative of the next bulge in the reversed polyline
+        assert_eq!(reversed[0].b, -poly[1].b); // -(-0.3) = 0.3
+        assert_eq!(reversed[1].b, -poly[0].b); // -(0.5) = -0.5
+        assert_eq!(reversed[2].b, -poly[2].b); // -(0.7) = -0.7
+    }
+
+    #[test]
+    fn test_polyline_reverse_single_vertex() {
+        // Edge case: single vertex polyline
+        let poly = vec![pvertex(point(5.0, 5.0), 1.2)];
+        let reversed = polyline_reverse(&poly);
+        assert_eq!(reversed.len(), 1);
+        assert_eq!(reversed[0].p, poly[0].p);
+        assert_eq!(reversed[0].b, -poly[0].b);
     }
 }

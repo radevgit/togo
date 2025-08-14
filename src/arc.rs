@@ -484,7 +484,6 @@ mod test_arc {
 
 /// Check if the arc contains the point.
 // #00003 #00004
-
 // pub fn contains_ulps(self: Self, p: Point, ulps: i64) -> bool {
 //     let length = (p - self.c).norm();
 //     if almost_equal_as_int(length, self.r, ulps) {
@@ -519,6 +518,7 @@ mod test_arc {
 //     return perp >= 0f64;
 // }
 
+// TODO: what should be the exact value.
 /// Checks if the arc has a collapsed radius.
 ///
 /// An arc is considered to have a collapsed radius if the radius is smaller
@@ -541,7 +541,6 @@ mod test_arc {
 /// assert!(arc_is_collapsed_radius(f64::NAN, 0.01)); // NaN radius
 /// assert!(!arc_is_collapsed_radius(1.0, 0.01)); // Valid radius
 /// ```
-// TODO: what should be the exact value.
 pub fn arc_is_collapsed_radius(r: f64, eps: f64) -> bool {
     // no abs() since it can be negative
     if r < eps || r.is_nan() {
