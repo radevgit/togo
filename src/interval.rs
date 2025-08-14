@@ -79,8 +79,8 @@ mod test_contains {
         assert!(i0.contains(-2.0));
         assert!(i0.contains(3.0));
         // outside
-    assert!(!i0.contains(-2.0 - 1e-12));
-    assert!(!i0.contains(3.0 + 1e-12));
+        assert!(!i0.contains(-2.0 - 1e-12));
+        assert!(!i0.contains(3.0 + 1e-12));
         // interior
         assert!(i0.contains(0.0));
     }

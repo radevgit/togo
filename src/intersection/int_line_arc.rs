@@ -1,6 +1,9 @@
 #![allow(dead_code)]
 
-use crate::{arc::Arc, circle::circle, intersection::int_line_circle::int_line_circle, line::Line, point::Point, prelude::LineCircleConfig};
+use crate::{
+    arc::Arc, circle::circle, intersection::int_line_circle::int_line_circle, line::Line,
+    point::Point, prelude::LineCircleConfig,
+};
 
 // #00021
 /// Represents the configuration of the intersection between a line and an arc.

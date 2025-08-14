@@ -3,34 +3,34 @@
 use crate::prelude::*;
 
 /// Computes the distance between a point and a line segment.
-/// 
+///
 /// This function finds the shortest distance from a point to a line segment,
 /// along with the closest point on the segment.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `point` - The point to measure distance from
 /// * `segment` - The line segment to measure distance to
-/// 
+///
 /// # Returns
-/// 
+///
 /// A tuple containing:
 /// * The minimum distance as a f64
 /// * The closest point on the segment
-/// 
+///
 /// # Algorithm
-/// 
+///
 /// The segment is parameterized as P0 + t * (P1 - P0) where t ∈ [0, 1].
 /// The algorithm:
 /// 1. Projects the point onto the infinite line containing the segment
 /// 2. Clamps the projection parameter t to [0, 1] to stay within the segment
 /// 3. Computes the distance to the clamped point
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use basegeom::prelude::*;
-/// 
+///
 /// let p = point(1.0, 1.0);
 /// let seg = segment(point(0.0, 0.0), point(2.0, 0.0));
 /// let (distance, closest) = dist_point_segment(&p, &seg);
@@ -71,7 +71,6 @@ pub fn dist_point_segment(point: &Point, segment: &Segment) -> (f64, Point) {
 mod test_dist_point_segment {
     use crate::{point::point, segment::segment};
 
-
     #[test]
     fn test_point_at_end_01() {
         let p = point(0.0, 0.0);
@@ -80,7 +79,7 @@ mod test_dist_point_segment {
         assert_eq!(dist, 0.0);
         assert_eq!(closest, point(0.0, 0.0));
     }
-    
+
     #[test]
     fn test_point_at_end_02() {
         let p = point(1.0, 0.0);
@@ -104,7 +103,7 @@ mod test_dist_point_segment {
         let p = point(0.0, 1.0);
         let seg = segment(point(0.0, 0.0), point(1.0, 1.0));
         let (dist, closest) = super::dist_point_segment(&p, &seg);
-        assert_eq!(dist, std::f64::consts::SQRT_2/2.0);
+        assert_eq!(dist, std::f64::consts::SQRT_2 / 2.0);
         assert_eq!(closest, point(0.5, 0.5));
     }
 
@@ -135,8 +134,6 @@ mod test_dist_point_segment {
         assert_eq!(closest, point(0.0, 0.0));
     }
 
-   
-
     #[test]
     fn test_point_close_to_b_01() {
         let p = point(0.0, 2.0);
@@ -163,5 +160,4 @@ mod test_dist_point_segment {
         assert_eq!(dist, std::f64::consts::SQRT_2);
         assert_eq!(closest, point(1.0, 1.0));
     }
-
 }

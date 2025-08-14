@@ -5,7 +5,12 @@ fn main() {
     let mut svg = SVG::new(120.0, 120.0, "/tmp/arc_segment_intersect.svg");
     let seg1 = segment(point(10.0, 10.0), point(110.0, 110.0));
     let seg2 = segment(point(10.0, 30.0), point(110.0, 30.0));
-    let arc = arc(point(10.0, 60.0), point(60.0, 110.0), point(60.0, 60.0), 50.0);
+    let arc = arc(
+        point(10.0, 60.0),
+        point(60.0, 110.0),
+        point(60.0, 60.0),
+        50.0,
+    );
 
     let mut points = Vec::new();
     points.extend(segarc_intersect(&arc, &seg1));

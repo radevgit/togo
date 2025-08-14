@@ -2,7 +2,9 @@
 
 use crate::arc::arc;
 use crate::intersection::int_circle_circle::CircleCircleConfig;
-use crate::{arc::Arc, circle::circle, intersection::int_circle_circle::int_circle_circle, point::Point};
+use crate::{
+    arc::Arc, circle::circle, intersection::int_circle_circle::int_circle_circle, point::Point,
+};
 
 // #00018
 /// Configuration for arc-arc intersection results.
@@ -213,8 +215,8 @@ fn are_both_ends_towching(arc0: &Arc, arc1: &Arc) -> bool {
 }
 
 /// If arcs are really intersecting, but not just touching at ends.
-/// 
-/// 
+///
+///
 /// In other words, do we need to split arcs further?
 pub fn if_really_intersecting_arc_arc(arc0: &Arc, arc1: &Arc) -> bool {
     match int_arc_arc(arc0, arc1) {

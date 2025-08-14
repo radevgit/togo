@@ -6,7 +6,7 @@
 
 // This path can contain lines, quadratics ([`QuadBez`]), cubics ([`CubicBez`])
 // and arcs ([`Arc`]) and is used to represent a Bezier path.
-// 
+//
 // PathEl - path element is more close to the SVG path element.
 // PathSeg - path segment is a segment more close to mathematical aspects.
 
@@ -29,6 +29,3 @@
 //     Cubic(BezierQ),
 //     Arc(Arc),
 // }
-
-
-

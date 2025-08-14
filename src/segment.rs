@@ -2,7 +2,6 @@ use std::fmt::Display;
 
 use crate::point::Point;
 
-
 /// A line segment defined by two endpoints.
 ///
 /// Segments are fundamental geometric primitives.
@@ -142,15 +141,15 @@ mod test_segment {
         // Direction should be zero for zero-length segments (normalize returns (0,0))
         assert_eq!(dir.x, 0.0);
         assert_eq!(dir.y, 0.0);
-        
+
         // Test horizontal segment
         let s_horiz = Segment::new(point(0.0, 2.0), point(6.0, 2.0));
         let (center, dir, extent) = s_horiz.get_centered_form();
         assert_eq!(center, point(3.0, 2.0));
         assert_eq!(dir, point(1.0, 0.0));
         assert_eq!(extent, 3.0);
-        
-        // Test vertical segment  
+
+        // Test vertical segment
         let s_vert = Segment::new(point(1.0, -2.0), point(1.0, 4.0));
         let (center, dir, extent) = s_vert.get_centered_form();
         assert_eq!(center, point(1.0, 1.0));

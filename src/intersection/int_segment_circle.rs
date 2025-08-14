@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 
-
 // #00025
 /// Represents the configuration of the intersection between a segment and a circle.
 #[derive(Debug, PartialEq)]

@@ -40,13 +40,13 @@ pub fn pointline_area(points: &Pointline) -> f64 {
 
     let mut area = 0.0;
     let n = points.len();
-    
+
     for i in 0..n {
         let j = (i + 1) % n;
         area += points[i].x * points[j].y;
         area -= points[j].x * points[i].y;
     }
-    
+
     area / 2.0
 }
 
@@ -153,39 +153,40 @@ fn arc_area_contribution(arc: &Arc) -> f64 {
     // Calculate the angle subtended by the arc
     let start_vector = start - center;
     let end_vector = end - center;
-    
+
     let start_angle = start_vector.y.atan2(start_vector.x);
     let end_angle = end_vector.y.atan2(end_vector.x);
-    
+
     // Calculate the arc angle for CCW orientation
     // Since all arcs are CCW, we compute the positive angle from start to end
     let mut arc_angle = end_angle - start_angle;
     if arc_angle < 0.0 {
         arc_angle += 2.0 * std::f64::consts::PI;
     }
-    
+
     // Handle the special case of a full circle (start == end)
     if start.close_enough(end, 1e-10) {
         arc_angle = 2.0 * std::f64::consts::PI;
     }
-    
+
     // For area calculation, we want the area "swept" by the arc
     // This includes both the sector area AND the triangular area from origin to center
     // to properly integrate with the shoelace formula for the rest of the boundary
-    
+
     // First, compute the standard shoelace contribution as if this were a line segment
     let line_contribution = (start.x * end.y - end.x * start.y) / 2.0;
-    
+
     // Then add the additional area due to the arc curvature
     // This is the difference between the sector and the triangle chord area
     let radius = arc.r;
     let sector_area = 0.5 * radius * radius * arc_angle;
-    let triangle_area = 0.5 * (center.x * (start.y - end.y) + 
-                              start.x * (end.y - center.y) + 
-                              end.x * (center.y - start.y));
-    
+    let triangle_area = 0.5
+        * (center.x * (start.y - end.y)
+            + start.x * (end.y - center.y)
+            + end.x * (center.y - start.y));
+
     let arc_curvature_contribution = sector_area - triangle_area;
-    
+
     line_contribution + arc_curvature_contribution
 }
 
@@ -207,11 +208,7 @@ mod test_pointline_area {
 
     #[test]
     fn test_pointline_area_triangle() {
-        let triangle = vec![
-            point(0.0, 0.0),
-            point(2.0, 0.0),
-            point(1.0, 2.0),
-        ];
+        let triangle = vec![point(0.0, 0.0), point(2.0, 0.0), point(1.0, 2.0)];
         let area = pointline_area(&triangle);
         assert_eq!(area, 2.0);
     }
@@ -262,7 +259,12 @@ mod test_arcline_area {
         ];
         let area = arcline_area(&semicircle);
         let expected_area = std::f64::consts::PI / 2.0; // π * r² / 2 for semicircle
-        assert!((area - expected_area).abs() < 1e-10, "Expected {}, got {}", expected_area, area);
+        assert!(
+            (area - expected_area).abs() < 1e-10,
+            "Expected {}, got {}",
+            expected_area,
+            area
+        );
     }
 
     #[test]
@@ -275,7 +277,12 @@ mod test_arcline_area {
         ];
         let area = arcline_area(&quarter_circle);
         let expected_area = std::f64::consts::PI / 4.0; // π * r² / 4 for quarter circle
-        assert!((area - expected_area).abs() < 1e-10, "Expected {}, got {}", expected_area, area);
+        assert!(
+            (area - expected_area).abs() < 1e-10,
+            "Expected {}, got {}",
+            expected_area,
+            area
+        );
     }
 
     #[test]
@@ -288,7 +295,12 @@ mod test_arcline_area {
         ];
         let area = arcline_area(&mixed_shape);
         let expected_area = std::f64::consts::PI / 2.0; // π/2 for semicircle
-        assert!((area - expected_area).abs() < 1e-10, "Expected {}, got {}", expected_area, area);
+        assert!(
+            (area - expected_area).abs() < 1e-10,
+            "Expected {}, got {}",
+            expected_area,
+            area
+        );
     }
 
     #[test]
@@ -297,41 +309,50 @@ mod test_arcline_area {
         let center = point(0.0, 0.0);
         let radius = 2.0;
         let start_end = point(radius, 0.0);
-        
-        let full_circle = vec![
-            arc(start_end, start_end, center, radius),
-        ];
+
+        let full_circle = vec![arc(start_end, start_end, center, radius)];
         let area = arcline_area(&full_circle);
         let expected_area = std::f64::consts::PI * radius * radius;
-        assert!((area - expected_area).abs() < 1e-9, "Expected {}, got {}", expected_area, area);
+        assert!(
+            (area - expected_area).abs() < 1e-9,
+            "Expected {}, got {}",
+            expected_area,
+            area
+        );
     }
 
     #[test]
     fn test_arcline_area_single_arc_segment() {
         // Single arc segment (not a closed shape)
         // Arc from (1,0) to (0,1) with center (0,0) and radius 1 (90-degree arc)
-        let single_arc = vec![
-            arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0),
-        ];
+        let single_arc = vec![arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0)];
         let area = arcline_area(&single_arc);
-        
+
         // For a single arc, the area contribution includes both:
         // 1. The line segment contribution: (start.x * end.y - end.x * start.y) / 2.0
         // 2. The arc curvature contribution: sector_area - triangle_area
-        
+
         let line_contribution = (1.0 * 1.0 - 0.0 * 0.0) / 2.0; // = 0.5
         let sector_area = 0.5 * 1.0 * 1.0 * (std::f64::consts::PI / 2.0); // = π/4
         let triangle_area = 0.5 * (0.0 * (0.0 - 1.0) + 1.0 * (1.0 - 0.0) + 0.0 * (0.0 - 0.0)); // = 0.5
         let arc_curvature_contribution = sector_area - triangle_area; // = π/4 - 0.5
-        
+
         let expected_area = line_contribution + arc_curvature_contribution; // = 0.5 + π/4 - 0.5 = π/4
-        
-        assert!((area - expected_area).abs() < 1e-10, "Expected {}, got {}", expected_area, area);
-        
+
+        assert!(
+            (area - expected_area).abs() < 1e-10,
+            "Expected {}, got {}",
+            expected_area,
+            area
+        );
+
         // This should equal π/4 (quarter circle area)
         let quarter_circle_area = std::f64::consts::PI / 4.0;
-        assert!((area - quarter_circle_area).abs() < 1e-10, 
-               "Single arc area should be π/4, got {}", area);
+        assert!(
+            (area - quarter_circle_area).abs() < 1e-10,
+            "Single arc area should be π/4, got {}",
+            area
+        );
     }
 
     #[test]
@@ -342,18 +363,23 @@ mod test_arcline_area {
             arcseg(point(1.0, 0.0), point(0.0, 1.0)),
             arcseg(point(0.0, 1.0), point(0.0, 0.0)),
         ];
-        
+
         let cw_triangle = vec![
             arcseg(point(0.0, 0.0), point(0.0, 1.0)),
             arcseg(point(0.0, 1.0), point(1.0, 0.0)),
             arcseg(point(1.0, 0.0), point(0.0, 0.0)),
         ];
-        
+
         let ccw_area = arcline_area(&ccw_triangle);
         let cw_area = arcline_area(&cw_triangle);
-        
+
         // Areas should have opposite signs
-        assert!((ccw_area + cw_area).abs() < 1e-10, "CCW: {}, CW: {}", ccw_area, cw_area);
+        assert!(
+            (ccw_area + cw_area).abs() < 1e-10,
+            "CCW: {}, CW: {}",
+            ccw_area,
+            cw_area
+        );
         assert!(ccw_area > 0.0, "CCW area should be positive");
         assert!(cw_area < 0.0, "CW area should be negative");
     }
@@ -363,21 +389,29 @@ mod test_arcline_area {
         // Test that CCW arc orientation produces positive area contribution
         // Quarter circle arc from (1,0) to (0,1) around center (0,0) - this is CCW
         let ccw_quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
-        
+
         // Create a shape with the CCW arc and closing line segments
         let ccw_shape = vec![
             ccw_quarter_arc,
             arcseg(point(0.0, 1.0), point(0.0, 0.0)), // To center
             arcseg(point(0.0, 0.0), point(1.0, 0.0)), // Back to start
         ];
-        
+
         let area = arcline_area(&ccw_shape);
-        
+
         // For CCW orientation, area should be positive and equal to π/4
-        assert!(area > 0.0, "CCW oriented shape should have positive area, got {}", area);
+        assert!(
+            area > 0.0,
+            "CCW oriented shape should have positive area, got {}",
+            area
+        );
         let expected_area = std::f64::consts::PI / 4.0;
-        assert!((area - expected_area).abs() < 1e-10, 
-               "Expected area {}, got {}", expected_area, area);
+        assert!(
+            (area - expected_area).abs() < 1e-10,
+            "Expected area {}, got {}",
+            expected_area,
+            area
+        );
     }
 
     #[test]
@@ -385,18 +419,20 @@ mod test_arcline_area {
         // Test full circle with CCW orientation
         let center = point(0.0, 0.0);
         let radius = 2.0;
-        
+
         // Full circle: start point equals end point, CCW oriented
-        let full_circle_ccw = vec![
-            arc(point(radius, 0.0), point(radius, 0.0), center, radius)
-        ];
-        
+        let full_circle_ccw = vec![arc(point(radius, 0.0), point(radius, 0.0), center, radius)];
+
         let area = arcline_area(&full_circle_ccw);
         let expected_area = std::f64::consts::PI * radius * radius;
-        
+
         // CCW full circle should have positive area equal to πr²
         assert!(area > 0.0, "CCW full circle should have positive area");
-        assert!((area - expected_area).abs() < 1e-9, 
-               "Expected area {}, got {}", expected_area, area);
+        assert!(
+            (area - expected_area).abs() < 1e-9,
+            "Expected area {}, got {}",
+            expected_area,
+            area
+        );
     }
 }

@@ -67,19 +67,13 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
     let res0 = int_line_arc(&line_aa, arc0);
     let res1 = int_line_arc(&line_aa, arc1);
     match (res0, res1) {
-        (
-            LineArcConfig::OnePoint(p0, _),
-            LineArcConfig::OnePoint(p1, _),
-        ) => {
+        (LineArcConfig::OnePoint(p0, _), LineArcConfig::OnePoint(p1, _)) => {
             let dist = (p0 - p1).norm();
             if dist < min_dist {
                 min_dist = dist;
             }
         }
-        (
-            LineArcConfig::TwoPoints(p0, p1, _, _),
-            LineArcConfig::OnePoint(p2, _),
-        ) => {
+        (LineArcConfig::TwoPoints(p0, p1, _, _), LineArcConfig::OnePoint(p2, _)) => {
             let dists = [(p0 - p2).norm(), (p1 - p2).norm()];
             for &dist in &dists {
                 if dist < min_dist {
@@ -87,10 +81,7 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
                 }
             }
         }
-        (
-            LineArcConfig::OnePoint(p0, _),
-            LineArcConfig::TwoPoints(p1, p2, _, _),
-        ) => {
+        (LineArcConfig::OnePoint(p0, _), LineArcConfig::TwoPoints(p1, p2, _, _)) => {
             let dists = [(p0 - p1).norm(), (p0 - p2).norm()];
             for &dist in &dists {
                 if dist < min_dist {
@@ -98,10 +89,7 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
                 }
             }
         }
-        (
-            LineArcConfig::TwoPoints(p0, p1, _, _),
-            LineArcConfig::TwoPoints(p2, p3, _, _),
-        ) => {
+        (LineArcConfig::TwoPoints(p0, p1, _, _), LineArcConfig::TwoPoints(p2, p3, _, _)) => {
             let dists = [
                 (p0 - p2).norm(),
                 (p0 - p3).norm(),

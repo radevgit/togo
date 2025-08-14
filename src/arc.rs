@@ -468,15 +468,18 @@ mod test_arc {
         let mut arcline = vec![
             arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5),
             arcseg(point(1.0, 0.0), point(3.0, 2.0)), // Line segment
-            arc(point(3.0, 2.0), point(3.0, 4.0), point(4.0, 3.0), 1.414213562373095),
+            arc(
+                point(3.0, 2.0),
+                point(3.0, 4.0),
+                point(4.0, 3.0),
+                1.414213562373095,
+            ),
         ];
         let translation = point(-2.0, 3.0);
         arcline_translate(&mut arcline, translation);
 
         assert_eq!(arcline.len(), 3);
     }
-
-
 }
 
 /// Check if the arc contains the point.
@@ -616,7 +619,7 @@ pub fn arc_is_collapsed_ends(a: Point, b: Point, eps: f64) -> bool {
 /// let mut arc2 = arc.clone();
 /// arc2.c = bad_center;
 /// assert!(arc_is_not_consistent(&arc2, 1e-10));
-/// 
+///
 /// // Another inconsistent case: wrong radius
 /// let mut arc3 = arc.clone();
 /// arc3.r = 2.0;
@@ -667,9 +670,10 @@ pub fn arc_check(seg: &Arc, eps: f64) -> bool {
         }
     }
     if seg.is_arc() {
-        if arc_is_collapsed_ends(seg.a, seg.b, eps) 
-        || arc_is_collapsed_radius(seg.r, eps)
-        || arc_is_not_consistent(seg, eps) {
+        if arc_is_collapsed_ends(seg.a, seg.b, eps)
+            || arc_is_collapsed_radius(seg.r, eps)
+            || arc_is_not_consistent(seg, eps)
+        {
             return false;
         }
     }
@@ -1607,6 +1611,3 @@ mod test_arc_g_from_points {
         }
     }
 }
-
-
-

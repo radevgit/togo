@@ -15,33 +15,33 @@ pub enum CircleCircleConfig {
 }
 
 /// Computes the intersection of two circles.
-/// 
+///
 /// This function determines the intersection points of two circles defined by their centers and radii.
-/// 
+///
 /// # Arguments
 /// * `circle0` - The first circle.
 /// * `circle1` - The second circle.
-/// 
+///
 /// # Returns
 /// Returns a `CircleCircleConfig` enum indicating the result of the intersection test.
-/// 
+///
 /// # Circle Intersection Logic
 /// The circles are defined by the equations:
 /// /// - |X - C0| = R0
 /// /// - |X - C1| = R1
 /// /// The vector U = C1 - C0 is computed, and its squared length is used to determine the relationship between the circles.
-/// 
+///
 /// # Conditions for Intersection
 /// The circles can have the following relationships:
 ///     - **Same Circles**: If the centers and radii are identical, they are the same circle.
 ///     - **No Intersection**: If the distance between centers is greater than the sum of the radii or less than the absolute difference of the radii, they do not intersect.
 ///     - **Tangent Circles**: If the distance equals the sum or absolute difference of the radii, they touch at one point.
 ///     - **Intersecting Circles**: If the distance is strictly between the absolute difference and sum of the radii, they intersect at two points.
-/// 
+///
 /// # Examples
 /// ```
 /// use basegeom::prelude::*;
-/// 
+///
 /// let circle0 = circle(point(0.0, 0.0), 1.0);
 /// let circle1 = circle(point(1.0, 0.0), 1.0);
 /// let result = int_circle_circle(circle0, circle1);
@@ -91,7 +91,7 @@ pub fn int_circle_circle(circle0: Circle, circle1: Circle) -> CircleCircleConfig
             // In theory, discr is nonnegative.  However, numerical round-off
             // errors can make it slightly negative.  Clamp it to zero.
             //let mut discr = r0 * r0 * inv_usqr_len - s * s;
-            let mut discr = diff_of_prod(r0/usqr_len,  r0, s, s);
+            let mut discr = diff_of_prod(r0 / usqr_len, r0, s, s);
             //println!("{:.40} {:.40}", discr, discr);
             if discr < ZERO {
                 discr = ZERO;
@@ -159,7 +159,10 @@ mod tests_circle {
         let point0 = point(10.000000042146848, -11.0);
         let point1 = point(9.999999957853152, -11.0);
         let res = ff(circle0, circle1);
-        assert_eq!(res, CircleCircleConfig::NoncocircularTwoPoints(point0, point1));
+        assert_eq!(
+            res,
+            CircleCircleConfig::NoncocircularTwoPoints(point0, point1)
+        );
     }
 
     #[test]
@@ -189,7 +192,10 @@ mod tests_circle {
         let point0 = point(10.000000059604645, -10.999999999999998);
         let point1 = point(9.999999940395355, -10.999999999999998);
         let res = ff(circle0, circle1);
-        assert_eq!(res, CircleCircleConfig::NoncocircularTwoPoints(point0, point1));
+        assert_eq!(
+            res,
+            CircleCircleConfig::NoncocircularTwoPoints(point0, point1)
+        );
     }
 
     #[test]
@@ -333,7 +339,10 @@ mod tests_circle_old {
         let circle0 = circle(point(1.0, 0.0), 1.0);
         let circle1 = circle(point(_1p, 0.0), _1m);
         let res = ff(circle0, circle1);
-        assert_eq!(res, CircleCircleConfig::NoncocircularOnePoint(point(2.0, 0.0)));
+        assert_eq!(
+            res,
+            CircleCircleConfig::NoncocircularOnePoint(point(2.0, 0.0))
+        );
     }
 
     #[test]
@@ -341,7 +350,10 @@ mod tests_circle_old {
         let c0 = circle(point(0.5, 0.0), 0.5);
         let c1 = circle(point(-1.0, 0.0), 1.0);
         let res = ff(c0, c1);
-        assert_eq!(res, CircleCircleConfig::NoncocircularOnePoint(point(0.0, 0.0)));
+        assert_eq!(
+            res,
+            CircleCircleConfig::NoncocircularOnePoint(point(0.0, 0.0))
+        );
     }
 
     use crate::svg::svg;
@@ -354,7 +366,7 @@ mod tests_circle_old {
         svg.circle(&c1, "blue");
         let p0 = point(113.87064429562277, 115.59148769566033);
         let p1 = point(80.68522962987866, 124.80965843614482);
-        
+
         svg.circle(&circle(p0, 1.0), "red");
         svg.write();
         let res = ff(c0, c1);

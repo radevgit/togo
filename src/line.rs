@@ -16,7 +16,6 @@ impl Display for Line {
     }
 }
 
-
 impl Line {
     /// Creates a new line with the specified origin and direction.
     ///  
@@ -55,7 +54,7 @@ impl Line {
 }
 
 /// Creates a new line with the specified origin and direction.
-/// 
+///
 /// This is a convenience function equivalent to `Line::new(origin, dir)`.
 #[inline]
 pub fn line(origin: Point, dir: Point) -> Line {
@@ -90,7 +89,7 @@ mod test_line {
         let unit_l = l.unitdir();
         assert!((unit_l.dir.norm() - 1.0).abs() < 1e-15);
         assert_eq!(unit_l.origin, point(0.0, 0.0));
-        
+
         // Test with already unit vector
         let unit_input = Line::new(point(1.0, 1.0), point(1.0, 0.0));
         let unit_output = unit_input.unitdir();

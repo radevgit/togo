@@ -221,7 +221,7 @@ impl SVG {
         self.pvertex(p0.p, pline[0].p, p0.b, color);
     }
 
-    pub fn polylines (&mut self, plines: &Vec<Polyline>, color: &str) {
+    pub fn polylines(&mut self, plines: &Vec<Polyline>, color: &str) {
         for p in plines.iter() {
             self.polyline(p, color);
         }

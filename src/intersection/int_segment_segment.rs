@@ -1,15 +1,13 @@
 #![allow(dead_code)]
 
-
 use robust::orient2d;
 
-use crate::intersection::int_interval_interval::{int_interval_interval, IntervalConfig};
-use crate::intersection::int_line_line::{int_line_line, LineLineConfig};
+use crate::intersection::int_interval_interval::{IntervalConfig, int_interval_interval};
+use crate::intersection::int_line_line::{LineLineConfig, int_line_line};
 use crate::interval::interval;
 
 use crate::utils::close_enough;
 use crate::{line::line, point::Point, segment::Segment};
-
 
 // #00026
 /// Represents the configuration of the intersection between two segments.
@@ -24,7 +22,7 @@ pub enum SegmentSegmentConfig {
 
 const ZERO: f64 = 0f64;
 /// Computes the intersection of two segments.
-/// 
+///
 /// This function checks if two segments intersect, are parallel but distinct, or are the same segment.
 /// If they intersect, it returns the intersection point and the parameters for both segments.
 /// If they are parallel but distinct, it returns `ParallelDistinct`.
@@ -66,9 +64,18 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
     if is_point0 {
         // https://stackoverflow.com/questions/328107/how-can-you-determine-a-point-is-between-two-other-points-on-a-line-segment
         let sign = orient2d(
-            robust::Coord { x: segment1.a.x, y: segment1.a.y },
-            robust::Coord { x: segment1.b.x, y: segment1.b.y },
-            robust::Coord { x: segment0.a.x, y: segment0.a.y },
+            robust::Coord {
+                x: segment1.a.x,
+                y: segment1.a.y,
+            },
+            robust::Coord {
+                x: segment1.b.x,
+                y: segment1.b.y,
+            },
+            robust::Coord {
+                x: segment0.a.x,
+                y: segment0.a.y,
+            },
         );
         if close_enough(sign, ZERO, f64::EPSILON) {
             let dot = (segment1.b - segment1.a).dot(segment0.a - segment1.a);
@@ -85,9 +92,18 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
 
     if is_point1 {
         let sign = orient2d(
-            robust::Coord { x: segment0.a.x, y: segment0.a.y },
-            robust::Coord { x: segment0.b.x, y: segment0.b.y },
-            robust::Coord { x: segment1.a.x, y: segment1.a.y },
+            robust::Coord {
+                x: segment0.a.x,
+                y: segment0.a.y,
+            },
+            robust::Coord {
+                x: segment0.b.x,
+                y: segment0.b.y,
+            },
+            robust::Coord {
+                x: segment1.a.x,
+                y: segment1.a.y,
+            },
         );
         if close_enough(sign, ZERO, f64::EPSILON) {
             let dot = (segment0.b - segment0.a).dot(segment1.a - segment0.a);
@@ -144,12 +160,11 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
                     }
                     if are_ends_towching(&segment0, &segment1) {
                         return SegmentSegmentConfig::NoIntersection(); // TODO: fix this
-                    }
-                    else {
+                    } else {
                         return SegmentSegmentConfig::TwoPoints(p0, p1, p2, p3);
                     }
                 }
-                IntervalConfig::Touching(_) => { 
+                IntervalConfig::Touching(_) => {
                     return SegmentSegmentConfig::NoIntersection(); // TODO: fix this
                 }
             }
@@ -175,10 +190,9 @@ fn are_both_ends_towching(segment0: &Segment, segment1: &Segment) -> bool {
 }
 
 /// If segments are really intersecting, but not just touching at ends.
-/// 
+///
 /// In other words, do we need to split segments further?
 pub fn if_really_intersecting_segment_segment(part0: &Segment, part1: &Segment) -> bool {
-
     match int_segment_segment(&part0, &part1) {
         SegmentSegmentConfig::NoIntersection() => false,
         SegmentSegmentConfig::OnePoint(_, _, _) => true,

@@ -1,6 +1,3 @@
-
-
-
 use crate::prelude::*;
 
 #[derive(Debug, PartialEq)]
@@ -10,13 +7,11 @@ pub enum TangentArcArc {
     ThreeArcs(Arc, Arc, Arc),
 }
 
-
 /// Given two arcs, computes the external tangent (CCW) points between them.
 /// Returns new parts of the original arcs and connecting tangent part.
 // pub fn tangent_arc_arc(arc1: &Arc, arc2: &Arc) -> TangentArcArc {
 
 // }
-
 
 #[cfg(test)]
 mod test_tangent_arc_arc {
@@ -27,9 +22,9 @@ mod test_tangent_arc_arc {
     //     // Two line segments
     //     let line1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
     //     let line2 = arcseg(point(2.0, 0.0), point(3.0, 0.0));
-        
+
     //     let result = tangent_arc_arc(&line1, &line2);
-        
+
     //     match result {
     //         TangentArcArc::OneArc(arc) => {
     //             assert!(arc.is_line());
@@ -45,9 +40,9 @@ mod test_tangent_arc_arc {
     //     // Line segment to circular arc
     //     let line = arcseg(point(0.0, 0.0), point(1.0, 0.0));
     //     let arc = arc(point(3.0, 0.0), point(2.0, 1.0), point(2.0, 0.0), 1.0);
-        
+
     //     let result = tangent_arc_arc(&line, &arc);
-        
+
     //     match result {
     //         TangentArcArc::OneArc(connecting_arc) => {
     //             assert!(connecting_arc.is_line());
@@ -63,9 +58,9 @@ mod test_tangent_arc_arc {
     //     // Circular arc to line segment
     //     let arc = arc(point(0.0, 1.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
     //     let line = arcseg(point(2.0, 0.0), point(3.0, 0.0));
-        
+
     //     let result = tangent_arc_arc(&arc, &line);
-        
+
     //     match result {
     //         TangentArcArc::OneArc(connecting_arc) => {
     //             assert!(connecting_arc.is_line());
@@ -81,9 +76,9 @@ mod test_tangent_arc_arc {
     //     // Two circular arcs that are well separated
     //     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
     //     let arc2 = arc(point(4.0, 0.0), point(3.0, 1.0), point(3.0, 0.0), 1.0);
-        
+
     //     let result = tangent_arc_arc(&arc1, &arc2);
-        
+
     //     // Should get either OneArc, TwoArcs, or ThreeArcs
     //     match result {
     //         TangentArcArc::OneArc(_) => {
@@ -108,9 +103,9 @@ mod test_tangent_arc_arc {
     //     // Two overlapping circular arcs
     //     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
     //     let arc2 = arc(point(1.5, 0.0), point(0.5, 1.0), point(0.5, 0.0), 1.0);
-        
+
     //     let result = tangent_arc_arc(&arc1, &arc2);
-        
+
     //     // Should handle overlapping case gracefully
     //     match result {
     //         TangentArcArc::OneArc(arc) => {
@@ -128,9 +123,9 @@ mod test_tangent_arc_arc {
     //     // Arcs with different radii
     //     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);   // radius 1
     //     let arc2 = arc(point(5.0, 0.0), point(3.0, 2.0), point(3.0, 0.0), 2.0);   // radius 2
-        
+
     //     let result = tangent_arc_arc(&arc1, &arc2);
-        
+
     //     // Should handle different radii
     //     match result {
     //         TangentArcArc::OneArc(_) => {}
@@ -144,9 +139,9 @@ mod test_tangent_arc_arc {
     //     // Two concentric arcs (same center, different radii)
     //     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
     //     let arc2 = arc(point(2.0, 0.0), point(0.0, 2.0), point(0.0, 0.0), 2.0);
-        
+
     //     let result = tangent_arc_arc(&arc1, &arc2);
-        
+
     //     // Should handle concentric case (fallback to simple connection expected)
     //     match result {
     //         TangentArcArc::OneArc(arc) => {
@@ -165,15 +160,15 @@ mod test_tangent_arc_arc {
     //     let r1 = 1.0;
     //     let c2 = point(4.0, 0.0);
     //     let r2 = 1.0;
-        
+
     //     let result = compute_external_tangent_points(c1, r1, c2, r2);
-        
+
     //     assert!(result.is_some());
     //     if let Some((t1, t2)) = result {
     //         // Tangent points should be on the circle boundaries
     //         let dist1 = (t1 - c1).norm();
     //         let dist2 = (t2 - c2).norm();
-            
+
     //         assert!((dist1 - r1).abs() < 1e-10, "t1 not on first circle: {} vs {}", dist1, r1);
     //         assert!((dist2 - r2).abs() < 1e-10, "t2 not on second circle: {} vs {}", dist2, r2);
     //     }
@@ -186,15 +181,15 @@ mod test_tangent_arc_arc {
     //     let r1 = 1.0;
     //     let c2 = point(5.0, 0.0);
     //     let r2 = 2.0;
-        
+
     //     let result = compute_external_tangent_points(c1, r1, c2, r2);
-        
+
     //     assert!(result.is_some());
     //     if let Some((t1, t2)) = result {
     //         // Verify tangent points are on circles
     //         let dist1 = (t1 - c1).norm();
     //         let dist2 = (t2 - c2).norm();
-            
+
     //         assert!((dist1 - r1).abs() < 1e-10);
     //         assert!((dist2 - r2).abs() < 1e-10);
     //     }
@@ -207,9 +202,9 @@ mod test_tangent_arc_arc {
     //     let r1 = 1.0;
     //     let c2 = point(0.5, 0.0);  // Very close
     //     let r2 = 2.0;             // Large radius
-        
+
     //     let result = compute_external_tangent_points(c1, r1, c2, r2);
-        
+
     //     // Should return None for impossible case
     //     assert!(result.is_none());
     // }
@@ -218,13 +213,13 @@ mod test_tangent_arc_arc {
     // fn test_angle_computation() {
     //     // Test angle computation functions
     //     let arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
-        
+
     //     let start_angle = compute_arc_start_angle(&arc);
     //     let end_angle = compute_arc_end_angle(&arc);
-        
+
     //     // Start should be at 0 radians (positive x-axis)
     //     assert!((start_angle - 0.0).abs() < 1e-10, "Start angle: {}", start_angle);
-        
+
     //     // End should be at π/2 radians (positive y-axis)
     //     assert!((end_angle - std::f64::consts::PI/2.0).abs() < 1e-10, "End angle: {}", end_angle);
     // }
@@ -233,10 +228,10 @@ mod test_tangent_arc_arc {
     // fn test_angle_computation_line() {
     //     // Test angle computation for line segments
     //     let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
-        
+
     //     let start_angle = compute_arc_start_angle(&line);
     //     let end_angle = compute_arc_end_angle(&line);
-        
+
     //     // For lines, both should give the direction angle (45 degrees = π/4)
     //     let expected_angle = std::f64::consts::PI / 4.0;
     //     assert!((start_angle - expected_angle).abs() < 1e-10);

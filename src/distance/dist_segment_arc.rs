@@ -7,14 +7,14 @@ use crate::prelude::*;
 /// This function checks if the segment and arc intersect. If they do, the distance is zero.
 /// If they do not intersect, it computes the minimum distance from the segment endpoints to the arc
 /// and from the segment to the arc endpoints.
-/// 
+///
 /// # Arguments
 /// * `seg` - The segment to measure distance from
 /// * `arc` - The arc to measure distance to
-/// 
+///
 /// # Returns
 /// The minimum distance between the segment and the arc.
-/// 
+///
 /// # Algorithm
 /// 1. Check if the segment and arc intersect using `int_segment_arc`.
 /// 2. If they intersect, return zero.

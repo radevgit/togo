@@ -9,18 +9,17 @@ use crate::prelude::*;
 
 // Re-export algorithm submodules here when they are added
 // pub mod triangulation;
-pub mod convex_hull;
-pub mod tangent;
 pub mod area;
 pub mod bounding;
+pub mod convex_hull;
+pub mod tangent;
 // pub mod closest_pair;
 
 // Re-export all public types and functions for easy access
-pub use convex_hull::{pointline_convex_hull, arcline_convex_hull};
 pub use area::{arcline_area, pointline_area};
 pub use bounding::{arc_bounding_circle, arc_bounding_rect};
+pub use convex_hull::{arcline_convex_hull, pointline_convex_hull};
 //pub use tangent::{tangent_arc_arc, TangentArcArc};
-
 
 /// Checks if a polygon defined by points is convex.
 ///
@@ -45,7 +44,7 @@ pub fn is_convex_pointline(points: &Pointline) -> bool {
         let p3 = points[(i + 2) % n];
 
         let cross = (p2 - p1).perp(p3 - p2);
-        
+
         if cross != 0.0 {
             let current_sign = if cross > 0.0 { 1 } else { -1 };
             if sign == 0 {
@@ -55,7 +54,7 @@ pub fn is_convex_pointline(points: &Pointline) -> bool {
             }
         }
     }
-    
+
     true
 }
 

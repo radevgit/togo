@@ -11,12 +11,12 @@ pub enum IntervalConfig {
 }
 
 /// Computes the intersection of two intervals.
-/// 
+///
 /// This function checks if two intervals overlap, touch, or are disjoint.
 /// If they overlap, it returns the overlapping range.
 /// If they touch at a single point, it returns that point.
 /// If they are disjoint, it returns `NoOverlap`.
-/// 
+///
 /// # Arguments
 /// /// * `interval0` - The first interval
 /// * `interval1` - The second interval
@@ -78,30 +78,21 @@ mod tests_intersect_interval_interval {
     fn test_no_overlap() {
         let i0 = interval(1.0, 2.0);
         let i1 = interval(3.0, 4.0);
-        assert_eq!(
-            int_interval_interval(i0, i1),
-            IntervalConfig::NoOverlap()
-        );
+        assert_eq!(int_interval_interval(i0, i1), IntervalConfig::NoOverlap());
     }
 
     #[test]
     fn test_one_point() {
         let i0 = interval(1.0, 2.0);
         let i1 = interval(2.0, 4.0);
-        assert_eq!(
-            int_interval_interval(i0, i1),
-            IntervalConfig::Touching(2.0)
-        );
+        assert_eq!(int_interval_interval(i0, i1), IntervalConfig::Touching(2.0));
     }
 
     #[test]
     fn test_one_point2() {
         let i0 = interval(1.0, 2.0);
         let i1 = interval(2.0 + f64::EPSILON, 4.0);
-        assert_eq!(
-            int_interval_interval(i0, i1),
-            IntervalConfig::Touching(2.0)
-        );
+        assert_eq!(int_interval_interval(i0, i1), IntervalConfig::Touching(2.0));
     }
 
     #[test]
@@ -138,9 +129,6 @@ mod tests_intersect_interval_interval {
     fn test_touching_degenerate() {
         let i0 = interval(1.0, 2.0);
         let i1 = interval(2.0, 2.0);
-        assert_eq!(
-            int_interval_interval(i0, i1),
-            IntervalConfig::Touching(2.0)
-        );
+        assert_eq!(int_interval_interval(i0, i1), IntervalConfig::Touching(2.0));
     }
 }

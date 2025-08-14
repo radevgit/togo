@@ -2,7 +2,6 @@
 
 use crate::prelude::*;
 
-
 /// Configuration for the distance computation between a segment and a circle.
 #[derive(Debug, PartialEq)]
 pub enum DistSegmentCircleConfig {
@@ -15,26 +14,26 @@ pub enum DistSegmentCircleConfig {
 const ZERO: f64 = 0.0;
 const ONE: f64 = 1.0;
 /// Computes the distance between a line segment and a circle.
-/// 
+///
 /// This function calculates the shortest distance from a line segment to a circle,
 /// returning the closest point(s) on the segment.
 ///
 /// # Arguments
 /// * `seg` - The line segment to measure distance to
 /// * `circle` - The circle to measure distance from
-/// 
+///
 /// # Returns
 /// A `DistSegmentCircleConfig` enum indicating:
 /// - `OnePoint(d, p)` if the closest point is outside the segment
 /// - `TwoPoints(d, p0, p1)` if the segment intersects the circle
-/// 
+///
 /// # Algorithm
 /// 1. Projects the segment onto the circle using `dist_line_circle`.
 /// 2. Analyzes the parameters of intersection to determine the closest points.
 /// 3. Handles cases where the segment is entirely outside, crosses, or is inside the circle.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```
 /// use basegeom::prelude::*;
 /// let seg = segment(point(0.0, 0.0), point(3.0, 4.0));
@@ -162,19 +161,13 @@ mod test_dist_segment_circle {
         let dist = super::dist_segment_circle(&seg, &c);
         assert_eq!(
             dist,
-            DistSegmentCircleConfig::OnePoint(
-                0.0,
-                point(-1.7320508075688772, 1.0)
-            )
+            DistSegmentCircleConfig::OnePoint(0.0, point(-1.7320508075688772, 1.0))
         );
         let seg = rev(seg);
         let dist = super::dist_segment_circle(&seg, &c);
         assert_eq!(
             dist,
-            DistSegmentCircleConfig::OnePoint(
-                0.0,
-                point(-1.7320508075688772, 1.0)
-            )
+            DistSegmentCircleConfig::OnePoint(0.0, point(-1.7320508075688772, 1.0))
         );
     }
 

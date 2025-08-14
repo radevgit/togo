@@ -1,17 +1,17 @@
 #![allow(dead_code)]
 
-
 use crate::{
-    distance::dist_point_segment::dist_point_segment, intersection::int_segment_segment::{int_segment_segment, SegmentSegmentConfig},
-    segment::Segment, utils::min_4
+    distance::dist_point_segment::dist_point_segment,
+    intersection::int_segment_segment::{SegmentSegmentConfig, int_segment_segment},
+    segment::Segment,
+    utils::min_4,
 };
-
 
 // https://stackoverflow.com/questions/2824478/shortest-distance-between-two-line-segments
 const ZERO: f64 = 0.0;
 const ONE: f64 = 1.0;
 /// Computes the distance between two segments.
-/// 
+///
 /// This function calculates the shortest distance between two line segments.
 /// If the segments intersect, the distance is zero.
 /// If they do not intersect, it computes the minimum distance from the endpoints of one segment to
@@ -23,7 +23,7 @@ const ONE: f64 = 1.0;
 ///
 /// # Returns
 /// The minimum distance as a f64
-/// 
+///
 /// # Algorithm
 /// 1. Checks if the segments intersect using `int_segment_segment`.
 /// 2. If they intersect, returns zero.
@@ -57,12 +57,11 @@ pub fn dist_segment_segment(seg0: &Segment, seg1: &Segment) -> f64 {
     }
 }
 
-
 #[cfg(test)]
 mod test_distance_segment_segment {
+    use crate::distance::dist_segment_segment::{ONE, ZERO, dist_segment_segment};
     use crate::point::point;
     use crate::segment::segment;
-    use crate::distance::dist_segment_segment::{dist_segment_segment, ONE, ZERO};
 
     #[test]
     fn test_same_line_no_intersect() {

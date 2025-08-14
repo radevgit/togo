@@ -355,7 +355,6 @@ mod test_pointline_convex_hull {
             assert!(cross >= 0.0, "Hull is not in counter-clockwise order");
         }
     }
-
 }
 
 #[cfg(test)]
@@ -600,7 +599,6 @@ mod test_arcline_convex_hull {
     // }
 }
 
-
 #[doc(hidden)]
 /// Computes the convex hull of a set of arcs and line segments.
 ///
@@ -643,7 +641,6 @@ mod test_arcline_convex_hull {
 /// ```
 pub fn arcline_convex_hull(_arcs: &Arcline) -> Arcline {
     let res = Arcline::new();
-
 
     res
 }

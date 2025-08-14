@@ -11,7 +11,7 @@ pub enum DistLineCircleConfig {
 
 // #00011
 /// Computes the distance between a line and a circle.
-/// 
+///
 /// This function finds the shortest distance from a line to a circle,
 /// along with the closest points on both the line and the circle.
 /// /// # Arguments
@@ -20,14 +20,14 @@ pub enum DistLineCircleConfig {
 ///
 /// # Returns
 /// A `DistLineCircleConfig` enum indicating the distance and closest points.
-/// 
+///
 /// # Algorithm
 /// The algorithm:
 /// 1. Translate the line and circle so that the circle's center is at the origin
 /// 2. Compute the distance from the line to the circle
 /// 3. If the line does not intersect the circle, compute the closest points
 /// 4. If the line intersects the circle, compute the intersection points
-/// 
+///
 /// # Examples
 /// ```
 /// use basegeom::prelude::*;

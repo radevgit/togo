@@ -1,9 +1,5 @@
 #![allow(dead_code)]
 
-
-
-
-
 // use std::ops::Range;
 
 // use crate::{utils::{close_enough, diff_of_prod}, bezierq::BezierQ, Point};

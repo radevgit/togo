@@ -11,7 +11,7 @@ pub enum DistPointArcConfig {
 
 // #00012
 /// Computes the distance between a point and an arc.
-/// 
+///
 /// This function finds the shortest distance from a point to an arc,
 /// along with the closest point on the arc.
 ///
@@ -75,7 +75,9 @@ mod test_dist_point_arc {
 
     use core::f64;
 
-    use crate::{arc::arc, distance::dist_point_arc::DistPointArcConfig, point::point, utils::close_enough};
+    use crate::{
+        arc::arc, distance::dist_point_arc::DistPointArcConfig, point::point, utils::close_enough,
+    };
 
     use super::dist_point_arc;
 

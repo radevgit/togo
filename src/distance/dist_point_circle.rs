@@ -3,13 +3,13 @@
 use crate::circle::Circle;
 use crate::point::{Point, point};
 
-const ZERO : f64 = 0.0;
+const ZERO: f64 = 0.0;
 // #00015
 /// Computes the distance between a point and a circle.
-/// 
+///
 /// This function finds the shortest distance from a point to a circle,
 /// along with the closest point on the circle.
-/// 
+///
 /// # Arguments
 /// * `p` - The point to measure distance from
 /// * `circle` - The circle to measure distance to
@@ -52,7 +52,6 @@ pub fn dist_point_circle(p: &Point, circle: &Circle) -> (f64, Point, bool) {
 #[cfg(test)]
 mod test_dist_point_circle {
     use crate::{circle::circle, point::point};
-
 
     #[test]
     fn test_point_outside_circle() {

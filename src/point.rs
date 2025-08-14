@@ -175,7 +175,6 @@ macro_rules! ImplBinaryOp {
 ImplBinaryOp!(Add, add, +);
 ImplBinaryOp!(Sub, sub, -);
 
-
 /// Implements negation of a point.
 impl Neg for Point {
     type Output = Self;
@@ -418,7 +417,7 @@ impl Point {
     ///
     /// This function sorts four points that are expected to be collinear,
     /// and are usually a result of intersection of two collinear segments overlapping.
-    /// 
+    ///
     /// Sort using sort networks.
     /// Ascending or descending order is not important.
     pub fn sort_colinear_points(
@@ -774,7 +773,7 @@ mod test_point {
         let p7 = point(1.0, 2.0);
         let p8 = point(1.0, 2.0);
         assert!(p7.close_enough(p8, f64::EPSILON)); // Use smallest epsilon instead of 0.0
-        
+
         let p9 = point(1.0, 2.0);
         let p10 = point(1.001, 2.001);
         assert!(!p9.close_enough(p10, 0.0));
@@ -812,7 +811,7 @@ mod test_point {
     //     let p2 = point(4.0, 5.0);
     //     let a = 2.0;
     //     let b = 3.0;
-        
+
     //     let result = p1.diff_of_prod(a, p2, b);
     //     // Expected: Point(p1.x * a - p2.x * b, p1.y * a - p2.y * b)
     //     // = Point(2.0 * 2.0 - 4.0 * 3.0, 3.0 * 2.0 - 5.0 * 3.0)
@@ -838,7 +837,7 @@ mod test_point {
     //     let p2 = point(4.0, 5.0);
     //     let a = 2.0;
     //     let b = 3.0;
-        
+
     //     let result = p1.sum_of_prod(a, p2, b);
     //     // Expected: Point(p1.x * a + p2.x * b, p1.y * a + p2.y * b)
     //     // = Point(2.0 * 2.0 + 4.0 * 3.0, 3.0 * 2.0 + 5.0 * 3.0)
@@ -869,19 +868,19 @@ mod test_point {
         // Basic interpolation
         let p1 = point(0.0, 0.0);
         let p2 = point(10.0, 20.0);
-        
+
         // At t=0, should return p1
         assert_eq!(p1.lerp(p2, 0.0), p1);
-        
+
         // At t=1, should return p2
         assert_eq!(p1.lerp(p2, 1.0), p2);
-        
+
         // At t=0.5, should return midpoint
         assert_eq!(p1.lerp(p2, 0.5), point(5.0, 10.0));
-        
+
         // At t=0.25
         assert_eq!(p1.lerp(p2, 0.25), point(2.5, 5.0));
-        
+
         // At t=0.75
         assert_eq!(p1.lerp(p2, 0.75), point(7.5, 15.0));
 
@@ -912,7 +911,7 @@ mod test_point {
         let p1 = point(3.0, 4.0);
         let p2 = p1; // Copy
         let p3 = p1.clone(); // Clone
-        
+
         assert_eq!(p1, p2);
         assert_eq!(p1, p3);
         assert_eq!(p2, p3);
@@ -923,16 +922,16 @@ mod test_point {
         let p1 = point(1.0, 1.0);
         let p2 = point(2.0, 2.0);
         let p3 = point(1.0, 2.0);
-        
+
         // Note: PartialOrd for Point compares lexicographically (x first, then y)
         assert!(p1 < p2);
         assert!(p1 < p3);
         assert!(p3 < p2);
-        
+
         let p4 = point(1.0, 1.0);
         assert!(p1 <= p4);
         assert!(p1 >= p4);
-        
+
         // Same x, different y
         let p5 = point(1.0, 0.5);
         let p6 = point(1.0, 1.5);
@@ -964,24 +963,24 @@ mod test_point {
         let inf_point = point(f64::INFINITY, f64::NEG_INFINITY);
         assert!(inf_point.x.is_infinite());
         assert!(inf_point.y.is_infinite());
-        
+
         // Test with NaN
         let nan_point = point(f64::NAN, 1.0);
         assert!(nan_point.x.is_nan());
         assert!(nan_point.y.is_finite());
-        
+
         // Operations with NaN should produce NaN
         let normal_point = point(1.0, 2.0);
         let result = normal_point + nan_point;
         assert!(result.x.is_nan());
         assert!(result.y.is_finite());
-        
+
         // Very large numbers
         let large1 = point(f64::MAX / 2.0, f64::MAX / 2.0);
         let large2 = point(f64::MAX / 2.0, f64::MAX / 2.0);
         // This might overflow, but should handle gracefully
         let _sum = large1 + large2;
-        
+
         // Very small numbers
         let tiny1 = point(f64::MIN_POSITIVE, f64::MIN_POSITIVE);
         let tiny2 = point(f64::MIN_POSITIVE, f64::MIN_POSITIVE);
@@ -996,19 +995,19 @@ mod test_point {
         let p1 = point(1.0, 2.0);
         let display1 = format!("{}", p1);
         assert_eq!(display1, "[1.00000000000000000000, 2.00000000000000000000]");
-        
+
         // Test with decimal places
         let p2 = point(1.5, 2.7);
         let display2 = format!("{}", p2);
         assert!(display2.contains("1.5"));
         assert!(display2.contains("2.7"));
-        
+
         // Test with negative numbers
         let p3 = point(-1.5, -2.7);
         let display3 = format!("{}", p3);
         assert!(display3.contains("-1.5"));
         assert!(display3.contains("-2.7"));
-        
+
         // Test with zero
         let zero = point(0.0, 0.0);
         let display_zero = format!("{}", zero);
@@ -1020,18 +1019,18 @@ mod test_point {
         // Test with simple horizontal line - this pattern works reliably
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
-        let p_above = point(1.0, 1.0);  // Above line, positive orientation
+        let p_above = point(1.0, 1.0); // Above line, positive orientation
         let p_below = point(1.0, -1.0); // Below line, negative orientation
-        
+
         assert!(points_order(a, b, p_above) > 0.0);
         assert!(points_order(a, b, p_below) < 0.0);
-        
+
         // Test with 3 points on unit circle (all points by construction lie on same circle)
         let radius = 1.0;
-        let a_circle = point(radius, 0.0);        // (1, 0)
-        let b_circle = point(0.0, radius);        // (0, 1)
-        let p_circle = point(-radius, 0.0);       // (-1, 0)
-        
+        let a_circle = point(radius, 0.0); // (1, 0)
+        let b_circle = point(0.0, radius); // (0, 1)
+        let p_circle = point(-radius, 0.0); // (-1, 0)
+
         // This gives a specific orientation value for these circle points
         let circle_result = points_order(a_circle, b_circle, p_circle);
         assert!(circle_result.is_finite());
@@ -1043,32 +1042,41 @@ mod test_point {
         // Test with larger scale using reliable horizontal line pattern
         let a = point(0.0, 0.0);
         let b = point(10.0, 0.0);
-        let p_above = point(5.0, 3.0);  // Above line, positive orientation
+        let p_above = point(5.0, 3.0); // Above line, positive orientation
         let p_below = point(5.0, -3.0); // Below line, negative orientation
-        
+
         let result_above = points_order(a, b, p_above);
         let result_below = points_order(a, b, p_below);
-        
+
         assert!(result_above > 0.0);
         assert!(result_below < 0.0);
-        
+
         // Test with 3 points on larger circle (all on same circle by construction)
         let radius = 5.0;
         let center_x = 0.0;
         let center_y = 0.0;
-        
+
         // Points at specific angles on circle
-        let angle_a = 0.0f64;  // 0°
-        let angle_b = std::f64::consts::PI / 3.0;  // 60°
-        let angle_p = 2.0 * std::f64::consts::PI / 3.0;  // 120°
-        
-        let a_circle = point(center_x + radius * angle_a.cos(), center_y + radius * angle_a.sin());
-        let b_circle = point(center_x + radius * angle_b.cos(), center_y + radius * angle_b.sin());
-        let p_circle = point(center_x + radius * angle_p.cos(), center_y + radius * angle_p.sin());
-        
+        let angle_a = 0.0f64; // 0°
+        let angle_b = std::f64::consts::PI / 3.0; // 60°
+        let angle_p = 2.0 * std::f64::consts::PI / 3.0; // 120°
+
+        let a_circle = point(
+            center_x + radius * angle_a.cos(),
+            center_y + radius * angle_a.sin(),
+        );
+        let b_circle = point(
+            center_x + radius * angle_b.cos(),
+            center_y + radius * angle_b.sin(),
+        );
+        let p_circle = point(
+            center_x + radius * angle_p.cos(),
+            center_y + radius * angle_p.sin(),
+        );
+
         let circle_result = points_order(a_circle, b_circle, p_circle);
         assert!(circle_result.is_finite());
-        
+
         // Test order independence - swapping a and b should negate result
         let result_forward = points_order(a, b, p_above);
         let result_backward = points_order(b, a, p_above);
@@ -1079,44 +1087,54 @@ mod test_point {
     fn test_points_order_edge_cases() {
         // Test with very small circle using sin/cos
         let tiny_radius = 1e-6;
-        let tiny_a = point(tiny_radius * 0.0f64.cos(), tiny_radius * 0.0f64.sin());        // 0°
-        let tiny_b = point(tiny_radius * (std::f64::consts::PI/2.0).cos(), tiny_radius * (std::f64::consts::PI/2.0).sin()); // 90°
-        let tiny_p = point(tiny_radius * std::f64::consts::PI.cos(), tiny_radius * std::f64::consts::PI.sin());  // 180°
-        
+        let tiny_a = point(tiny_radius * 0.0f64.cos(), tiny_radius * 0.0f64.sin()); // 0°
+        let tiny_b = point(
+            tiny_radius * (std::f64::consts::PI / 2.0).cos(),
+            tiny_radius * (std::f64::consts::PI / 2.0).sin(),
+        ); // 90°
+        let tiny_p = point(
+            tiny_radius * std::f64::consts::PI.cos(),
+            tiny_radius * std::f64::consts::PI.sin(),
+        ); // 180°
+
         let tiny_result = points_order(tiny_a, tiny_b, tiny_p);
         assert!(tiny_result.is_finite());
         assert!(tiny_result > 0.0);
-        
+
         // Test with large circle using sin/cos
         let large_radius = 1e6;
-        let large_a = point(large_radius * 0.0f64.cos(), large_radius * 0.0f64.sin());        // 0°
-        let large_b = point(large_radius * (std::f64::consts::PI/2.0).cos(), large_radius * (std::f64::consts::PI/2.0).sin()); // 90°
-        let large_p = point(large_radius * std::f64::consts::PI.cos(), large_radius * std::f64::consts::PI.sin());  // 180°
-        
+        let large_a = point(large_radius * 0.0f64.cos(), large_radius * 0.0f64.sin()); // 0°
+        let large_b = point(
+            large_radius * (std::f64::consts::PI / 2.0).cos(),
+            large_radius * (std::f64::consts::PI / 2.0).sin(),
+        ); // 90°
+        let large_p = point(
+            large_radius * std::f64::consts::PI.cos(),
+            large_radius * std::f64::consts::PI.sin(),
+        ); // 180°
+
         let large_result = points_order(large_a, large_b, large_p);
         assert!(large_result > 0.0);
-        
+
         // Test with identical points (degenerate case)
         let same_point = point(1.0, 1.0);
         let degenerate_result = points_order(same_point, same_point, same_point);
         assert_eq!(degenerate_result, 0.0);
-        
+
         // Test with points very close together on unit circle
         let angle1 = 0.0f64;
         let angle2 = 1e-6f64; // Very small angle difference
         let angle3 = std::f64::consts::PI; // Opposite side
-        
+
         let close_a = point(angle1.cos(), angle1.sin());
         let close_b = point(angle2.cos(), angle2.sin());
         let close_p = point(angle3.cos(), angle3.sin());
-        
+
         let close_result = points_order(close_a, close_b, close_p);
         assert!(close_result.is_finite());
         assert!(close_result.abs() > 0.0);
     }
-
 }
-
 
 #[cfg(test)]
 mod test_normalize {
@@ -1129,49 +1147,70 @@ mod test_normalize {
         let tiny_vector = point(1e-200, 1e-200);
         let (simple_norm, simple_mag) = tiny_vector.normalize(false);
         let (robust_norm, robust_mag) = tiny_vector.normalize(true);
-        
+
         println!("Tiny vector test:");
         println!("  Simple: norm={}, mag={:.2e}", simple_norm, simple_mag);
         println!("  Robust: norm={}, mag={:.2e}", robust_norm, robust_mag);
-        
+
         // Simple implementation likely underflows to zero
         // Robust should maintain proper normalization
         assert!(robust_mag > 0.0, "Robust should handle tiny vectors");
         if simple_mag == 0.0 {
             // Simple underflowed - robust should be better
-            assert!((robust_norm.norm() - 1.0).abs() < 1e-10, "Robust should produce unit vector");
+            assert!(
+                (robust_norm.norm() - 1.0).abs() < 1e-10,
+                "Robust should produce unit vector"
+            );
         }
 
         // Case 2: Very large vectors - simple implementation may overflow
         let large_vector = point(1e150, 1e150);
         let (simple_norm_large, simple_mag_large) = large_vector.normalize(false);
         let (robust_norm_large, robust_mag_large) = large_vector.normalize(true);
-        
+
         println!("Large vector test:");
-        println!("  Simple: norm={}, mag={:.2e}", simple_norm_large, simple_mag_large);
-        println!("  Robust: norm={}, mag={:.2e}", robust_norm_large, robust_mag_large);
-        
+        println!(
+            "  Simple: norm={}, mag={:.2e}",
+            simple_norm_large, simple_mag_large
+        );
+        println!(
+            "  Robust: norm={}, mag={:.2e}",
+            robust_norm_large, robust_mag_large
+        );
+
         // Robust should handle large vectors better
-        assert!(robust_mag_large.is_finite(), "Robust magnitude should be finite");
-        assert!((robust_norm_large.norm() - 1.0).abs() < 1e-10, "Robust should produce unit vector");
+        assert!(
+            robust_mag_large.is_finite(),
+            "Robust magnitude should be finite"
+        );
+        assert!(
+            (robust_norm_large.norm() - 1.0).abs() < 1e-10,
+            "Robust should produce unit vector"
+        );
 
         // Case 3: Mixed scale vectors
         let mixed_vector = point(1e-100, 1e100);
         let (simple_norm_mixed, simple_mag_mixed) = mixed_vector.normalize(false);
         let (robust_norm_mixed, robust_mag_mixed) = mixed_vector.normalize(true);
-        
+
         println!("Mixed scale vector test:");
-        println!("  Simple: norm={}, mag={:.2e}", simple_norm_mixed, simple_mag_mixed);
-        println!("  Robust: norm={}, mag={:.2e}", robust_norm_mixed, robust_mag_mixed);
-        
+        println!(
+            "  Simple: norm={}, mag={:.2e}",
+            simple_norm_mixed, simple_mag_mixed
+        );
+        println!(
+            "  Robust: norm={}, mag={:.2e}",
+            robust_norm_mixed, robust_mag_mixed
+        );
+
         // Both should handle this case, but robust may be more precise
         assert!(simple_mag_mixed.is_finite() && robust_mag_mixed.is_finite());
-        
+
         // Case 4: Normal vectors - both should perform similarly
         let normal_vector = point(3.0, 4.0);
         let (simple_norm_normal, simple_mag_normal) = normal_vector.normalize(false);
         let (robust_norm_normal, robust_mag_normal) = normal_vector.normalize(true);
-        
+
         // Both should give essentially the same result for normal vectors
         assert!((simple_mag_normal - robust_mag_normal).abs() < 1e-10);
         assert!((simple_norm_normal - robust_norm_normal).norm() < 1e-10);
@@ -1187,7 +1226,7 @@ mod test_normalize {
         let zero_vector = point(0.0, 0.0);
         let (simple_zero, simple_mag_zero) = zero_vector.normalize(false);
         let (robust_zero, robust_mag_zero) = zero_vector.normalize(true);
-        
+
         assert_eq!(simple_mag_zero, 0.0);
         assert_eq!(robust_mag_zero, 0.0);
         assert_eq!(simple_zero, point(0.0, 0.0));
@@ -1197,15 +1236,18 @@ mod test_normalize {
         let epsilon_vector = point(f64::EPSILON, f64::EPSILON);
         let (simple_eps, simple_mag_eps) = epsilon_vector.normalize(false);
         let (robust_eps, robust_mag_eps) = epsilon_vector.normalize(true);
-        
+
         // Both should handle machine epsilon, but let's verify they're close
         if simple_mag_eps > 0.0 && robust_mag_eps > 0.0 {
             let mag_diff = (simple_mag_eps - robust_mag_eps).abs();
             let norm_diff = (simple_eps - robust_eps).norm();
-            
+
             // Magnitudes should be very close
-            assert!(mag_diff / simple_mag_eps < 1e-10, "Magnitude difference too large");
-            
+            assert!(
+                mag_diff / simple_mag_eps < 1e-10,
+                "Magnitude difference too large"
+            );
+
             // Normalized vectors should be very close
             assert!(norm_diff < 1e-10, "Normalized vector difference too large");
         }
@@ -1214,25 +1256,40 @@ mod test_normalize {
         let single_large = point(1e100, 0.0);
         let (simple_single, simple_mag_single) = single_large.normalize(false);
         let (robust_single, robust_mag_single) = single_large.normalize(true);
-        
-        assert!((simple_single.norm() - 1.0).abs() < 1e-10, "Simple should normalize correctly");
-        assert!((robust_single.norm() - 1.0).abs() < 1e-10, "Robust should normalize correctly");
-        assert!((simple_mag_single - robust_mag_single).abs() < 1e90, "Magnitudes should be close");
+
+        assert!(
+            (simple_single.norm() - 1.0).abs() < 1e-10,
+            "Simple should normalize correctly"
+        );
+        assert!(
+            (robust_single.norm() - 1.0).abs() < 1e-10,
+            "Robust should normalize correctly"
+        );
+        assert!(
+            (simple_mag_single - robust_mag_single).abs() < 1e90,
+            "Magnitudes should be close"
+        );
 
         // Single tiny component
         let single_tiny = point(1e-200, 0.0);
         let (simple_tiny, simple_mag_tiny) = single_tiny.normalize(false);
         let (robust_tiny, robust_mag_tiny) = single_tiny.normalize(true);
-        
+
         // Robust should handle this better than simple
         if simple_mag_tiny == 0.0 {
             // Simple underflowed
             assert!(robust_mag_tiny > 0.0, "Robust should not underflow");
-            assert!((robust_tiny - point(1.0, 0.0)).norm() < 1e-10, "Robust should give correct direction");
+            assert!(
+                (robust_tiny - point(1.0, 0.0)).norm() < 1e-10,
+                "Robust should give correct direction"
+            );
         } else {
             // Both handled it - should be similar
             assert!((simple_mag_tiny - robust_mag_tiny).abs() / robust_mag_tiny < 1e-10);
-            assert!((simple_tiny - robust_tiny).norm() < 1e-10, "Normalized vectors should be close");
+            assert!(
+                (simple_tiny - robust_tiny).norm() < 1e-10,
+                "Normalized vectors should be close"
+            );
         }
     }
 
@@ -1246,7 +1303,10 @@ mod test_normalize {
             ("Small", point(1e-10, 1e-10)),
             ("Large", point(1e10, 1e10)),
             ("Mixed small-large", point(1e-50, 1e50)),
-            ("Near machine epsilon", point(f64::EPSILON * 10.0, f64::EPSILON * 10.0)),
+            (
+                "Near machine epsilon",
+                point(f64::EPSILON * 10.0, f64::EPSILON * 10.0),
+            ),
         ];
 
         for (name, vector) in test_vectors {
@@ -1256,25 +1316,38 @@ mod test_normalize {
             // Check that both produce valid results when they don't underflow/overflow
             if simple_mag > 0.0 && simple_mag.is_finite() {
                 let simple_unit_error = (simple_norm.norm() - 1.0).abs();
-                assert!(simple_unit_error < 1e-10, 
-                    "Simple implementation unit error too large for {}: {:.2e}", name, simple_unit_error);
+                assert!(
+                    simple_unit_error < 1e-10,
+                    "Simple implementation unit error too large for {}: {:.2e}",
+                    name,
+                    simple_unit_error
+                );
             }
 
             if robust_mag > 0.0 && robust_mag.is_finite() {
                 let robust_unit_error = (robust_norm.norm() - 1.0).abs();
-                assert!(robust_unit_error < 1e-10, 
-                    "Robust implementation unit error too large for {}: {:.2e}", name, robust_unit_error);
+                assert!(
+                    robust_unit_error < 1e-10,
+                    "Robust implementation unit error too large for {}: {:.2e}",
+                    name,
+                    robust_unit_error
+                );
             }
 
             // When both produce valid results, they should be reasonably close
-            if simple_mag > 0.0 && robust_mag > 0.0 && 
-               simple_mag.is_finite() && robust_mag.is_finite() {
+            if simple_mag > 0.0
+                && robust_mag > 0.0
+                && simple_mag.is_finite()
+                && robust_mag.is_finite()
+            {
                 let mag_relative_error = (simple_mag - robust_mag).abs() / robust_mag;
-                
+
                 // Allow for some numerical differences, but they shouldn't be huge
                 if mag_relative_error > 1e-6 {
-                    println!("Warning: Large magnitude difference for {}: simple={:.2e}, robust={:.2e}, rel_error={:.2e}", 
-                        name, simple_mag, robust_mag, mag_relative_error);
+                    println!(
+                        "Warning: Large magnitude difference for {}: simple={:.2e}, robust={:.2e}, rel_error={:.2e}",
+                        name, simple_mag, robust_mag, mag_relative_error
+                    );
                 }
             }
         }
@@ -1283,38 +1356,63 @@ mod test_normalize {
     #[test]
     fn test_normalize_underflow_demonstration() {
         // Demonstrate clear cases where simple implementation fails due to underflow
-        
+
         println!("=== Underflow Demonstration ===");
-        
+
         // Very tiny vector that causes underflow in simple implementation
         let tiny = point(1e-200, 0.0);
         let (simple_norm, simple_mag) = tiny.normalize(false);
         let (robust_norm, robust_mag) = tiny.normalize(true);
-        
+
         println!("Tiny vector [1e-200, 0]:");
-        println!("  Simple: normalized={}, magnitude={:.2e}", simple_norm, simple_mag);
-        println!("  Robust: normalized={}, magnitude={:.2e}", robust_norm, robust_mag);
-        
+        println!(
+            "  Simple: normalized={}, magnitude={:.2e}",
+            simple_norm, simple_mag
+        );
+        println!(
+            "  Robust: normalized={}, magnitude={:.2e}",
+            robust_norm, robust_mag
+        );
+
         // Simple should fail (underflow to zero)
-        assert_eq!(simple_mag, 0.0, "Simple implementation should underflow to zero");
-        assert_eq!(simple_norm, point(0.0, 0.0), "Simple should return zero vector");
-        
+        assert_eq!(
+            simple_mag, 0.0,
+            "Simple implementation should underflow to zero"
+        );
+        assert_eq!(
+            simple_norm,
+            point(0.0, 0.0),
+            "Simple should return zero vector"
+        );
+
         // Robust should succeed
         assert!(robust_mag > 0.0, "Robust should not underflow");
-        assert!((robust_norm - point(1.0, 0.0)).norm() < 1e-10, "Robust should give correct unit vector");
-        assert!((robust_norm.norm() - 1.0).abs() < 1e-10, "Robust result should be unit length");
-        
+        assert!(
+            (robust_norm - point(1.0, 0.0)).norm() < 1e-10,
+            "Robust should give correct unit vector"
+        );
+        assert!(
+            (robust_norm.norm() - 1.0).abs() < 1e-10,
+            "Robust result should be unit length"
+        );
+
         println!("✓ Robust implementation correctly handles underflow case");
-        
+
         // Another case with both components tiny
         let tiny_both = point(1e-250, 1e-250);
         let (simple_both, simple_mag_both) = tiny_both.normalize(false);
         let (robust_both, robust_mag_both) = tiny_both.normalize(true);
-        
+
         println!("\nTiny vector [1e-250, 1e-250]:");
-        println!("  Simple: normalized={}, magnitude={:.2e}", simple_both, simple_mag_both);
-        println!("  Robust: normalized={}, magnitude={:.2e}", robust_both, robust_mag_both);
-        
+        println!(
+            "  Simple: normalized={}, magnitude={:.2e}",
+            simple_both, simple_mag_both
+        );
+        println!(
+            "  Robust: normalized={}, magnitude={:.2e}",
+            robust_both, robust_mag_both
+        );
+
         if simple_mag_both == 0.0 {
             println!("✓ Simple underflowed, but robust handled it correctly");
             assert!(robust_mag_both > 0.0);
@@ -1327,42 +1425,63 @@ mod test_normalize {
     #[test]
     fn test_normalize_overflow_demonstration() {
         // Demonstrate cases where simple implementation may have precision issues with large numbers
-        
+
         println!("=== Large Number Precision Test ===");
-        
+
         // Very large vector
         let large = point(1e100, 1e100);
         let (simple_large, simple_mag_large) = large.normalize(false);
         let (robust_large, robust_mag_large) = large.normalize(true);
-        
+
         println!("Large vector [1e100, 1e100]:");
-        println!("  Simple: normalized={}, magnitude={:.2e}", simple_large, simple_mag_large);
-        println!("  Robust: normalized={}, magnitude={:.2e}", robust_large, robust_mag_large);
-        
+        println!(
+            "  Simple: normalized={}, magnitude={:.2e}",
+            simple_large, simple_mag_large
+        );
+        println!(
+            "  Robust: normalized={}, magnitude={:.2e}",
+            robust_large, robust_mag_large
+        );
+
         // Both should work, but robust may be more precise
-        assert!(simple_mag_large.is_finite(), "Simple magnitude should be finite");
-        assert!(robust_mag_large.is_finite(), "Robust magnitude should be finite");
-        
+        assert!(
+            simple_mag_large.is_finite(),
+            "Simple magnitude should be finite"
+        );
+        assert!(
+            robust_mag_large.is_finite(),
+            "Robust magnitude should be finite"
+        );
+
         let simple_unit_error = (simple_large.norm() - 1.0).abs();
         let robust_unit_error = (robust_large.norm() - 1.0).abs();
-        
+
         println!("  Simple unit length error: {:.2e}", simple_unit_error);
         println!("  Robust unit length error: {:.2e}", robust_unit_error);
-        
+
         // Extremely large vector that might cause issues
         let extreme = point(1e200, 0.0);
         let (simple_extreme, simple_mag_extreme) = extreme.normalize(false);
         let (robust_extreme, robust_mag_extreme) = extreme.normalize(true);
-        
+
         println!("\nExtreme vector [1e200, 0]:");
-        println!("  Simple: normalized={}, magnitude={:.2e}", simple_extreme, simple_mag_extreme);
-        println!("  Robust: normalized={}, magnitude={:.2e}", robust_extreme, robust_mag_extreme);
-        
+        println!(
+            "  Simple: normalized={}, magnitude={:.2e}",
+            simple_extreme, simple_mag_extreme
+        );
+        println!(
+            "  Robust: normalized={}, magnitude={:.2e}",
+            robust_extreme, robust_mag_extreme
+        );
+
         // Check if simple implementation overflows
         if !simple_mag_extreme.is_finite() {
             println!("✓ Simple implementation overflowed, robust should handle it");
             assert!(robust_mag_extreme.is_finite(), "Robust should not overflow");
-            assert!((robust_extreme.norm() - 1.0).abs() < 1e-10, "Robust should produce unit vector");
+            assert!(
+                (robust_extreme.norm() - 1.0).abs() < 1e-10,
+                "Robust should produce unit vector"
+            );
         } else {
             println!("Both implementations handled extreme case");
         }

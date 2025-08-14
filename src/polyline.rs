@@ -257,13 +257,10 @@ mod test_pvertex {
             pvertex(point(0.0, 0.0), 0.5),
             pvertex(point(1.0, 0.0), -0.3),
         ];
-        let poly2 = vec![
-            pvertex(point(2.0, 2.0), 0.0),
-            pvertex(point(3.0, 3.0), 0.2),
-        ];
+        let poly2 = vec![pvertex(point(2.0, 2.0), 0.0), pvertex(point(3.0, 3.0), 0.2)];
         let polylines = vec![poly1, poly2];
         let reversed = polylines_reverse(&polylines);
-        
+
         assert_eq!(reversed.len(), 2);
         // Each polyline should be individually reversed
         assert_eq!(reversed[0].len(), 2);
@@ -277,7 +274,7 @@ mod test_pvertex {
         let scaled = polyline_scale(&original, 0.0);
         assert_eq!(scaled[0].p, point(0.0, 0.0));
         assert_eq!(scaled[0].b, 0.5); // Bulge should be preserved
-        
+
         // Test with negative scale
         let scaled_neg = polyline_scale(&original, -2.0);
         assert_eq!(scaled_neg[0].p, point(-4.0, -6.0));

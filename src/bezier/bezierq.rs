@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-
-
 // use std::{fmt::Display, ops::Range};
 
 // //use kurbo::{offset::CubicOffset, BezPath, CubicBez, Point as KurboPoint};
