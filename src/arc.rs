@@ -317,29 +317,6 @@ pub fn arcline_translate(arc: &mut Arcline, translation: Point) {
 }
 
 
-/// Reverses the direction of an arcline (sequence of CCW arcs).
-/// Each arc is reversed by swapping its start and end points, and the order of arcs is reversed.
-/// The orientation remains CCW for each arc.
-///
-/// # Arguments
-/// * `arcs` - The arcline (Vec<Arc>) to reverse
-///
-/// # Returns
-/// A new arcline with reversed direction
-pub fn arcline_reverse(arcs: &[Arc]) -> Vec<Arc> {
-    let mut reversed: Vec<Arc> = Vec::with_capacity(arcs.len());
-    for arc in arcs.iter().rev() {
-        let new_arc = Arc {
-            a: arc.b,
-            b: arc.a,
-            c: arc.c,
-            r: arc.r,
-            id: arc.id,
-        };
-        reversed.push(new_arc);
-    }
-    reversed
-}
 
 #[cfg(test)]
 mod test_arc {
@@ -964,12 +941,13 @@ mod test_arc_validation {
         let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.5, 0.5), r: 1.0, id: 1 };
         let arc2 = Arc { a: point(1.0, 0.0), b: point(1.0, 1.0), c: point(1.0, 0.5), r: 1.0, id: 2 };
         let arcline = vec![arc1, arc2];
-    let reversed = arcline_reverse(&arcline);
+        let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed.len(), 2);
-        assert_eq!(reversed[0].a, arc2.b);
-        assert_eq!(reversed[0].b, arc2.a);
-        assert_eq!(reversed[1].a, arc1.b);
-        assert_eq!(reversed[1].b, arc1.a);
+        // For circular arcs (finite radius), endpoints should NOT be swapped - they remain CCW
+        assert_eq!(reversed[0].a, arc2.a);  // arc2 comes first, unchanged
+        assert_eq!(reversed[0].b, arc2.b);
+        assert_eq!(reversed[1].a, arc1.a);  // arc1 comes second, unchanged
+        assert_eq!(reversed[1].b, arc1.b);
         assert_eq!(reversed[0].id, arc2.id);
         assert_eq!(reversed[1].id, arc1.id);
     }
@@ -985,10 +963,11 @@ mod test_arc_validation {
     fn test_arcline_reverse_single_arc() {
         let arc = Arc { a: point(2.0, 2.0), b: point(3.0, 3.0), c: point(2.5, 2.5), r: 2.0, id: 42 };
         let arcline = vec![arc];
-    let reversed = arcline_reverse(&arcline);
+        let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed.len(), 1);
-        assert_eq!(reversed[0].a, arc.b);
-        assert_eq!(reversed[0].b, arc.a);
+        // For circular arcs (finite radius), endpoints should NOT be swapped
+        assert_eq!(reversed[0].a, arc.a);
+        assert_eq!(reversed[0].b, arc.b);
         assert_eq!(reversed[0].id, arc.id);
     }
 
@@ -998,11 +977,14 @@ mod test_arc_validation {
         let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.0, 0.0), r: f64::INFINITY, id: 1 };
         let arc2 = Arc { a: point(1.0, 0.0), b: point(2.0, 0.0), c: point(0.0, 0.0), r: f64::INFINITY, id: 2 };
         let arcline = vec![arc1, arc2];
-    let reversed = arcline_reverse(&arcline);
+        let reversed = arcline_reverse(&arcline);
         assert_eq!(reversed[0].r, f64::INFINITY);
         assert_eq!(reversed[1].r, f64::INFINITY);
-        assert_eq!(reversed[0].a, arc2.b);
-        assert_eq!(reversed[1].a, arc1.b);
+        // For line segments (infinite radius), endpoints should be swapped
+        assert_eq!(reversed[0].a, arc2.b);  // arc2 reversed: b->a
+        assert_eq!(reversed[0].b, arc2.a);  // arc2 reversed: a->b
+        assert_eq!(reversed[1].a, arc1.b);  // arc1 reversed: b->a  
+        assert_eq!(reversed[1].b, arc1.a);  // arc1 reversed: a->b
     }
 
     #[test]
@@ -1011,10 +993,13 @@ mod test_arc_validation {
         let arc1 = Arc { a: point(0.0, 0.0), b: point(1.0, 0.0), c: point(0.5, 0.5), r: 2.0, id: 1 };
         let arc2 = Arc { a: point(1.0, 0.0), b: point(2.0, 0.0), c: point(1.5, 0.5), r: 2.0, id: 2 };
         let arcline = vec![arc1, arc2];
-    let reversed = arcline_reverse(&arcline);
+        let reversed = arcline_reverse(&arcline);
         assert!(reversed.iter().all(|arc| arc.r == 2.0));
-        assert_eq!(reversed[0].a, arc2.b);
-        assert_eq!(reversed[1].a, arc1.b);
+        // For circular arcs (finite radius), endpoints should NOT be swapped - order is reversed but arcs stay CCW
+        assert_eq!(reversed[0].a, arc2.a);  // arc2 comes first, unchanged
+        assert_eq!(reversed[0].b, arc2.b);
+        assert_eq!(reversed[1].a, arc1.a);  // arc1 comes second, unchanged  
+        assert_eq!(reversed[1].b, arc1.b);
     }
 }
 
@@ -1469,4 +1454,26 @@ mod test_arc_g_from_points {
             );
         }
     }
+}
+
+
+/// Reverses the direction of an arcline (sequence of CCW arcs).
+/// Each arc is reversed by swapping its start and end points, and the order of arcs is reversed.
+/// The orientation remains CCW for each arc.
+///
+/// # Arguments
+/// * `arcs` - The arcline (Vec<Arc>) to reverse
+///
+/// # Returns
+/// A new arcline with reversed direction
+pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
+    let mut reversed: Vec<Arc> = Vec::with_capacity(arcs.len());
+    for arc in arcs.iter().rev() {
+        if arc.is_line() {
+            reversed.push(arc.reverse());
+        } else {
+            reversed.push(arc.clone());
+        }
+    }
+    reversed
 }
