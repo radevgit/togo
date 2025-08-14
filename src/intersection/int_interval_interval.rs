@@ -36,10 +36,10 @@ pub enum IntervalConfig {
 /// assert_eq!(result, IntervalConfig::Overlap(2.0, 3.0));
 /// ```
 pub fn int_interval_interval(interval0: Interval, interval1: Interval) -> IntervalConfig {
-    assert!(interval0.0 <= interval0.1);
-    assert!(interval1.0 <= interval1.1);
+    debug_assert!(interval0.0 <= interval0.1);
+    debug_assert!(interval1.0 <= interval1.1);
     if interval0.1 < interval1.0 || interval0.0 > interval1.1 {
-        return IntervalConfig::NoOverlap();
+        IntervalConfig::NoOverlap()
     } else if interval0.1 > interval1.0 {
         if interval0.0 < interval1.1 {
             let overlap0 = if interval0.0 < interval1.0 {
@@ -53,18 +53,18 @@ pub fn int_interval_interval(interval0: Interval, interval1: Interval) -> Interv
                 interval0.1
             };
             if overlap0 < overlap1 {
-                return IntervalConfig::Overlap(overlap0, overlap1);
+                IntervalConfig::Overlap(overlap0, overlap1)
             } else {
                 // case with degenerate intervals
-                return IntervalConfig::Overlap(overlap0, overlap0);
+                IntervalConfig::Overlap(overlap0, overlap0)
             }
         } else {
             // interval0[0] == interval1[1]
-            return IntervalConfig::Touching(interval0.0);
+            IntervalConfig::Touching(interval0.0)
         }
     } else {
         // interval0[1] == interval1[0]
-        return IntervalConfig::Touching(interval0.1);
+        IntervalConfig::Touching(interval0.1)
     }
 }
 

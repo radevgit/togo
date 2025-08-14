@@ -37,14 +37,14 @@ pub fn int_segment_circle(seg: &Segment, circle: &Circle) -> SegmentCircleConfig
     let (seg_origin, seg_direction, seg_extent) = seg.get_centered_form();
     let lc_res = int_line_circle(&line(seg_origin, seg_direction), circle);
     match lc_res {
-        LineCircleConfig::NoIntersection() => return SegmentCircleConfig::NoIntersection(),
+        LineCircleConfig::NoIntersection() => SegmentCircleConfig::NoIntersection(),
         LineCircleConfig::OnePoint(p0, param0) => {
             // [-segExtent,+segExtent].
             let seg_interval = interval(-seg_extent, seg_extent);
             if seg_interval.contains(param0) {
-                return SegmentCircleConfig::OnePoint(p0, param0);
+                SegmentCircleConfig::OnePoint(p0, param0)
             } else {
-                return SegmentCircleConfig::NoIntersection();
+                SegmentCircleConfig::NoIntersection()
             }
         }
         LineCircleConfig::TwoPoints(p0, p1, param0, param1) => {
@@ -61,7 +61,7 @@ pub fn int_segment_circle(seg: &Segment, circle: &Circle) -> SegmentCircleConfig
             if b1 {
                 return SegmentCircleConfig::OnePoint(p1, param1);
             }
-            return SegmentCircleConfig::NoIntersection();
+            SegmentCircleConfig::NoIntersection()
         }
     }
 }

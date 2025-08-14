@@ -57,6 +57,7 @@ impl Line {
 ///
 /// This is a convenience function equivalent to `Line::new(origin, dir)`.
 #[inline]
+#[must_use]
 pub fn line(origin: Point, dir: Point) -> Line {
     Line::new(origin, dir)
 }

@@ -56,6 +56,7 @@ use std::f64::consts::PI;
 /// let small_arc = arc(point(1.0, 0.0), point(0.9, 0.1), point(0.0, 0.0), 1.0);
 /// let small_bounding = arc_bounding_circle(&small_arc);
 /// ```
+#[must_use]
 pub fn arc_bounding_circle(arc: &Arc) -> Circle {
     // Handle line segments (infinite radius)
     if arc.is_line() {
@@ -874,6 +875,7 @@ mod test_arc_bounding_rect {
 /// let small_arc = arc(point(1.0, 0.0), point(0.9, 0.1), point(0.0, 0.0), 1.0);
 /// let small_bounding = arc_bounding_rect(&small_arc);
 /// ```
+#[must_use]
 pub fn arc_bounding_rect(arc: &Arc) -> Rect {
     // Handle line segments (infinite radius)
     if arc.is_line() {

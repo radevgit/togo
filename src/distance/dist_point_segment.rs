@@ -2,6 +2,9 @@
 
 use crate::prelude::*;
 
+const ZERO: f64 = 0f64;
+const ONE: f64 = 1f64;
+
 /// Computes the distance between a point and a line segment.
 ///
 /// This function finds the shortest distance from a point to a line segment,
@@ -41,8 +44,6 @@ pub fn dist_point_segment(point: &Point, segment: &Segment) -> (f64, Point) {
     // The direction vector is not unit length. The normalization is
     // deferred until it is needed.
     let closest;
-    const ZERO: f64 = 0f64;
-    const ONE: f64 = 1f64;
     let direction = segment.b - segment.a;
     let mut diff = point - segment.b;
     let mut t = direction.dot(diff);
@@ -56,7 +57,7 @@ pub fn dist_point_segment(point: &Point, segment: &Segment) -> (f64, Point) {
         } else {
             let sqr_length = direction.dot(direction);
             if sqr_length > ZERO {
-                t = t / sqr_length;
+                t /= sqr_length;
                 closest = segment.a + direction * t;
             } else {
                 closest = segment.a;

@@ -41,18 +41,16 @@ pub fn int_segment_arc(segment: &Segment, arc: &Arc) -> SegmentArcConfig {
     let circle = circle(arc.c, arc.r);
     let sc_res = int_segment_circle(segment, &circle);
     match sc_res {
-        SegmentCircleConfig::NoIntersection() => {
-            return SegmentArcConfig::NoIntersection();
-        }
+        SegmentCircleConfig::NoIntersection() => SegmentArcConfig::NoIntersection(),
         SegmentCircleConfig::OnePoint(p0, t0) => {
             if arc.contains(p0) {
-                if are_ends_towching(arc, segment) {
-                    return SegmentArcConfig::OnePointTouching(p0, t0);
+                if are_ends_touching(arc, segment) {
+                    SegmentArcConfig::OnePointTouching(p0, t0)
                 } else {
-                    return SegmentArcConfig::OnePoint(p0, t0);
+                    SegmentArcConfig::OnePoint(p0, t0)
                 }
             } else {
-                return SegmentArcConfig::NoIntersection();
+                SegmentArcConfig::NoIntersection()
             }
         }
         SegmentCircleConfig::TwoPoints(p0, p1, t0, t1) => {
@@ -66,30 +64,26 @@ pub fn int_segment_arc(segment: &Segment, arc: &Arc) -> SegmentArcConfig {
                 }
             }
             if b0 {
-                if are_ends_towching(arc, segment) {
+                if are_ends_touching(arc, segment) {
                     return SegmentArcConfig::OnePointTouching(p0, t0);
                 } else {
                     return SegmentArcConfig::OnePoint(p0, t0);
                 }
             }
             if b1 {
-                if are_ends_towching(arc, segment) {
+                if are_ends_touching(arc, segment) {
                     return SegmentArcConfig::OnePointTouching(p1, t1);
                 } else {
                     return SegmentArcConfig::OnePoint(p1, t1);
                 }
             }
-            return SegmentArcConfig::NoIntersection();
+            SegmentArcConfig::NoIntersection()
         }
     }
 }
 
-fn are_ends_towching(arc: &Arc, segment: &Segment) -> bool {
-    if arc.a == segment.a || arc.a == segment.b || arc.b == segment.a || arc.b == segment.b {
-        true
-    } else {
-        false
-    }
+fn are_ends_touching(arc: &Arc, segment: &Segment) -> bool {
+    arc.a == segment.a || arc.a == segment.b || arc.b == segment.a || arc.b == segment.b
 }
 
 fn are_both_ends_touching(arc: &Arc, segment: &Segment) -> bool {
@@ -98,13 +92,12 @@ fn are_both_ends_touching(arc: &Arc, segment: &Segment) -> bool {
 
 /// If segment and arc are really intersecting, but not just touching at ends.
 pub fn if_really_intersecting_segment_arc(segment: &Segment, arc: &Arc) -> bool {
-    let sc_res = int_segment_arc(segment, &arc);
+    let sc_res = int_segment_arc(segment, arc);
     match sc_res {
-        SegmentArcConfig::NoIntersection() => false,
-        SegmentArcConfig::OnePoint(_, _) => true,
-        SegmentArcConfig::OnePointTouching(_, _) => false,
-        SegmentArcConfig::TwoPoints(_, _, _, _) => true,
-        SegmentArcConfig::TwoPointsTouching(_, _, _, _) => false,
+        SegmentArcConfig::NoIntersection()
+        | SegmentArcConfig::OnePointTouching(_, _)
+        | SegmentArcConfig::TwoPointsTouching(_, _, _, _) => false,
+        SegmentArcConfig::OnePoint(_, _) | SegmentArcConfig::TwoPoints(_, _, _, _) => true,
     }
 }
 

@@ -76,6 +76,7 @@ impl Point {
 /// assert_eq!(p.y, 4.0);
 /// ```
 #[inline]
+#[must_use]
 pub fn point(x: f64, y: f64) -> Point {
     Point::new(x, y)
 }
@@ -363,6 +364,7 @@ impl Point {
     /// ```
     /// Almost equal comparison with another Point using `ulp` given.
     #[inline]
+    #[must_use]
     pub fn almost_eq(&self, other: Self, ulp: i64) -> bool {
         almost_equal_as_int(self.x, other.x, ulp) && almost_equal_as_int(self.y, other.y, ulp)
     }
@@ -412,6 +414,7 @@ impl Point {
 
     /// Linearly interpolate between two points.
     #[inline]
+    #[must_use]
     pub fn lerp(self, other: Point, t: f64) -> Point {
         self + (other - self) * t
     }

@@ -125,9 +125,14 @@ pub type Polyline = Vec<PVertex>;
 /// ];
 /// let reversed = polyline_reverse(&original);
 /// ```
+#[must_use]
 pub fn polyline_reverse(poly: &Polyline) -> Polyline {
     if poly.is_empty() {
         return Vec::new();
+    }
+    if poly.len() == 1 {
+        // If there's only one vertex, just negate the bulge
+        return vec![pvertex(poly[0].p, -poly[0].b)];
     }
     let last = poly.last().unwrap();
     let mut reverse = poly.clone();
@@ -154,9 +159,10 @@ pub fn polyline_reverse(poly: &Polyline) -> Polyline {
 /// # Returns
 ///
 /// A new vector containing all reversed polylines
+#[must_use]
 pub fn polylines_reverse(poly: &Vec<Polyline>) -> Vec<Polyline> {
     let mut res: Vec<Polyline> = Vec::with_capacity(poly.len());
-    for p in poly.iter() {
+    for p in poly {
         res.push(polyline_reverse(p));
     }
     res
@@ -188,9 +194,10 @@ pub fn polylines_reverse(poly: &Vec<Polyline>) -> Vec<Polyline> {
 /// let scaled = polyline_scale(&original, 2.0);
 /// // Points are now (2.0, 4.0) and (6.0, 8.0)
 /// ```
+#[must_use]
 pub fn polyline_scale(poly: &Polyline, scale: f64) -> Polyline {
     let mut res: Polyline = Vec::with_capacity(poly.len());
-    for e in poly.iter() {
+    for e in poly {
         let e = pvertex(e.p * scale, e.b);
         res.push(e);
     }
@@ -222,9 +229,10 @@ pub fn polyline_scale(poly: &Polyline, scale: f64) -> Polyline {
 /// let translated = polyline_translate(&original, point(10.0, 5.0));
 /// // Points are now (11.0, 7.0) and (13.0, 9.0)
 /// ```
+#[must_use]
 pub fn polyline_translate(poly: &Polyline, translate: Point) -> Polyline {
     let mut res: Polyline = Vec::with_capacity(poly.len());
-    for e in poly.iter() {
+    for e in poly {
         let e = pvertex(e.p + translate, e.b);
         res.push(e);
     }

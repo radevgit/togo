@@ -29,6 +29,7 @@ pub enum ArcArcConfig {
     CocircularTwoArcs(Arc, Arc), // arc[0], arc[1]
 }
 
+const EPS_CONTAINS: f64 = 1E-10;
 /// Computes the intersection of two arcs.
 ///
 /// This function checks if two arcs intersect, are cocircular, or touch at their endpoints.
@@ -63,13 +64,11 @@ pub enum ArcArcConfig {
 /// }
 /// ```
 pub fn int_arc_arc(arc0: &Arc, arc1: &Arc) -> ArcArcConfig {
-    const EPS_CONTAINS: f64 = 1E-10;
     let circle0 = circle(arc0.c, arc0.r);
     let circle1 = circle(arc1.c, arc1.r);
     let cc_result = int_circle_circle(circle0, circle1);
-
     match cc_result {
-        CircleCircleConfig::NoIntersection() => return ArcArcConfig::NoIntersection(),
+        CircleCircleConfig::NoIntersection() => ArcArcConfig::NoIntersection(),
         CircleCircleConfig::SameCircles() => {
             // The arcs are cocircular. Determine whether they overlap.
             // Let arc0 be <A0,A1> and arc1 be <B0,B1>. The points are
@@ -79,14 +78,13 @@ pub fn int_arc_arc(arc0: &Arc, arc1: &Arc) -> ArcArcConfig {
                     if arc0.contains(arc1.a) && arc0.contains(arc1.b) {
                         if arc0.a == arc1.a && arc0.b == arc1.b {
                             // The arcs are the same.
-                            return ArcArcConfig::CocircularOneArc0(arc0.clone());
+                            return ArcArcConfig::CocircularOneArc0(*arc0);
                         } else {
                             // arc0 and arc1 overlap in two disjoint subsets.
                             if arc0.a != arc1.b {
                                 if arc1.a != arc0.b {
-                                    // The arcs overlap in two disjoint
-                                    // subarcs, each of positive subtended
-                                    // angle: <A0,B1>, <A1,B0>
+                                    // The arcs overlap in two disjoint subarcs, each of
+                                    // positive subtended angle: <A0,B1>, <A1,B0>
                                     let res_arc0 = arc(arc0.a, arc1.b, arc0.c, arc0.r);
                                     let res_arc1 = arc(arc1.a, arc0.b, arc0.c, arc0.r);
                                     return ArcArcConfig::CocircularTwoArcs(res_arc0, res_arc1);
@@ -123,19 +121,17 @@ pub fn int_arc_arc(arc0: &Arc, arc1: &Arc) -> ArcArcConfig {
                         }
                     } else {
                         // Arc0 inside Arc1, <B0,A0,A1,B1>.
-                        return ArcArcConfig::CocircularOneArc1(arc0.clone());
+                        return ArcArcConfig::CocircularOneArc1(*arc0);
                     }
+                } else if arc0.a != arc1.b {
+                    // Arc0 and Arc1 overlap, <B0,A0,B1,A1>.
+                    let res_arc0 = arc(arc0.a, arc1.b, arc0.c, arc0.r);
+                    return ArcArcConfig::CocircularOneArc2(res_arc0);
                 } else {
-                    if arc0.a != arc1.b {
-                        // Arc0 and Arc1 overlap, <B0,A0,B1,A1>.
-                        let res_arc0 = arc(arc0.a, arc1.b, arc0.c, arc0.r);
-                        return ArcArcConfig::CocircularOneArc2(res_arc0);
-                    } else {
-                        // Arc0 and arc1 share endpoint, <B0,A0,B1,A1>
-                        // with A0 = B1.
-                        let res_point0 = arc0.a;
-                        return ArcArcConfig::CocircularOnePoint0(res_point0);
-                    }
+                    // Arc0 and arc1 share endpoint, <B0,A0,B1,A1>
+                    // with A0 = B1.
+                    let res_point0 = arc0.a;
+                    return ArcArcConfig::CocircularOnePoint0(res_point0);
                 }
             }
             if arc1.contains(arc0.b) {
@@ -154,10 +150,10 @@ pub fn int_arc_arc(arc0: &Arc, arc1: &Arc) -> ArcArcConfig {
 
             if arc0.contains(arc1.a) {
                 // Arc1 inside Arc0, <A0,B0,B1,A1>.
-                return ArcArcConfig::CocircularOneArc4(*arc1);
+                ArcArcConfig::CocircularOneArc4(*arc1)
             } else {
                 // Arcs do not overlap, <A0,A1,B0,B1>.
-                return ArcArcConfig::NoIntersection();
+                ArcArcConfig::NoIntersection()
             }
         }
         CircleCircleConfig::NoncocircularOnePoint(point0) => {
@@ -165,13 +161,13 @@ pub fn int_arc_arc(arc0: &Arc, arc1: &Arc) -> ArcArcConfig {
             if arc0.contains(point0) && arc1.contains(point0) {
                 if are_ends_towching(arc0, arc1) {
                     // The arcs are touching at one end.
-                    return ArcArcConfig::NonCocircularOnePointTouching(point0);
+                    ArcArcConfig::NonCocircularOnePointTouching(point0)
                 } else {
                     // The arcs intersect in a single point.
-                    return ArcArcConfig::NonCocircularOnePoint(point0);
+                    ArcArcConfig::NonCocircularOnePoint(point0)
                 }
             } else {
-                return ArcArcConfig::NoIntersection();
+                ArcArcConfig::NoIntersection()
             }
         }
         CircleCircleConfig::NoncocircularTwoPoints(point0, point1) => {
@@ -203,11 +199,7 @@ pub fn int_arc_arc(arc0: &Arc, arc1: &Arc) -> ArcArcConfig {
 }
 
 fn are_ends_towching(arc0: &Arc, arc1: &Arc) -> bool {
-    if arc0.a == arc1.a || arc0.a == arc1.b || arc0.b == arc1.a || arc0.b == arc1.b {
-        true
-    } else {
-        false
-    }
+    arc0.a == arc1.a || arc0.a == arc1.b || arc0.b == arc1.a || arc0.b == arc1.b
 }
 
 fn are_both_ends_towching(arc0: &Arc, arc1: &Arc) -> bool {
@@ -215,21 +207,21 @@ fn are_both_ends_towching(arc0: &Arc, arc1: &Arc) -> bool {
 }
 
 /// If arcs are really intersecting, but not just touching at ends.
-///
-///
 /// In other words, do we need to split arcs further?
 pub fn if_really_intersecting_arc_arc(arc0: &Arc, arc1: &Arc) -> bool {
     match int_arc_arc(arc0, arc1) {
-        ArcArcConfig::NoIntersection() => false,
-        ArcArcConfig::NonCocircularOnePoint(_) => true,
-        ArcArcConfig::NonCocircularOnePointTouching(_) => false,
-        ArcArcConfig::NonCocircularTwoPoints(_, _) => true,
-        ArcArcConfig::NonCocircularTwoPointsTouching(_, _) => false,
-        ArcArcConfig::CocircularOnePoint0(_) | ArcArcConfig::CocircularOnePoint1(_) => false,
-        ArcArcConfig::CocircularTwoPoints(_, _) => false,
-        ArcArcConfig::CocircularOnePointOneArc0(_, _)
-        | ArcArcConfig::CocircularOnePointOneArc1(_, _) => true,
-        ArcArcConfig::CocircularOneArc0(_)
+        ArcArcConfig::NoIntersection()
+        | ArcArcConfig::NonCocircularOnePointTouching(_)
+        | ArcArcConfig::NonCocircularTwoPointsTouching(_, _)
+        | ArcArcConfig::CocircularOnePoint0(_)
+        | ArcArcConfig::CocircularOnePoint1(_)
+        | ArcArcConfig::CocircularTwoPoints(_, _) => false,
+
+        ArcArcConfig::NonCocircularOnePoint(_)
+        | ArcArcConfig::NonCocircularTwoPoints(_, _)
+        | ArcArcConfig::CocircularOnePointOneArc0(_, _)
+        | ArcArcConfig::CocircularOnePointOneArc1(_, _)
+        | ArcArcConfig::CocircularOneArc0(_)
         | ArcArcConfig::CocircularOneArc1(_)
         | ArcArcConfig::CocircularOneArc2(_)
         | ArcArcConfig::CocircularOneArc3(_)

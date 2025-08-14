@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-const ALMOST_EQUAL_C: u64 = 0x8000_0000_0000_0000 as u64;
+const ALMOST_EQUAL_C: u64 = 0x8000_0000_0000_0000_u64;
 const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
 /// Compares two f64 values for approximate equality
 ///
@@ -46,6 +46,7 @@ const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
 ///
 /// The input values must be finite (not NaN or infinite).
 #[inline]
+#[must_use]
 pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
     debug_assert!(a.is_finite());
     debug_assert!(b.is_finite());
@@ -65,7 +66,7 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
     if (a_i - b_i).abs() <= ulps {
         return true;
     }
-    return false;
+    false
 }
 
 /// Checks if two floating-point values are close within an epsilon tolerance.
@@ -91,8 +92,9 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
 /// assert!(close_enough(1.0, 1.001, 0.01));
 /// assert!(!close_enough(1.0, 1.1, 0.01));
 /// ```
+#[must_use]
 pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
-    return (a - b).abs() <= eps;
+    (a - b).abs() <= eps
 }
 
 /// Perturbs a floating-point value by a specified number of ULPs.
@@ -113,6 +115,7 @@ pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
 ///
 /// This function is unsafe and should only be used for testing. It does not
 /// handle edge cases like overflow or underflow properly.
+#[must_use]
 pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
     // Special case: f == 0.0 and c == -1 should return -0.0 (valid bit pattern)
     if f == 0.0 && c == -1 {
@@ -352,7 +355,7 @@ pub fn diff_of_prod(a: f64, b: f64, c: f64, d: f64) -> f64 {
     let cd = c * d;
     let err = (-c).mul_add(d, cd);
     let dop = a.mul_add(b, -cd);
-    return dop + err;
+    dop + err
 }
 
 /// Computes (a×b + c×d) with improved numerical precision.
@@ -389,22 +392,22 @@ pub fn sum_of_prod(a: f64, b: f64, c: f64, d: f64) -> f64 {
     let cd = c * d;
     let err = c.mul_add(d, -cd);
     let sop = a.mul_add(b, cd);
-    return sop + err;
+    sop + err
 }
 
 #[inline]
 pub fn min_5(a: f64, b: f64, c: f64, d: f64, e: f64) -> f64 {
-    return a.min(b).min(c).min(d).min(e);
+    a.min(b).min(c).min(d).min(e)
 }
 
 #[inline]
 pub fn min_4(a: f64, b: f64, c: f64, d: f64) -> f64 {
-    return a.min(b).min(c).min(d);
+    a.min(b).min(c).min(d)
 }
 
 #[inline]
 pub fn min_3(a: f64, b: f64, c: f64) -> f64 {
-    return a.min(b).min(c);
+    a.min(b).min(c)
 }
 
 // #[cfg(test)]

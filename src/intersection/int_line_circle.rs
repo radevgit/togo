@@ -52,9 +52,9 @@ pub fn int_line_circle(line_orig: &Line, circle: &Circle) -> LineCircleConfig {
         let parameter1 = -a1 + root;
         let point0 = line.origin + line.dir * parameter0;
         let point1 = line.origin + line.dir * parameter1;
-        return LineCircleConfig::TwoPoints(point0, point1, parameter0, parameter1);
+        LineCircleConfig::TwoPoints(point0, point1, parameter0, parameter1)
     } else if discr < ZERO {
-        return LineCircleConfig::NoIntersection();
+        LineCircleConfig::NoIntersection()
     } else {
         // discr == 0
         // The line is tangent to the circle. Set the parameters to
@@ -63,7 +63,7 @@ pub fn int_line_circle(line_orig: &Line, circle: &Circle) -> LineCircleConfig {
         // intersection tests which consume both parameters.
         let parameter0 = -a1;
         let point0 = line.origin + line.dir * parameter0;
-        return LineCircleConfig::OnePoint(point0, parameter0);
+        LineCircleConfig::OnePoint(point0, parameter0)
     }
 }
 

@@ -14,6 +14,8 @@ pub enum CircleCircleConfig {
     SameCircles(),
 }
 
+const ZERO: f64 = 0f64;
+
 /// Computes the intersection of two circles.
 ///
 /// This function determines the intersection points of two circles defined by their centers and radii.
@@ -52,7 +54,6 @@ pub enum CircleCircleConfig {
 /// // result should be CircleCircleConfig::NoIntersection()
 /// ```
 pub fn int_circle_circle(circle0: Circle, circle1: Circle) -> CircleCircleConfig {
-    const ZERO: f64 = 0f64;
     debug_assert!(circle0.r.is_finite());
     debug_assert!(circle1.r.is_finite());
 
@@ -102,20 +103,20 @@ pub fn int_circle_circle(circle0: Circle, circle1: Circle) -> CircleCircleConfig
             let p0 = tmp - v * t;
             let p1 = tmp + v * t;
             if t > 0f64 {
-                return CircleCircleConfig::NoncocircularTwoPoints(p0, p1);
+                CircleCircleConfig::NoncocircularTwoPoints(p0, p1)
             } else {
                 // t==0.0
-                return CircleCircleConfig::NoncocircularOnePoint(p0);
+                CircleCircleConfig::NoncocircularOnePoint(p0)
             }
         } else {
             // |U| = |R0-R1|, circles are tangent.
             let p0 = circle0.c + u * (r0 / r0_m_r1);
-            return CircleCircleConfig::NoncocircularOnePoint(p0);
+            CircleCircleConfig::NoncocircularOnePoint(p0)
         }
     } else {
         // |U| = |R0+R1|, circles are tangent.
         let p0 = circle0.c + u * (r0 / r0_p_r1);
-        return CircleCircleConfig::NoncocircularOnePoint(p0);
+        CircleCircleConfig::NoncocircularOnePoint(p0)
     }
 }
 

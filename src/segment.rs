@@ -91,6 +91,7 @@ impl Segment {
     /// let (center, direction, extent) = seg.get_centered_form();
     /// // center = (2.0, 0.0), direction = (1.0, 0.0), extent = 2.0
     /// ```
+    #[must_use]
     pub fn get_centered_form(&self) -> (Point, Point, f64) {
         let center = (self.a + self.b) * 0.5;
         let dir = self.b - self.a;

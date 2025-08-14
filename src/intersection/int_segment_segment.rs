@@ -124,19 +124,19 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
     let ll_result = int_line_line(&line0, &line1);
 
     match ll_result {
-        LineLineConfig::ParallelDistinct() => return SegmentSegmentConfig::NoIntersection(),
+        LineLineConfig::ParallelDistinct() => SegmentSegmentConfig::NoIntersection(),
         LineLineConfig::OnePoint(p, s0, s1) => {
             // The lines are not parallel, so they intersect in a single
             // point. Test whether the line-line intersection is on the
             // segments.
             if s0.abs() <= seg0_extent && s1.abs() <= seg1_extent {
-                if are_ends_towching(&segment0, &segment1) {
-                    return SegmentSegmentConfig::OnePointTouching(p, s0, s1);
+                if are_ends_towching(segment0, segment1) {
+                    SegmentSegmentConfig::OnePointTouching(p, s0, s1)
                 } else {
-                    return SegmentSegmentConfig::OnePoint(p, s0, s1);
+                    SegmentSegmentConfig::OnePoint(p, s0, s1)
                 }
             } else {
-                return SegmentSegmentConfig::NoIntersection();
+                SegmentSegmentConfig::NoIntersection()
             }
         }
         LineLineConfig::ParallelTheSame() => {
@@ -149,23 +149,23 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
             // Compute the intersection of the intervals.
             let ii_result = int_interval_interval(interval0, interval1);
             match ii_result {
-                IntervalConfig::NoOverlap() => return SegmentSegmentConfig::NoIntersection(),
+                IntervalConfig::NoOverlap() => SegmentSegmentConfig::NoIntersection(),
                 IntervalConfig::Overlap(_, _) => {
                     let (p0, p1, p2, p3) =
                         Point::sort_colinear_points(segment0.a, segment0.b, segment1.a, segment1.b);
-                    if are_both_ends_towching(&segment0, &segment1) {
+                    if are_both_ends_towching(segment0, segment1) {
                         return SegmentSegmentConfig::TwoPointsTouching(
                             segment0.a, segment0.b, segment1.a, segment1.b,
                         );
                     }
-                    if are_ends_towching(&segment0, &segment1) {
-                        return SegmentSegmentConfig::NoIntersection(); // TODO: fix this
+                    if are_ends_towching(segment0, segment1) {
+                        SegmentSegmentConfig::NoIntersection() // TODO: fix this
                     } else {
-                        return SegmentSegmentConfig::TwoPoints(p0, p1, p2, p3);
+                        SegmentSegmentConfig::TwoPoints(p0, p1, p2, p3)
                     }
                 }
                 IntervalConfig::Touching(_) => {
-                    return SegmentSegmentConfig::NoIntersection(); // TODO: fix this
+                    SegmentSegmentConfig::NoIntersection() // TODO: fix this
                 }
             }
         }
@@ -173,15 +173,10 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
 }
 
 fn are_ends_towching(segment0: &Segment, segment1: &Segment) -> bool {
-    if segment0.a == segment1.a
+    segment0.a == segment1.a
         || segment0.a == segment1.b
         || segment0.b == segment1.a
         || segment0.b == segment1.b
-    {
-        true
-    } else {
-        false
-    }
 }
 
 fn are_both_ends_towching(segment0: &Segment, segment1: &Segment) -> bool {
@@ -193,12 +188,13 @@ fn are_both_ends_towching(segment0: &Segment, segment1: &Segment) -> bool {
 ///
 /// In other words, do we need to split segments further?
 pub fn if_really_intersecting_segment_segment(part0: &Segment, part1: &Segment) -> bool {
-    match int_segment_segment(&part0, &part1) {
-        SegmentSegmentConfig::NoIntersection() => false,
-        SegmentSegmentConfig::OnePoint(_, _, _) => true,
-        SegmentSegmentConfig::OnePointTouching(_, _, _) => false,
-        SegmentSegmentConfig::TwoPoints(_, _, _, _) => true,
-        SegmentSegmentConfig::TwoPointsTouching(_, _, _, _) => false,
+    match int_segment_segment(part0, part1) {
+        SegmentSegmentConfig::NoIntersection()
+        | SegmentSegmentConfig::OnePointTouching(_, _, _)
+        | SegmentSegmentConfig::TwoPointsTouching(_, _, _, _) => false,
+        SegmentSegmentConfig::OnePoint(_, _, _) | SegmentSegmentConfig::TwoPoints(_, _, _, _) => {
+            true
+        }
     }
 }
 

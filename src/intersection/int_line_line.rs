@@ -45,24 +45,24 @@ const ZERO: f64 = 0f64;
 pub fn int_line_line(line0: &Line, line1: &Line) -> LineLineConfig {
     let q = line1.origin - line0.origin;
     let dot_d0_perp_d1 = line0.dir.perp(line1.dir);
-    if dot_d0_perp_d1 != ZERO {
+    if dot_d0_perp_d1 == ZERO {
+        // The lines are parallel.
+        let dot_qperp_d1 = q.perp(line1.dir);
+        if dot_qperp_d1.abs() == ZERO {
+            // The lines are the same.
+            LineLineConfig::ParallelTheSame()
+        } else {
+            // The lines are parallel but distinct.
+            LineLineConfig::ParallelDistinct()
+        }
+    } else {
         // The lines are not parallel.
         let dot_qperp_d0 = q.perp(line0.dir);
         let dot_qperp_d1 = q.perp(line1.dir);
         let s0 = dot_qperp_d1 / dot_d0_perp_d1;
         let s1 = dot_qperp_d0 / dot_d0_perp_d1;
         let p = line0.origin + line0.dir * s0;
-        return LineLineConfig::OnePoint(p, s0, s1);
-    } else {
-        // The lines are parallel.
-        let dot_qperp_d1 = q.perp(line1.dir);
-        if dot_qperp_d1.abs() != ZERO {
-            // The lines are parallel but distinct.
-            return LineLineConfig::ParallelDistinct();
-        } else {
-            // The lines are the same.
-            return LineLineConfig::ParallelTheSame();
-        }
+        LineLineConfig::OnePoint(p, s0, s1)
     }
 }
 

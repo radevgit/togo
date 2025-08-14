@@ -2,6 +2,9 @@
 
 use crate::prelude::*;
 
+const ZERO: f64 = 0f64;
+const ONE: f64 = 1f64;
+
 /// Computes the distance between a segment and an arc.
 ///
 /// This function checks if the segment and arc intersect. If they do, the distance is zero.
@@ -40,25 +43,26 @@ pub fn dist_segment_arc(seg: &Segment, arc: &Arc) -> f64 {
             let (dist1, _) = dist_point_segment(&arc.b, seg);
             let dist2 = dist_point_arc_dist(&seg.a, arc);
             let dist3 = dist_point_arc_dist(&seg.b, arc);
-            let dist = min_4(dist0, dist1, dist2, dist3);
-            let line = crate::line::line(seg.a, seg.b - seg.a);
+            
+            let line = line(seg.a, seg.b - seg.a);
             let circle = circle(arc.c, arc.r);
             let res2 = dist_line_circle(&line, &circle);
             let dist4 = match res2 {
                 DistLineCircleConfig::OnePair(_, param, closest0, closest1) => {
-                    if param >= 0.0 && param <= 1.0 && arc.contains(closest1) {
+                    if param >= ZERO && param <= ONE && arc.contains(closest1) {
                         (closest0 - closest1).norm()
                     } else {
                         f64::MAX
                     }
                 }
-                _ => f64::MAX,
+                // not interested in this case
+                DistLineCircleConfig::TwoPairs(..) => f64::MAX,
             };
-            return f64::min(dist, dist4);
+            min_5(dist0, dist1, dist2, dist3, dist4)
         }
         _ => {
             // The segment and arc intersect.
-            return 0.0;
+            0.0
         }
     }
 }

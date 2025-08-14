@@ -41,13 +41,13 @@ pub fn int_line_arc(line: &Line, arc: &Arc) -> LineArcConfig {
     let lc_result = int_line_circle(line, &circle);
     match lc_result {
         LineCircleConfig::NoIntersection() => {
-            return LineArcConfig::NoIntersection();
+            LineArcConfig::NoIntersection()
         }
         LineCircleConfig::OnePoint(p0, t0) => {
             if arc.contains(p0) {
-                return LineArcConfig::OnePoint(p0, t0);
+                LineArcConfig::OnePoint(p0, t0)
             } else {
-                return LineArcConfig::NoIntersection();
+                LineArcConfig::NoIntersection()
             }
         }
         LineCircleConfig::TwoPoints(p0, p1, t0, t1) => {
@@ -62,7 +62,7 @@ pub fn int_line_arc(line: &Line, arc: &Arc) -> LineArcConfig {
             if b1 {
                 return LineArcConfig::OnePoint(p1, t1);
             }
-            return LineArcConfig::NoIntersection();
+            LineArcConfig::NoIntersection()
         }
     }
 }

@@ -78,6 +78,7 @@ impl SVG {
 /// let svg_context = svg(400.0, 300.0);
 /// ```
 #[inline]
+#[must_use]
 pub fn svg(xsize: f64, ysize: f64) -> SVG {
     SVG::new(xsize, ysize, "")
 }
@@ -99,7 +100,7 @@ impl SVG {
             "<rect width=\"100%\" height=\"100%\" fill=\"#ffffffff\" />"
         )
         .unwrap();
-        header.push_str("\n");
+        header.push('\n');
 
         header.push_str(self.s.as_str());
 
@@ -119,7 +120,7 @@ impl SVG {
         )
         .unwrap();
         self.s.push_str(&s);
-        self.s.push_str("\n");
+        self.s.push('\n');
     }
 
     pub fn text(&mut self, p: Point, text: &str, color: &str) {
@@ -134,7 +135,7 @@ impl SVG {
         )
         .unwrap();
         self.s.push_str(&s);
-        self.s.push_str("\n");
+        self.s.push('\n');
     }
 
     pub fn segment(&mut self, segment: &Segment, color: &str) {
@@ -150,7 +151,7 @@ impl SVG {
         )
         .unwrap();
         self.s.push_str(&s);
-        self.s.push_str("\n");
+        self.s.push('\n');
     }
 
     /// Draws an arc in the SVG format.
@@ -173,7 +174,7 @@ impl SVG {
             y: arc.c.y,
         };
 
-        let large_arc_flag = if orient2d(pa, pb, pc) < 0.0 { 1 } else { 0 };
+        let large_arc_flag: i32 = (orient2d(pa, pb, pc) < 0.0).into();
         write!(
             &mut s,
             r#"<path d="M {} {} A {} {} {} {} {} {} {}" stroke="{}" />"#,
@@ -190,7 +191,7 @@ impl SVG {
         )
         .unwrap();
         self.s.push_str(&s);
-        self.s.push_str("\n");
+        self.s.push('\n');
     }
 
     /// Draws a vertex in the SVG format.
@@ -209,6 +210,9 @@ impl SVG {
 
     /// Draws a polyline in the SVG format.
     pub fn polyline(&mut self, pline: &Polyline, color: &str) {
+        if pline.len() < 2 {
+            return; // Nothing to draw
+        }
         let last = pline.len() - 2;
         for i in 0..=last {
             let p0 = pline[i];
@@ -221,7 +225,7 @@ impl SVG {
     }
 
     pub fn polylines(&mut self, plines: &Vec<Polyline>, color: &str) {
-        for p in plines.iter() {
+        for p in plines {
             self.polyline(p, color);
         }
     }
@@ -244,19 +248,19 @@ impl SVG {
     }
 
     pub fn arcline(&mut self, offs: &Arcline, color: &str) {
-        for s in offs.iter() {
+        for s in offs {
             self.arcsegment(s, color);
         }
     }
 
     pub fn offset_segments_single_points(&mut self, offs: &Vec<Arc>, color: &str) {
-        for s in offs.iter() {
+        for s in offs {
             self.offset_segment_points(s, color);
         }
     }
 
     pub fn arclines(&mut self, offs: &Vec<Arcline>, color: &str) {
-        for s in offs.iter() {
+        for s in offs {
             self.arcline(s, color);
         }
     }

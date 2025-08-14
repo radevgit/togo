@@ -9,6 +9,8 @@ pub enum SegmentPointConfig {
     OnePoint(Point),
 }
 
+#[doc(hidden)]
+/// Not implemented
 pub fn int_segment_point(_segment0: &Segment, _point1: &Point) -> SegmentPointConfig {
     SegmentPointConfig::NoIntersection()
 }

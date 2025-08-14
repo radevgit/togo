@@ -48,11 +48,7 @@ mod test_interval {
 impl Interval {
     pub fn contains(&self, e: f64) -> bool {
         debug_assert!(self.0 <= self.1);
-        if e >= self.0 && e <= self.1 {
-            true
-        } else {
-            false
-        }
+        e >= self.0 && e <= self.1
     }
 }
 

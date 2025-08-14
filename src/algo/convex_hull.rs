@@ -56,6 +56,7 @@ use crate::{arc::Arcline, prelude::*};
 /// # Panics
 ///
 /// This function does not panic, but returns an empty vector for empty input.
+#[must_use]
 pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
     // Remove duplicate points first
     let mut unique_points = Vec::new();
@@ -80,8 +81,7 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
             std::cmp::Ordering::Equal => a.y.partial_cmp(&b.y).unwrap(),
             other => other,
         })
-        .map(|(idx, _)| idx)
-        .unwrap_or(0);
+        .map_or(0, |(idx, _)| idx);
 
     let mut current = start;
     loop {
@@ -639,6 +639,7 @@ mod test_arcline_convex_hull {
 /// let hull = arcline_convex_hull(&arcs);
 /// assert_eq!(hull.len(), 4); // All segments are on the hull
 /// ```
+#[must_use]
 pub fn arcline_convex_hull(_arcs: &Arcline) -> Arcline {
     let res = Arcline::new();
 

@@ -9,6 +9,8 @@ pub enum DistLineCircleConfig {
     TwoPairs(f64, f64, f64, Point, Point, Point, Point),
 }
 
+const ZERO: f64 = 0.0f64;
+
 // #00011
 /// Computes the distance between a line and a circle.
 ///
@@ -44,7 +46,6 @@ pub fn dist_line_circle(line: &Line, circle: &Circle) -> DistLineCircleConfig {
     // the origin.
     let delta = line.origin - circle.c;
 
-    const ZERO: f64 = 0.0;
     let direction = line.dir;
     let radius = circle.r;
 

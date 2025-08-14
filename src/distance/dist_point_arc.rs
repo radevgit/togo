@@ -39,7 +39,10 @@ pub enum DistPointArcConfig {
 pub fn dist_point_arc(p: &Point, arc: &Arc) -> DistPointArcConfig {
     let circle = circle(arc.c, arc.r);
     let (dist, closest, equidistant) = dist_point_circle(p, &circle);
-    if !equidistant {
+    if equidistant {
+        // The point is the center of the circle containing the arc.
+        DistPointArcConfig::Equidistant(arc.r, arc.a)
+    } else {
         // Test whether the closest circle point is on the arc. If it
         // is, that point is the closest arc point. If it is not, the
         // closest arc point is an arc endpoint. Determine which
@@ -56,17 +59,13 @@ pub fn dist_point_arc(p: &Point, arc: &Arc) -> DistPointArcConfig {
                 DistPointArcConfig::OnePoint(length1, arc.b)
             }
         }
-    } else {
-        // The point is the center of the circle containing the arc.
-        DistPointArcConfig::Equidistant(arc.r, arc.a)
     }
 }
 
 /// Computes the distance from a point to an arc and returns just the distance.
 pub fn dist_point_arc_dist(p: &Point, arc: &Arc) -> f64 {
     match dist_point_arc(p, arc) {
-        DistPointArcConfig::OnePoint(dist, _) => dist,
-        DistPointArcConfig::Equidistant(dist, _) => dist,
+        DistPointArcConfig::OnePoint(dist, _) | DistPointArcConfig::Equidistant(dist, _) => dist,
     }
 }
 

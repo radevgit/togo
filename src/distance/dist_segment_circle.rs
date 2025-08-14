@@ -44,7 +44,7 @@ const ONE: f64 = 1.0;
 pub fn dist_segment_circle(seg: &Segment, circle: &Circle) -> DistSegmentCircleConfig {
     //let (dir, _) = (seg.b - seg.a).normalize();
     let line = line(seg.a, seg.b - seg.a);
-    let dlc = dist_line_circle(&line, &circle);
+    let dlc = dist_line_circle(&line, circle);
     match dlc {
         DistLineCircleConfig::TwoPairs(
             _,
@@ -62,20 +62,20 @@ pub fn dist_segment_circle(seg: &Segment, circle: &Circle) -> DistSegmentCircleC
             } else
             // p0 outside p1 inside the circle.
             if param0 >= ZERO && param0 <= ONE && param1 > ONE {
-                return DistSegmentCircleConfig::OnePoint(ZERO, closest01);
+                DistSegmentCircleConfig::OnePoint(ZERO, closest01)
             } else
             // p0, p1 outside the circle. Segment cross the circle
             if param0 >= ZERO && param0 <= ONE && param1 >= ZERO && param1 <= ONE {
-                return DistSegmentCircleConfig::TwoPoints(ZERO, closest01, closest11);
+                DistSegmentCircleConfig::TwoPoints(ZERO, closest01, closest11)
             } else
             // p0, p1 inside the circle.
             if param0 < ZERO && param1 > ONE {
                 let (dist, p0, _) = dist_to_circle(seg, circle);
-                return DistSegmentCircleConfig::OnePoint(dist, p0);
+                DistSegmentCircleConfig::OnePoint(dist, p0)
             } else
             // p0 inside, p1 outside
             if param0 < ZERO && param1 >= ZERO && param1 <= ONE {
-                return DistSegmentCircleConfig::OnePoint(ZERO, closest11);
+                DistSegmentCircleConfig::OnePoint(ZERO, closest11)
             } else {
                 // p0, p1 outise the circle. Segment outside the circle.
                 // if param0 < ZERO && param1 < ZERO {
@@ -87,12 +87,12 @@ pub fn dist_segment_circle(seg: &Segment, circle: &Circle) -> DistSegmentCircleC
             // The line does not intersect the circle.
             if param < ZERO {
                 // Closest point is outside the segment.
-                let (dist, closest, _) = dist_point_circle(&seg.a, &circle);
+                let (dist, closest, _) = dist_point_circle(&seg.a, circle);
                 DistSegmentCircleConfig::OnePoint(dist, closest)
             } else if param > ONE {
                 // Closest point is outside the segment.
-                let (dist0, closest0, _) = dist_point_circle(&seg.a, &circle);
-                let (dist1, closest1, _) = dist_point_circle(&seg.b, &circle);
+                let (dist0, closest0, _) = dist_point_circle(&seg.a, circle);
+                let (dist1, closest1, _) = dist_point_circle(&seg.b, circle);
                 if dist0 <= dist1 {
                     DistSegmentCircleConfig::OnePoint(dist0, closest0)
                 } else {
@@ -107,8 +107,8 @@ pub fn dist_segment_circle(seg: &Segment, circle: &Circle) -> DistSegmentCircleC
 }
 
 fn dist_to_circle(seg: &Segment, circle: &Circle) -> (f64, Point, Point) {
-    let (dist0, p0, _) = dist_point_circle(&seg.a, &circle);
-    let (dist1, p1, _) = dist_point_circle(&seg.b, &circle);
+    let (dist0, p0, _) = dist_point_circle(&seg.a, circle);
+    let (dist1, p1, _) = dist_point_circle(&seg.b, circle);
     if dist0 <= dist1 {
         (dist0, p0, p1)
     } else {

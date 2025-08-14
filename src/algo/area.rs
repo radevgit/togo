@@ -33,6 +33,7 @@ use crate::prelude::*;
 /// let area = pointline_area(&square);
 /// assert_eq!(area, 1.0);
 /// ```
+#[must_use]
 pub fn pointline_area(points: &Pointline) -> f64 {
     if points.len() < 3 {
         return 0.0;
@@ -100,6 +101,7 @@ pub fn pointline_area(points: &Pointline) -> f64 {
 /// let expected_area = std::f64::consts::PI * radius * radius;
 /// assert!((area - expected_area).abs() < 1e-10);
 /// ```
+#[must_use]
 pub fn arcline_area(arcs: &Arcline) -> f64 {
     if arcs.is_empty() {
         return 0.0;
