@@ -241,7 +241,7 @@ impl SVG {
         }
     }
 
-    pub fn offset_segment_points(&mut self, off: &Arc, _color: &str) {
+    pub fn arcline_segment_points(&mut self, off: &Arc, _color: &str) {
         self.circle(&circle(off.a, 0.1), "green");
         self.circle(&circle(off.b, 0.1), "green");
         //self.text(off.a, &off.id.to_string(), color);
@@ -253,9 +253,9 @@ impl SVG {
         }
     }
 
-    pub fn offset_segments_single_points(&mut self, offs: &Arcline, color: &str) {
+    pub fn arcline_single_points(&mut self, offs: &Arcline, color: &str) {
         for s in offs {
-            self.offset_segment_points(s, color);
+            self.arcline_segment_points(s, color);
         }
     }
 
