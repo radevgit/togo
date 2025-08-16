@@ -111,7 +111,6 @@ impl Arc {
         Arc { a, b, c, r, id }
     }
 
-
     /// Set the id of the arc.
     #[inline]
     pub fn id(&mut self, id: usize) {
@@ -251,66 +250,65 @@ impl Arc {
     // }
 }
 
-    /// Creates a new Arc with the given parameters.
-    ///
-    /// This is a convenience function equivalent to `Arc::new(a, b, c, r)`.
-    ///
-    /// # Arguments
-    ///
-    /// * `a` - The start point of the arc
-    /// * `b` - The end point of the arc  
-    /// * `c` - The center point of the arc
-    /// * `r` - The radius of the arc
-    ///
-    /// # Returns
-    ///
-    /// A new Arc instance
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use basegeom::prelude::*;
-    /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
-    /// assert_eq!(arc.a, point(0.0, 0.0));
-    /// assert_eq!(arc.b, point(1.0, 0.0));
-    /// assert_eq!(arc.r, 1.0);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
-        Arc::new(a, b, c, r)
-    }
+/// Creates a new Arc with the given parameters.
+///
+/// This is a convenience function equivalent to `Arc::new(a, b, c, r)`.
+///
+/// # Arguments
+///
+/// * `a` - The start point of the arc
+/// * `b` - The end point of the arc  
+/// * `c` - The center point of the arc
+/// * `r` - The radius of the arc
+///
+/// # Returns
+///
+/// A new Arc instance
+///
+/// # Examples
+///
+/// ```
+/// use basegeom::prelude::*;
+/// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
+/// assert_eq!(arc.a, point(0.0, 0.0));
+/// assert_eq!(arc.b, point(1.0, 0.0));
+/// assert_eq!(arc.r, 1.0);
+/// ```
+#[inline]
+#[must_use]
+pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
+    Arc::new(a, b, c, r)
+}
 
-    /// Creates a line segment represented as an Arc with infinite radius.
-    ///
-    /// This function creates an Arc that represents a straight line segment
-    /// between two points. The arc uses infinite radius to distinguish it
-    /// from curved arcs.
-    ///
-    /// # Arguments
-    ///
-    /// * `a` - The start point of the line segment
-    /// * `b` - The end point of the line segment
-    ///
-    /// # Returns
-    ///
-    /// An Arc representing a line segment with infinite radius
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use basegeom::prelude::*;
-    /// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
-    /// assert!(line.is_line());
-    /// assert!(!line.is_arc());
-    /// assert_eq!(line.r, f64::INFINITY);
-    /// ```
-    #[inline]
-    #[must_use]
-    pub fn arcseg(a: Point, b: Point) -> Arc {
-        Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
-    }
-
+/// Creates a line segment represented as an Arc with infinite radius.
+///
+/// This function creates an Arc that represents a straight line segment
+/// between two points. The arc uses infinite radius to distinguish it
+/// from curved arcs.
+///
+/// # Arguments
+///
+/// * `a` - The start point of the line segment
+/// * `b` - The end point of the line segment
+///
+/// # Returns
+///
+/// An Arc representing a line segment with infinite radius
+///
+/// # Examples
+///
+/// ```
+/// use basegeom::prelude::*;
+/// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
+/// assert!(line.is_line());
+/// assert!(!line.is_arc());
+/// assert_eq!(line.r, f64::INFINITY);
+/// ```
+#[inline]
+#[must_use]
+pub fn arcseg(a: Point, b: Point) -> Arc {
+    Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
+}
 
 /// Translates Arcline by a given translation vector.
 pub fn arcline_translate(arc: &mut Arcline, translation: Point) {

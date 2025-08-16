@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+#[doc(hidden)]
 #[derive(Debug, PartialEq)]
 pub enum TangentArcArc {
     OneArc(Arc),

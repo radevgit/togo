@@ -43,7 +43,7 @@ pub fn dist_segment_arc(seg: &Segment, arc: &Arc) -> f64 {
             let (dist1, _) = dist_point_segment(&arc.b, seg);
             let dist2 = dist_point_arc_dist(&seg.a, arc);
             let dist3 = dist_point_arc_dist(&seg.b, arc);
-            
+
             let line = line(seg.a, seg.b - seg.a);
             let circle = circle(arc.c, arc.r);
             let res2 = dist_line_circle(&line, &circle);

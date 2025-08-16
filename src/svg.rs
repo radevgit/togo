@@ -253,7 +253,7 @@ impl SVG {
         }
     }
 
-    pub fn offset_segments_single_points(&mut self, offs: &Vec<Arc>, color: &str) {
+    pub fn offset_segments_single_points(&mut self, offs: &Arcline, color: &str) {
         for s in offs {
             self.offset_segment_points(s, color);
         }
