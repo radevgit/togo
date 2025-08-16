@@ -1523,51 +1523,64 @@ pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
     reversed
 }
 
-/// Makes an arc consistent by ensuring both endpoints are equidistant from the center.
-/// This is achieved by adjusting the center point and radius of the arc.
+/// Makes slightly inconsistent arc consistent, by adjusting the arc center
+/// and radius, keeping the endpoints fixed.
 #[must_use]
 pub fn arc_make_consistent(seg: &Arc) -> Arc {
     if seg.is_line() {
         return *seg;
     }
-    let dist_a_c = (seg.a - seg.c).norm();
-    let dist_b_c = (seg.b - seg.c).norm();
-    let r = (dist_a_c + dist_b_c) / 2.0;
-
-    // Find the center that makes both endpoints equidistant
-    // The center lies on the perpendicular bisector of the chord ab
-    let midpoint = (seg.a + seg.b) / 2.0;
-    let chord = seg.b - seg.a;
-    let chord_length = chord.norm();
 
     // Handle degenerate case where endpoints are the same
-    if chord_length < 1e-12 {
+    if seg.a.close_enough(seg.b, 1e-12) {
         return arcseg(seg.a, seg.b);
     }
 
-    // Handle case where radius is too small for the chord length
+    // Calculate the distances from the current center to endpoints
+    let dist_a_c = (seg.a - seg.c).norm();
+    let dist_b_c = (seg.b - seg.c).norm();
+    
+    // Use the average of the two distances as the new radius
+    let avg_radius = (dist_a_c + dist_b_c) / 2.0;
+    
+    // Calculate chord properties
+    let chord = seg.b - seg.a;
+    let chord_length = chord.norm();
     let half_chord = chord_length / 2.0;
-    if r < half_chord {
-        // Use the minimum possible radius (half chord length)
-        return arc(seg.a, seg.b, midpoint, half_chord);
-    }
-
-    // Calculate distance from midpoint to center along perpendicular bisector
-    let h = (r * r - half_chord * half_chord).sqrt();
-
+    
+    // If average radius is too small (less than half chord), use minimum possible radius
+    let new_radius = if avg_radius < half_chord {
+        half_chord
+    } else {
+        avg_radius
+    };
+    
+    // Find the center that makes both endpoints equidistant
+    // The center lies on the perpendicular bisector of the chord ab
+    let midpoint = (seg.a + seg.b) / 2.0;
+    
+    // For a circle with radius r passing through points a and b,
+    // the distance from chord midpoint to center is sqrt(r^2 - (chord_length/2)^2)
+    let distance_to_center = (new_radius * new_radius - half_chord * half_chord).sqrt();
+    
     // Perpendicular direction to chord (normalized)
-    let perp = point(-chord.y, chord.x) / chord_length;
-
+    let perp = if chord_length > 1e-12 {
+        point(-chord.y, chord.x) / chord_length
+    } else {
+        point(0.0, 1.0) // Default direction if chord is too small
+    };
+    
+    // Two possible centers on the perpendicular bisector
+    let c1 = midpoint + perp * distance_to_center;
+    let c2 = midpoint - perp * distance_to_center;
+    
     // Choose the center closer to the original center
-    let c1 = midpoint + perp * h;
-    let c2 = midpoint - perp * h;
-
     let dist1 = (c1 - seg.c).norm();
     let dist2 = (c2 - seg.c).norm();
-
-    let c = if dist1 < dist2 { c1 } else { c2 };
-
-    Arc::new(seg.a, seg.b, c, r)
+    
+    let new_center = if dist1 < dist2 { c1 } else { c2 };
+    
+    arc(seg.a, seg.b, new_center, new_radius)
 }
 
 #[cfg(test)]
