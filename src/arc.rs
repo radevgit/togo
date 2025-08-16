@@ -1515,15 +1515,15 @@ pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
 impl Arc {
     /// Makes slightly inconsistent arc consistent, by adjusting the arc center
     /// and radius, keeping the endpoints fixed.
-    #[must_use]
-    pub fn make_consistent(&self) -> Arc {
+    pub fn make_consistent(&mut self) {
         if self.is_line() {
-            return *self;
+            return;
         }
 
         // Handle degenerate case where endpoints are the same
         if self.a.close_enough(self.b, 1e-12) {
-            return arcseg(self.a, self.b);
+            *self = arcseg(self.a, self.b);
+            return;
         }
 
         // Calculate the distances from the current center to endpoints
@@ -1570,7 +1570,13 @@ impl Arc {
 
         let new_center = if dist1 < dist2 { c1 } else { c2 };
 
-        arc(self.a, self.b, new_center, new_radius)
+        *self = Arc {
+            a: self.a,
+            b: self.b,
+            c: new_center,
+            r: new_radius,
+            id: self.id, // Keep the same ID
+        };
     }
 }
 
@@ -1582,90 +1588,90 @@ mod test_arc_make_consistent {
 
     #[test]
     fn test_arc_make_consistent() {
-        let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 0.5);
-        let consistent_arc = arc.make_consistent();
-        assert!(consistent_arc.is_consistent(TEST_EPS));
+        let mut arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 0.5);
+        arc.make_consistent();
+        assert!(arc.is_consistent(TEST_EPS));
     }
 
     #[test]
     fn test_arc_make_consistent_already_consistent() {
         // Create an already consistent arc
-        let arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0);
-        let consistent_arc = arc.make_consistent();
-        assert!(consistent_arc.is_consistent(TEST_EPS));
+        let mut arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0);
+        arc.make_consistent();
+        assert!(arc.is_consistent(TEST_EPS));
         // Should be very close to the original
-        assert!(close_enough(consistent_arc.c.x, 1.0, TEST_EPS));
-        assert!(close_enough(consistent_arc.c.y, 0.0, TEST_EPS));
-        assert!(close_enough(consistent_arc.r, 1.0, TEST_EPS));
+        assert!(close_enough(arc.c.x, 1.0, TEST_EPS));
+        assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
+        assert!(close_enough(arc.r, 1.0, TEST_EPS));
     }
 
     #[test]
     fn test_arc_make_consistent_different_distances() {
         // Create an arc where endpoints are at different distances from center
-        let arc = arc(point(0.0, 0.0), point(3.0, 4.0), point(1.0, 1.0), 2.0);
-        let consistent_arc = arc.make_consistent();
-        assert!(consistent_arc.is_consistent(TEST_EPS));
+        let mut arc = arc(point(0.0, 0.0), point(3.0, 4.0), point(1.0, 1.0), 2.0);
+        arc.make_consistent();
+        assert!(arc.is_consistent(TEST_EPS));
 
         // Check that both endpoints are equidistant from the new center
-        let dist_a = (consistent_arc.a - consistent_arc.c).norm();
-        let dist_b = (consistent_arc.b - consistent_arc.c).norm();
-        assert!(close_enough(dist_a, consistent_arc.r, TEST_EPS));
-        assert!(close_enough(dist_b, consistent_arc.r, TEST_EPS));
+        let dist_a = (arc.a - arc.c).norm();
+        let dist_b = (arc.b - arc.c).norm();
+        assert!(close_enough(dist_a, arc.r, TEST_EPS));
+        assert!(close_enough(dist_b, arc.r, TEST_EPS));
     }
 
     #[test]
     fn test_arc_make_consistent_degenerate_endpoints() {
         // Create an arc with same start and end points
-        let arc = arc(point(1.0, 1.0), point(1.0, 1.0), point(2.0, 2.0), 1.0);
-        let consistent_arc = arc.make_consistent();
+        let mut arc = arc(point(1.0, 1.0), point(1.0, 1.0), point(2.0, 2.0), 1.0);
+        arc.make_consistent();
         // Degenerate case should result in line segment
-        assert!(consistent_arc.is_consistent(TEST_EPS));
-        assert!(consistent_arc.is_line());
+        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_line());
     }
 
     #[test]
     fn test_arc_make_consistent_line_segment() {
         // Test with a line segment (infinite radius)
-        let line_arc = arc(
+        let mut line_arc = arc(
             point(0.0, 0.0),
             point(1.0, 1.0),
             point(0.0, 0.0),
             f64::INFINITY,
         );
-        let consistent_arc = line_arc.make_consistent();
-        assert_eq!(consistent_arc.r, f64::INFINITY);
-        assert_eq!(consistent_arc.a, line_arc.a);
-        assert_eq!(consistent_arc.b, line_arc.b);
+        line_arc.make_consistent();
+        assert_eq!(line_arc.r, f64::INFINITY);
+        assert_eq!(line_arc.a, line_arc.a);
+        assert_eq!(line_arc.b, line_arc.b);
     }
 
     #[test]
     fn test_arc_make_consistent_small_radius() {
         // Test case where desired radius is smaller than minimum possible (half chord length)
-        let arc = arc(point(0.0, 0.0), point(4.0, 0.0), point(2.0, 1.0), 1.0); // chord length = 4, so min radius = 2
+        let mut arc = arc(point(0.0, 0.0), point(4.0, 0.0), point(2.0, 1.0), 1.0); // chord length = 4, so min radius = 2
 
         // Debug: check what the original distances are
         let dist_a_c = (arc.a - arc.c).norm(); // distance from (0,0) to (2,1) = sqrt(5) ≈ 2.236
         let dist_b_c = (arc.b - arc.c).norm(); // distance from (4,0) to (2,1) = sqrt(5) ≈ 2.236
         let avg_radius = (dist_a_c + dist_b_c) / 2.0; // ≈ 2.236
 
-        let consistent_arc = arc.make_consistent();
-        assert!(consistent_arc.is_consistent(TEST_EPS));
+        arc.make_consistent();
+        assert!(arc.is_consistent(TEST_EPS));
 
         // The average radius is about 2.236, which is larger than half chord length (2.0)
         // So it should use the computed average radius, not the minimum
-        assert!(close_enough(consistent_arc.r, avg_radius, TEST_EPS));
+        assert!(close_enough(arc.r, avg_radius, TEST_EPS));
 
         // Verify that both endpoints are equidistant from the center
-        let new_dist_a = (consistent_arc.a - consistent_arc.c).norm();
-        let new_dist_b = (consistent_arc.b - consistent_arc.c).norm();
-        assert!(close_enough(new_dist_a, consistent_arc.r, TEST_EPS));
-        assert!(close_enough(new_dist_b, consistent_arc.r, TEST_EPS));
+        let new_dist_a = (arc.a - arc.c).norm();
+        let new_dist_b = (arc.b - arc.c).norm();
+        assert!(close_enough(new_dist_a, arc.r, TEST_EPS));
+        assert!(close_enough(new_dist_b, arc.r, TEST_EPS));
     }
 
     #[test]
     fn test_arc_make_consistent_radius_too_small() {
         // Test case where the average radius is smaller than half chord length
-        let arc = arc(point(0.0, 0.0), point(10.0, 0.0), point(1.0, 0.1), 0.5); // chord length = 10, half = 5, but point is close to first endpoint
+        let mut arc = arc(point(0.0, 0.0), point(10.0, 0.0), point(1.0, 0.1), 0.5); // chord length = 10, half = 5, but point is close to first endpoint
 
         let dist_a_c = (arc.a - arc.c).norm();
         let dist_b_c = (arc.b - arc.c).norm();
@@ -1673,23 +1679,23 @@ mod test_arc_make_consistent {
         let chord_length = (arc.b - arc.a).norm();
         let half_chord = chord_length / 2.0;
 
-        let consistent_arc = arc.make_consistent();
-        assert!(consistent_arc.is_consistent(TEST_EPS));
+        arc.make_consistent();
+        assert!(arc.is_consistent(TEST_EPS));
 
         // Check if the average radius is actually smaller than half chord
         if avg_radius < half_chord {
             // Should use minimum possible radius (half chord length)
-            assert!(close_enough(consistent_arc.r, half_chord, TEST_EPS));
+            assert!(close_enough(arc.r, half_chord, TEST_EPS));
             // Center should be at chord midpoint
             assert!(close_enough(
-                consistent_arc.c.x,
+                arc.c.x,
                 chord_length / 2.0,
                 TEST_EPS
             ));
-            assert!(close_enough(consistent_arc.c.y, 0.0, TEST_EPS));
+            assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
         } else {
             // Should use the average radius
-            assert!(close_enough(consistent_arc.r, avg_radius, TEST_EPS));
+            assert!(close_enough(arc.r, avg_radius, TEST_EPS));
         }
     }
 }
