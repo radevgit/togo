@@ -177,7 +177,7 @@ impl SVG {
         let large_arc_flag: i32 = (orient2d(pa, pb, pc) < 0.0).into();
         write!(
             &mut s,
-            r#"<path d="M {} {} A {} {} {} {} {} {} {}" stroke="{}" />"#,
+            r#"<path d="M {} {} A {} {} {} {} {} {} {}" stroke="{}" id="{}"/>"#,
             arc.a.x,
             self.ysize - arc.a.y,
             arc.r,
@@ -187,7 +187,8 @@ impl SVG {
             0, // always 0 because arc_circle_parametrization always creates CCW arcs
             arc.b.x,
             self.ysize - arc.b.y,
-            color
+            color,
+            arc.id
         )
         .unwrap();
         self.s.push_str(&s);
