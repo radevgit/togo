@@ -35,7 +35,7 @@ const EPS_COLLAPSED: f64 = 1E-8;
 /// let center = point(0.0, 0.0);
 /// let radius = 1.0;
 ///
-/// let arc = Arc::new(start, end, center, radius);
+/// let arc = arc(start, end, center, radius);
 /// ```
 ///
 // #00001
@@ -172,13 +172,13 @@ impl Arc {
     /// ```
     /// use basegeom::prelude::*;
     ///
-    /// let mut arc = Arc::new(
+    /// let mut my_arc = arc(
     ///     point(0.0, 0.0),
     ///     point(1.0, 0.0),
     ///     point(0.5, 0.0),
     ///     1.0
     /// );
-    /// arc.translate(point(10.0, 5.0));
+    /// my_arc.translate(point(10.0, 5.0));
     /// // All points are now shifted by (10, 5)
     /// ```
     #[inline]
@@ -206,7 +206,7 @@ impl Arc {
     #[inline]
     #[must_use]
     pub fn reverse(&self) -> Arc {
-        Arc::new(self.b, self.a, self.c, self.r)
+        arc(self.b, self.a, self.c, self.r)
     }
 
     #[inline]
@@ -307,7 +307,7 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 #[inline]
 #[must_use]
 pub fn arcseg(a: Point, b: Point) -> Arc {
-    Arc::new(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
+    arc(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
 }
 
 /// Translates Arcline by a given translation vector.
@@ -355,7 +355,7 @@ mod test_arc {
     #[test]
     fn test_contains_orientation() {
         // CCW quarter-circle from (1,0) to (0,1) centered at (0,0)
-        let a = Arc::new(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+        let a = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
         // Point at 45 degrees should be contained
         assert!(a.contains(point(0.7071067811865476, 0.7071067811865476)));
         // Point outside arc span should not
@@ -391,7 +391,7 @@ mod test_arc {
 
     #[test]
     fn test_arc_translate() {
-        let mut arc = Arc::new(point(1.0, 1.0), point(2.0, 2.0), point(1.5, 1.5), 0.5);
+        let mut arc = arc(point(1.0, 1.0), point(2.0, 2.0), point(1.5, 1.5), 0.5);
         let translation = point(10.0, -5.0);
 
         arc.translate(translation);
@@ -524,170 +524,167 @@ mod test_arc {
 //     return perp >= 0f64;
 // }
 
-// TODO: what should be the exact value.
-/// Checks if the arc has a collapsed radius.
-///
-/// An arc is considered to have a collapsed radius if the radius is smaller
-/// than the given epsilon threshold or if it's NaN.
-///
-/// # Arguments
-///
-/// * `r` - The radius to check
-/// * `eps` - The epsilon threshold for comparison
-///
-/// # Returns
-///
-/// True if the radius is collapsed (too small or NaN), false otherwise
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// assert!(arc_is_collapsed_radius(0.0001, 0.01)); // Radius too small
-/// assert!(arc_is_collapsed_radius(f64::NAN, 0.01)); // NaN radius
-/// assert!(!arc_is_collapsed_radius(1.0, 0.01)); // Valid radius
-/// ```
-pub fn arc_is_collapsed_radius(r: f64, eps: f64) -> bool {
-    // no abs() since it can be negative
-    if r < eps || r.is_nan() {
-        return true;
-    }
-    false
-}
-
-/// Checks if the arc has collapsed endpoints.
-///
-/// An arc is considered to have collapsed endpoints if the start and end
-/// points are too close to each other within the given epsilon threshold.
-///
-/// # Arguments
-///
-/// * `a` - The start point of the arc
-/// * `b` - The end point of the arc  
-/// * `eps` - The epsilon threshold for distance comparison
-///
-/// # Returns
-///
-/// True if the endpoints are too close together, false otherwise
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// let p1 = point(0.0, 0.0);
-/// let p2 = point(0.0001, 0.0);
-/// let p3 = point(1.0, 0.0);
-///
-/// assert!(arc_is_collapsed_ends(p1, p2, 0.01)); // Points too close
-/// assert!(!arc_is_collapsed_ends(p1, p3, 0.01)); // Points far enough apart
-/// ```
-pub fn arc_is_collapsed_ends(a: Point, b: Point, eps: f64) -> bool {
-    if a.close_enough(b, eps) {
-        return true;
-    }
-    false
-}
-
-/// Checks if an arc has inconsistent geometry.
-///
-/// An arc is considered inconsistent if the center point is not equidistant
-/// from both endpoints within the given epsilon threshold. This validates
-/// that the arc's center and radius are geometrically consistent.
-///
-/// # Arguments
-///
-/// * `a` - The start point of the arc
-/// * `b` - The end point of the arc
-/// * `c` - The center point of the arc
-/// * `r` - The radius of the arc
-/// * `eps` - The epsilon threshold for distance comparison
-///
-/// # Returns
-///
-/// True if the arc geometry is inconsistent, false if it's valid
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-///
-/// // Consistent arc: center is equidistant from both endpoints
-/// let start = point(0.0, 0.0);
-/// let end = point(2.0, 0.0);
-/// let center = point(1.0, 0.0);
-/// let radius = 1.0;
-/// let mut arc = arc(start, end, center, radius);
-/// assert!(!arc_is_not_consistent(&arc, 1e-10));
-///
-/// // Inconsistent arc: center is not equidistant from endpoints
-/// let bad_center = point(0.5, 0.0);
-/// let mut arc2 = arc.clone();
-/// arc2.c = bad_center;
-/// assert!(arc_is_not_consistent(&arc2, 1e-10));
-///
-/// // Another inconsistent case: wrong radius
-/// let mut arc3 = arc.clone();
-/// arc3.r = 2.0;
-/// assert!(arc_is_not_consistent(&arc3, 1e-10));
-/// ```
-pub fn arc_is_not_consistent(arc: &Arc, eps: f64) -> bool {
-    if arc.is_line() {
-        // Lines are always consistent, no center point
-        return false;
-    }
-    // Check if the radius is consistent with the center and endpoints
-    let dist_a_c = (arc.a - arc.c).norm();
-    let dist_b_c = (arc.b - arc.c).norm();
-    if (dist_a_c - arc.r).abs() > eps || (dist_b_c - arc.r).abs() > eps {
-        return true; // Inconsistent radius
-    }
-    false
-}
-
-/// Validates if an arc is geometrically valid.
-///
-/// An arc is considered valid if it doesn't have a collapsed radius,
-/// doesn't have collapsed endpoints, and has consistent geometry
-/// (the center point is equidistant from both endpoints).
-///
-/// # Arguments
-///
-/// * `seg` - The arc to validate
-/// * `eps` - The epsilon threshold for validation checks
-///
-/// # Returns
-///
-/// True if the arc is valid, false if it's degenerate or inconsistent
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// let valid_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-/// assert!(arc_check(&valid_arc, 1e-10));
-///
-/// let invalid_arc = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.5), 1.0);
-/// assert!(!arc_check(&invalid_arc, 1e-10)); // Collapsed endpoints
-///
-/// let inconsistent_arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(0.5, 0.0), 2.0);
-/// assert!(!arc_check(&inconsistent_arc, 1e-10)); // Inconsistent geometry
-/// ```
-#[must_use]
-pub fn arc_check(seg: &Arc, eps: f64) -> bool {
-    if seg.is_line() {
-        if arc_is_collapsed_ends(seg.a, seg.b, eps) {
-            return false;
+impl Arc {
+    // TODO: what should be the exact value.
+    /// Checks if the arc has a collapsed radius.
+    ///
+    /// An arc is considered to have a collapsed radius if the radius is smaller
+    /// than the given epsilon threshold or if it's NaN.
+    ///
+    /// # Arguments
+    ///
+    /// * `r` - The radius to check
+    /// * `eps` - The epsilon threshold for comparison
+    ///
+    /// # Returns
+    ///
+    /// True if the radius is collapsed (too small or NaN), false otherwise
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    /// let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.0001);
+    /// assert!(arc1.is_collapsed_radius(0.01)); // Radius too small
+    /// let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
+    /// assert!(arc2.is_collapsed_radius(0.01)); // NaN radius
+    /// let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
+    /// assert!(!arc3.is_collapsed_radius(0.01)); // Valid radius
+    /// ```
+    pub fn is_collapsed_radius(&self, eps: f64) -> bool {
+        // no abs() since it can be negative
+        if self.r < eps || self.r.is_nan() {
+            return true;
         }
+        false
     }
-    if seg.is_arc() {
-        if arc_is_collapsed_ends(seg.a, seg.b, eps)
-            || arc_is_collapsed_radius(seg.r, eps)
-            || arc_is_not_consistent(seg, eps)
+
+    /// Checks if the arc has collapsed endpoints.
+    ///
+    /// An arc is considered to have collapsed endpoints if the start and end
+    /// points are too close to each other within the given epsilon threshold.
+
+    ///
+    /// # Returns
+    ///
+    /// True if the endpoints are too close together, false otherwise
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    /// let p1 = point(0.0, 0.0);
+    /// let p2 = point(0.0001, 0.0);
+    /// let p3 = point(1.0, 0.0);
+    ///
+    /// let arc1 = arc(p1, p2, point(0.0, 0.5), 0.5);
+    /// assert!(arc1.is_collapsed_ends(0.01)); // Points too close
+    /// let arc2 = arc(p1, p3, point(0.5, 0.0), 0.5);
+    /// assert!(!arc2.is_collapsed_ends(0.01)); // Points far enough apart
+    /// ```
+    pub fn is_collapsed_ends(&self, eps: f64) -> bool {
+        if self.a.close_enough(self.b, eps) {
+            return true;
+        }
+        false
+    }
+
+    /// Checks if an arc has inconsistent geometry.
+    ///
+    /// An arc is considered inconsistent if the center point is not equidistant
+    /// from both endpoints within the given epsilon threshold. This validates
+    /// that the arc's center and radius are geometrically consistent.
+    ///
+    /// # Arguments
+    ///
+    /// * `eps` - The epsilon threshold for distance comparison
+    ///
+    /// # Returns
+    ///
+    /// True if the arc geometry is consistent, false if it's inconsistent
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    ///
+    /// // Consistent arc: center is equidistant from both endpoints
+    /// let start = point(0.0, 0.0);
+    /// let end = point(2.0, 0.0);
+    /// let center = point(1.0, 0.0);
+    /// let radius = 1.0;
+    /// let arc = arc(start, end, center, radius);
+    /// assert!(arc.is_consistent(1e-10));
+    ///
+    /// // Inconsistent arc: center is not equidistant from endpoints
+    /// let bad_center = point(0.5, 0.0);
+    /// let mut arc2 = arc.clone();
+    /// arc2.c = bad_center;
+    /// assert!(!arc2.is_consistent(1e-10));
+    ///
+    /// // Another inconsistent case: wrong radius
+    /// let mut arc3 = arc.clone();
+    /// arc3.r = 2.0;
+    /// assert!(!arc3.is_consistent(1e-10));
+    /// ```
+    pub fn is_consistent(&self, eps: f64) -> bool {
+        if self.is_line() {
+            // Lines are always consistent, no center point
+            return true;
+        }
+        // Check if the radius is consistent with the center and endpoints
+        if ((self.a - self.c).norm() - self.r).abs() > eps
+            || ((self.b - self.c).norm() - self.r).abs() > eps
         {
-            return false;
+            return false; // Inconsistent radius
         }
+        true
     }
-    true
+
+    /// Validates if an arc is geometrically valid.
+    ///
+    /// An arc is considered valid if it doesn't have a collapsed radius,
+    /// doesn't have collapsed endpoints, and has consistent geometry
+    /// (the center point is equidistant from both endpoints).
+    ///
+    /// # Arguments
+    /// 
+    /// * `eps` - The epsilon threshold for validation checks
+    ///
+    /// # Returns
+    ///
+    /// True if the arc is valid, false if it's degenerate or inconsistent
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    /// let valid_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
+    /// assert!(valid_arc.check(1e-10));
+    ///
+    /// let invalid_arc = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.5), 1.0);
+    /// assert!(!invalid_arc.check(1e-10)); // Collapsed endpoints
+    ///
+    /// let inconsistent_arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(0.5, 0.0), 2.0);
+    /// assert!(!inconsistent_arc.check(1e-10)); // Inconsistent geometry
+    /// ```
+    #[must_use]
+    pub fn check(&self, eps: f64) -> bool {
+        if self.is_line() {
+            if self.is_collapsed_ends(eps) {
+                return false;
+            }
+        }
+        if self.is_arc() {
+            if self.is_collapsed_ends(eps)
+                || self.is_collapsed_radius(eps)
+                || !self.is_consistent(eps)
+            {
+                return false;
+            }
+        }
+        true
+    }
 }
 
 #[cfg(test)]
@@ -749,90 +746,78 @@ mod test_arc_validation {
     #[test]
     fn test_arc_is_collapsed_radius_normal_values() {
         // Normal positive radius values should not be collapsed
-        assert!(!arc_is_collapsed_radius(1.0, EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_radius(0.1, EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_radius(100.0, EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_radius(f64::INFINITY, EPS_COLLAPSED));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
+        let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.1);
+        let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 100.0);
+        let arc4 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::INFINITY);
+        assert!(!arc1.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(!arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(!arc4.is_collapsed_radius(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_small_values() {
         // Values smaller than EPS_COLLAPSED (1E-8) should be collapsed
-        assert!(arc_is_collapsed_radius(1E-9, EPS_COLLAPSED));
-        assert!(arc_is_collapsed_radius(1E-10, EPS_COLLAPSED));
-        assert!(arc_is_collapsed_radius(0.0, EPS_COLLAPSED));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-9);
+        let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-10);
+        let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.0);
+        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc2.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_boundary_values() {
         // Test values around the EPS_COLLAPSED boundary
-        assert!(arc_is_collapsed_radius(EPS_COLLAPSED / 2.0, EPS_COLLAPSED));
-        assert!(!arc_is_collapsed_radius(EPS_COLLAPSED * 2.0, EPS_COLLAPSED));
-
-        // Exactly at the boundary should be collapsed
-        assert!(arc_is_collapsed_radius(
-            EPS_COLLAPSED - f64::EPSILON,
-            EPS_COLLAPSED
-        ));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), EPS_COLLAPSED / 2.0);
+        let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), EPS_COLLAPSED * 2.0);
+        let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), EPS_COLLAPSED - f64::EPSILON);
+        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_negative_values() {
         // Negative radius values should be collapsed
-        assert!(arc_is_collapsed_radius(-1.0, EPS_COLLAPSED));
-        assert!(arc_is_collapsed_radius(-0.1, EPS_COLLAPSED));
-        assert!(arc_is_collapsed_radius(-1E-10, EPS_COLLAPSED));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1.0);
+        let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -0.1);
+        let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1E-10);
+        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc2.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_nan() {
         // NaN values should be collapsed
-        assert!(arc_is_collapsed_radius(f64::NAN, EPS_COLLAPSED));
+        let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
+        assert!(arc.is_collapsed_radius(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_normal_points() {
         // Normal separated points should not be collapsed
-        assert!(!arc_is_collapsed_ends(
-            point(0.0, 0.0),
-            point(1.0, 0.0),
-            EPS_COLLAPSED
-        ));
-        assert!(!arc_is_collapsed_ends(
-            point(0.0, 0.0),
-            point(0.0, 1.0),
-            EPS_COLLAPSED
-        ));
-        assert!(!arc_is_collapsed_ends(
-            point(-1.0, -1.0),
-            point(1.0, 1.0),
-            EPS_COLLAPSED
-        ));
-        assert!(!arc_is_collapsed_ends(
-            point(100.0, 200.0),
-            point(300.0, 400.0),
-            EPS_COLLAPSED
-        ));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let arc2 = arc(point(0.0, 0.0), point(0.0, 1.0), point(0.5, 0.5), 1.0);
+        let arc3 = arc(point(-1.0, -1.0), point(1.0, 1.0), point(0.0, 0.0), 2.0);
+        let arc4 = arc(point(100.0, 200.0), point(300.0, 400.0), point(200.0, 300.0), 100.0);
+        assert!(!arc1.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!arc2.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!arc3.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!arc4.is_collapsed_ends(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_identical_points() {
         // Identical points should be collapsed
-        assert!(arc_is_collapsed_ends(
-            point(0.0, 0.0),
-            point(0.0, 0.0),
-            EPS_COLLAPSED
-        ));
-        assert!(arc_is_collapsed_ends(
-            point(1.0, 1.0),
-            point(1.0, 1.0),
-            EPS_COLLAPSED
-        ));
-        assert!(arc_is_collapsed_ends(
-            point(-5.0, 10.0),
-            point(-5.0, 10.0),
-            EPS_COLLAPSED
-        ));
+        let arc1 = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.0), 1.0);
+        let arc2 = arc(point(1.0, 1.0), point(1.0, 1.0), point(1.5, 1.0), 1.0);
+        let arc3 = arc(point(-5.0, 10.0), point(-5.0, 10.0), point(-4.0, 10.0), 1.0);
+        assert!(arc1.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(arc2.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(arc3.is_collapsed_ends(EPS_COLLAPSED));
     }
 
     #[test]
@@ -840,11 +825,13 @@ mod test_arc_validation {
         // Points closer than EPS_COLLAPSED should be collapsed
         let p1 = point(0.0, 0.0);
         let p2 = point(EPS_COLLAPSED / 2.0, 0.0);
-        assert!(arc_is_collapsed_ends(p1, p2, EPS_COLLAPSED));
+        let test_arc1 = arc(p1, p2, point(0.0, 0.0), 1.0);
+        assert!(test_arc1.is_collapsed_ends(EPS_COLLAPSED));
 
         let p3 = point(100.0, 100.0);
         let p4 = point(100.0 + EPS_COLLAPSED / 3.0, 100.0 + EPS_COLLAPSED / 3.0);
-        assert!(arc_is_collapsed_ends(p3, p4, EPS_COLLAPSED));
+        let test_arc2 = arc(p3, p4, point(100.0, 100.0), 1.0);
+        assert!(test_arc2.is_collapsed_ends(EPS_COLLAPSED));
     }
 
     #[test]
@@ -852,20 +839,22 @@ mod test_arc_validation {
         // Points at exactly EPS_COLLAPSED distance
         let p1 = point(0.0, 0.0);
         let p2 = point(EPS_COLLAPSED, 0.0);
+        let test_arc1 = arc(p1, p2, point(0.0, 0.0), 1.0);
         // This should not be collapsed (distance equals tolerance)
-        assert!(arc_is_collapsed_ends(p1, p2, EPS_COLLAPSED));
+        assert!(test_arc1.is_collapsed_ends(EPS_COLLAPSED));
 
         // Points slightly farther than EPS_COLLAPSED
         let p3 = point(0.0, 0.0);
         let p4 = point(EPS_COLLAPSED * 2.0, 0.0);
-        assert!(!arc_is_collapsed_ends(p3, p4, EPS_COLLAPSED));
+        let test_arc2 = arc(p3, p4, point(0.0, 0.0), 1.0);
+        assert!(!test_arc2.is_collapsed_ends(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_valid_arcs() {
         // Valid arcs should pass the check
         let valid_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-        assert!(arc_check(&valid_arc1, EPS_COLLAPSED));
+        assert!(valid_arc1.check(EPS_COLLAPSED));
 
         let valid_arc2 = arc(
             point(-1.0, -1.0),
@@ -873,50 +862,50 @@ mod test_arc_validation {
             point(0.0, 0.0),
             std::f64::consts::SQRT_2,
         );
-        assert!(arc_check(&valid_arc2, EPS_COLLAPSED));
+        assert!(valid_arc2.check(EPS_COLLAPSED));
 
         // Line segments (infinite radius) should also be valid if endpoints are separated
         let valid_line = arcseg(point(0.0, 0.0), point(10.0, 0.0));
-        assert!(arc_check(&valid_line, EPS_COLLAPSED));
+        assert!(valid_line.check(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_collapsed_radius() {
         // Arcs with collapsed radius should fail the check
         let collapsed_radius_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-10);
-        assert!(!arc_check(&collapsed_radius_arc1, EPS_COLLAPSED));
+        assert!(!collapsed_radius_arc1.check(EPS_COLLAPSED));
 
         let collapsed_radius_arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1.0);
-        assert!(!arc_check(&collapsed_radius_arc2, EPS_COLLAPSED));
+        assert!(!collapsed_radius_arc2.check(EPS_COLLAPSED));
 
         let nan_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
-        assert!(!arc_check(&nan_radius_arc, EPS_COLLAPSED));
+        assert!(!nan_radius_arc.check(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_collapsed_ends() {
         // Arcs with collapsed endpoints should fail the check
         let collapsed_ends_arc1 = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.0, 1.0), 1.0);
-        assert!(!arc_check(&collapsed_ends_arc1, EPS_COLLAPSED));
+        assert!(!collapsed_ends_arc1.check(EPS_COLLAPSED));
 
         let close_points = point(0.0, 0.0);
         let very_close_points = point(EPS_COLLAPSED / 2.0, 0.0);
         let collapsed_ends_arc2 = arc(close_points, very_close_points, point(0.0, 1.0), 1.0);
-        assert!(!arc_check(&collapsed_ends_arc2, EPS_COLLAPSED));
+        assert!(!collapsed_ends_arc2.check(EPS_COLLAPSED));
 
         // Line segments with collapsed endpoints should also fail
         let collapsed_line = arcseg(point(1.0, 1.0), point(1.0, 1.0));
-        assert!(!arc_check(&collapsed_line, EPS_COLLAPSED));
+        assert!(!collapsed_line.check(EPS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_both_collapsed() {
         // Arcs with both collapsed radius and collapsed endpoints should fail
         let both_collapsed = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.0, 1.0), 1E-10);
-        assert!(!arc_check(&both_collapsed, EPS_COLLAPSED));
+        assert!(!both_collapsed.check(EPS_COLLAPSED));
 
         let both_collapsed2 = arc(point(5.0, 5.0), point(5.0, 5.0), point(0.0, 0.0), f64::NAN);
-        assert!(!arc_check(&both_collapsed2, EPS_COLLAPSED));
+        assert!(!both_collapsed2.check(EPS_COLLAPSED));
     }
 
     #[test]
@@ -928,15 +917,15 @@ mod test_arc_validation {
             point(1E10 + 0.5, 1E10),
             0.5,
         );
-        assert!(arc_check(&large_coord_arc, EPS_COLLAPSED));
+        assert!(large_coord_arc.check(EPS_COLLAPSED));
 
         // Test with very small but valid radius - ensure consistent geometry
         let small_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-        assert!(arc_check(&small_radius_arc, EPS_COLLAPSED));
+        assert!(small_radius_arc.check(EPS_COLLAPSED));
 
         // Test with large radius
         let large_radius_arc = arc(point(0.0, 0.0), point(1E-6, 0.0), point(0.0, 1E6), 1E6);
-        assert!(arc_check(&large_radius_arc, EPS_COLLAPSED));
+        assert!(large_radius_arc.check(EPS_COLLAPSED));
     }
 
     #[test]
@@ -1523,85 +1512,87 @@ pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
     reversed
 }
 
-/// Makes slightly inconsistent arc consistent, by adjusting the arc center
-/// and radius, keeping the endpoints fixed.
-#[must_use]
-pub fn arc_make_consistent(seg: &Arc) -> Arc {
-    if seg.is_line() {
-        return *seg;
-    }
+impl Arc {
+    /// Makes slightly inconsistent arc consistent, by adjusting the arc center
+    /// and radius, keeping the endpoints fixed.
+    #[must_use]
+    pub fn make_consistent(&self) -> Arc {
+        if self.is_line() {
+            return *self;
+        }
 
-    // Handle degenerate case where endpoints are the same
-    if seg.a.close_enough(seg.b, 1e-12) {
-        return arcseg(seg.a, seg.b);
-    }
+        // Handle degenerate case where endpoints are the same
+        if self.a.close_enough(self.b, 1e-12) {
+            return arcseg(self.a, self.b);
+        }
 
-    // Calculate the distances from the current center to endpoints
-    let dist_a_c = (seg.a - seg.c).norm();
-    let dist_b_c = (seg.b - seg.c).norm();
-    
-    // Use the average of the two distances as the new radius
-    let avg_radius = (dist_a_c + dist_b_c) / 2.0;
-    
-    // Calculate chord properties
-    let chord = seg.b - seg.a;
-    let chord_length = chord.norm();
-    let half_chord = chord_length / 2.0;
-    
-    // If average radius is too small (less than half chord), use minimum possible radius
-    let new_radius = if avg_radius < half_chord {
-        half_chord
-    } else {
-        avg_radius
-    };
-    
-    // Find the center that makes both endpoints equidistant
-    // The center lies on the perpendicular bisector of the chord ab
-    let midpoint = (seg.a + seg.b) / 2.0;
-    
-    // For a circle with radius r passing through points a and b,
-    // the distance from chord midpoint to center is sqrt(r^2 - (chord_length/2)^2)
-    let distance_to_center = (new_radius * new_radius - half_chord * half_chord).sqrt();
-    
-    // Perpendicular direction to chord (normalized)
-    let perp = if chord_length > 1e-12 {
-        point(-chord.y, chord.x) / chord_length
-    } else {
-        point(0.0, 1.0) // Default direction if chord is too small
-    };
-    
-    // Two possible centers on the perpendicular bisector
-    let c1 = midpoint + perp * distance_to_center;
-    let c2 = midpoint - perp * distance_to_center;
-    
-    // Choose the center closer to the original center
-    let dist1 = (c1 - seg.c).norm();
-    let dist2 = (c2 - seg.c).norm();
-    
-    let new_center = if dist1 < dist2 { c1 } else { c2 };
-    
-    arc(seg.a, seg.b, new_center, new_radius)
+        // Calculate the distances from the current center to endpoints
+        let dist_a_c = (self.a - self.c).norm();
+        let dist_b_c = (self.b - self.c).norm();
+
+        // Use the average of the two distances as the new radius
+        let avg_radius = (dist_a_c + dist_b_c) / 2.0;
+
+        // Calculate chord properties
+        let chord = self.b - self.a;
+        let chord_length = chord.norm();
+        let half_chord = chord_length / 2.0;
+
+        // If average radius is too small (less than half chord), use minimum possible radius
+        let new_radius = if avg_radius < half_chord {
+            half_chord
+        } else {
+            avg_radius
+        };
+
+        // Find the center that makes both endpoints equidistant
+        // The center lies on the perpendicular bisector of the chord ab
+        let midpoint = (self.a + self.b) / 2.0;
+
+        // For a circle with radius r passing through points a and b,
+        // the distance from chord midpoint to center is sqrt(r^2 - (chord_length/2)^2)
+        let distance_to_center = (new_radius * new_radius - half_chord * half_chord).sqrt();
+
+        // Perpendicular direction to chord (normalized)
+        let perp = if chord_length > 1e-12 {
+            point(-chord.y, chord.x) / chord_length
+        } else {
+            point(0.0, 1.0) // Default direction if chord is too small
+        };
+
+        // Two possible centers on the perpendicular bisector
+        let c1 = midpoint + perp * distance_to_center;
+        let c2 = midpoint - perp * distance_to_center;
+
+        // Choose the center closer to the original center
+        let dist1 = (c1 - self.c).norm();
+        let dist2 = (c2 - self.c).norm();
+
+        let new_center = if dist1 < dist2 { c1 } else { c2 };
+
+        arc(self.a, self.b, new_center, new_radius)
+    }
 }
 
 #[cfg(test)]
 mod test_arc_make_consistent {
-    use crate::{arc::arc_make_consistent, prelude::*};
+    use crate::prelude::*;
 
     const TEST_EPS: f64 = 1E-10;
 
     #[test]
     fn test_arc_make_consistent() {
-        let arc = Arc::new(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 0.5);
-        let consistent_arc = arc_make_consistent(&arc);
-        assert!(!arc_is_not_consistent(&consistent_arc, TEST_EPS));
+        let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 0.5);
+        let consistent_arc = arc.make_consistent();
+        assert!(consistent_arc.is_consistent(TEST_EPS));
     }
 
     #[test]
     fn test_arc_make_consistent_already_consistent() {
         // Create an already consistent arc
-        let arc = Arc::new(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0);
-        let consistent_arc = arc_make_consistent(&arc);
-        assert!(!arc_is_not_consistent(&consistent_arc, TEST_EPS));
+        let arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0);
+        let consistent_arc = arc.make_consistent();
+        assert!(consistent_arc.is_consistent(TEST_EPS));
         // Should be very close to the original
         assert!(close_enough(consistent_arc.c.x, 1.0, TEST_EPS));
         assert!(close_enough(consistent_arc.c.y, 0.0, TEST_EPS));
@@ -1611,9 +1602,9 @@ mod test_arc_make_consistent {
     #[test]
     fn test_arc_make_consistent_different_distances() {
         // Create an arc where endpoints are at different distances from center
-        let arc = Arc::new(point(0.0, 0.0), point(3.0, 4.0), point(1.0, 1.0), 2.0);
-        let consistent_arc = arc_make_consistent(&arc);
-        assert!(!arc_is_not_consistent(&consistent_arc, TEST_EPS));
+        let arc = arc(point(0.0, 0.0), point(3.0, 4.0), point(1.0, 1.0), 2.0);
+        let consistent_arc = arc.make_consistent();
+        assert!(consistent_arc.is_consistent(TEST_EPS));
 
         // Check that both endpoints are equidistant from the new center
         let dist_a = (consistent_arc.a - consistent_arc.c).norm();
@@ -1625,23 +1616,23 @@ mod test_arc_make_consistent {
     #[test]
     fn test_arc_make_consistent_degenerate_endpoints() {
         // Create an arc with same start and end points
-        let arc = Arc::new(point(1.0, 1.0), point(1.0, 1.0), point(2.0, 2.0), 1.0);
-        let consistent_arc = arc_make_consistent(&arc);
+        let arc = arc(point(1.0, 1.0), point(1.0, 1.0), point(2.0, 2.0), 1.0);
+        let consistent_arc = arc.make_consistent();
         // Degenerate case should result in line segment
-        assert!(!arc_is_not_consistent(&consistent_arc, TEST_EPS));
+        assert!(consistent_arc.is_consistent(TEST_EPS));
         assert!(consistent_arc.is_line());
     }
 
     #[test]
     fn test_arc_make_consistent_line_segment() {
         // Test with a line segment (infinite radius)
-        let line_arc = Arc::new(
+        let line_arc = arc(
             point(0.0, 0.0),
             point(1.0, 1.0),
             point(0.0, 0.0),
             f64::INFINITY,
         );
-        let consistent_arc = arc_make_consistent(&line_arc);
+        let consistent_arc = line_arc.make_consistent();
         assert_eq!(consistent_arc.r, f64::INFINITY);
         assert_eq!(consistent_arc.a, line_arc.a);
         assert_eq!(consistent_arc.b, line_arc.b);
@@ -1650,15 +1641,15 @@ mod test_arc_make_consistent {
     #[test]
     fn test_arc_make_consistent_small_radius() {
         // Test case where desired radius is smaller than minimum possible (half chord length)
-        let arc = Arc::new(point(0.0, 0.0), point(4.0, 0.0), point(2.0, 1.0), 1.0); // chord length = 4, so min radius = 2
+        let arc = arc(point(0.0, 0.0), point(4.0, 0.0), point(2.0, 1.0), 1.0); // chord length = 4, so min radius = 2
 
         // Debug: check what the original distances are
         let dist_a_c = (arc.a - arc.c).norm(); // distance from (0,0) to (2,1) = sqrt(5) ≈ 2.236
         let dist_b_c = (arc.b - arc.c).norm(); // distance from (4,0) to (2,1) = sqrt(5) ≈ 2.236
         let avg_radius = (dist_a_c + dist_b_c) / 2.0; // ≈ 2.236
 
-        let consistent_arc = arc_make_consistent(&arc);
-        assert!(!arc_is_not_consistent(&consistent_arc, TEST_EPS));
+        let consistent_arc = arc.make_consistent();
+        assert!(consistent_arc.is_consistent(TEST_EPS));
 
         // The average radius is about 2.236, which is larger than half chord length (2.0)
         // So it should use the computed average radius, not the minimum
@@ -1674,7 +1665,7 @@ mod test_arc_make_consistent {
     #[test]
     fn test_arc_make_consistent_radius_too_small() {
         // Test case where the average radius is smaller than half chord length
-        let arc = Arc::new(point(0.0, 0.0), point(10.0, 0.0), point(1.0, 0.1), 0.5); // chord length = 10, half = 5, but point is close to first endpoint
+        let arc = arc(point(0.0, 0.0), point(10.0, 0.0), point(1.0, 0.1), 0.5); // chord length = 10, half = 5, but point is close to first endpoint
 
         let dist_a_c = (arc.a - arc.c).norm();
         let dist_b_c = (arc.b - arc.c).norm();
@@ -1682,8 +1673,8 @@ mod test_arc_make_consistent {
         let chord_length = (arc.b - arc.a).norm();
         let half_chord = chord_length / 2.0;
 
-        let consistent_arc = arc_make_consistent(&arc);
-        assert!(!arc_is_not_consistent(&consistent_arc, TEST_EPS));
+        let consistent_arc = arc.make_consistent();
+        assert!(consistent_arc.is_consistent(TEST_EPS));
 
         // Check if the average radius is actually smaller than half chord
         if avg_radius < half_chord {

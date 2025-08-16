@@ -6,13 +6,13 @@
 
 ```toml
 [dependencies]
-basegeom = "0.2.6"
+basegeom = "0.2.7"
 ```
 ![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
 ## Documentation
 
-[<https://docs.rs/basegeom>](https://docs.rs/basegeom/0.2.5)
+[<https://docs.rs/basegeom>](https://docs.rs/basegeom)
 
 ## Basic 2D geometric operations
 
