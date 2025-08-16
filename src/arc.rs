@@ -1513,7 +1513,7 @@ pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
 }
 
 impl Arc {
-    /// Makes slightly inconsistent arc consistent, by adjusting the arc center
+    /// Makes slightly inconsistent arc consistent by adjusting the arc center
     /// and radius, keeping the endpoints fixed.
     pub fn make_consistent(&mut self) {
         if self.is_line() {
