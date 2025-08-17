@@ -648,7 +648,7 @@ impl Arc {
     /// (the center point is equidistant from both endpoints).
     ///
     /// # Arguments
-    /// 
+    ///
     /// * `eps` - The epsilon threshold for validation checks
     ///
     /// # Returns
@@ -749,7 +749,12 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
         let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.1);
         let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 100.0);
-        let arc4 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::INFINITY);
+        let arc4 = arc(
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(0.5, 0.0),
+            f64::INFINITY,
+        );
         assert!(!arc1.is_collapsed_radius(EPS_COLLAPSED));
         assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
         assert!(!arc3.is_collapsed_radius(EPS_COLLAPSED));
@@ -770,9 +775,24 @@ mod test_arc_validation {
     #[test]
     fn test_arc_is_collapsed_radius_boundary_values() {
         // Test values around the EPS_COLLAPSED boundary
-        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), EPS_COLLAPSED / 2.0);
-        let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), EPS_COLLAPSED * 2.0);
-        let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), EPS_COLLAPSED - f64::EPSILON);
+        let arc1 = arc(
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(0.5, 0.0),
+            EPS_COLLAPSED / 2.0,
+        );
+        let arc2 = arc(
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(0.5, 0.0),
+            EPS_COLLAPSED * 2.0,
+        );
+        let arc3 = arc(
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(0.5, 0.0),
+            EPS_COLLAPSED - f64::EPSILON,
+        );
         assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
         assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
         assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
@@ -802,7 +822,12 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
         let arc2 = arc(point(0.0, 0.0), point(0.0, 1.0), point(0.5, 0.5), 1.0);
         let arc3 = arc(point(-1.0, -1.0), point(1.0, 1.0), point(0.0, 0.0), 2.0);
-        let arc4 = arc(point(100.0, 200.0), point(300.0, 400.0), point(200.0, 300.0), 100.0);
+        let arc4 = arc(
+            point(100.0, 200.0),
+            point(300.0, 400.0),
+            point(200.0, 300.0),
+            100.0,
+        );
         assert!(!arc1.is_collapsed_ends(EPS_COLLAPSED));
         assert!(!arc2.is_collapsed_ends(EPS_COLLAPSED));
         assert!(!arc3.is_collapsed_ends(EPS_COLLAPSED));
@@ -1687,11 +1712,7 @@ mod test_arc_make_consistent {
             // Should use minimum possible radius (half chord length)
             assert!(close_enough(arc.r, half_chord, TEST_EPS));
             // Center should be at chord midpoint
-            assert!(close_enough(
-                arc.c.x,
-                chord_length / 2.0,
-                TEST_EPS
-            ));
+            assert!(close_enough(arc.c.x, chord_length / 2.0, TEST_EPS));
             assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
         } else {
             // Should use the average radius
@@ -1708,7 +1729,7 @@ mod test_arc_make_consistent {
 ///
 /// The function handles all combinations of arc types:
 /// - Line segment to line segment
-/// - Arc to arc 
+/// - Arc to arc
 /// - Line segment to arc
 /// - Arc to line segment
 ///
@@ -1883,5 +1904,137 @@ mod test_is_really_intersecting {
         let line1 = arcseg(point(-1.0, 0.0), point(1.0, 0.0));
         let line2 = arcseg(point(0.0, -1.0), point(0.0, 1.0));
         assert!(is_really_intersecting(&line1, &line2));
+    }
+}
+
+/// Result of arcline validation
+pub enum ArclineValidation {
+    /// Valid arcline
+    Valid,
+    /// Invalid arcline, arcline is empty
+    Invalid,
+    /// arc is invalid
+    InvalidArc(Arc),
+    /// There is a gap between consecutive arcs
+    GapBetweenArcs(Arc, Arc),
+    /// There is a zero degree angle between consecutive arcs
+    ZeroDegreeAngle(Arc, Arc),
+    /// Consecutive arcs are intersecting
+    IntersectingArcs(Arc, Arc),
+}
+
+/// Checks if the arcline is valid
+/// - Arcs should be valid
+/// - There should be no gaps between arcs
+/// - There should be no angles between arcs of 0.0 degrees
+/// - Arcs should not intersect
+///
+/// Returns (bool, first invalid arc)
+#[must_use]
+pub fn is_valid_arcline(arcs: &Arcline) -> ArclineValidation {
+    // Two Arc connecting ends
+    #[derive(Clone, Debug)]
+    enum MergeEnd {
+        AA,
+        AB,
+        BA,
+        BB,
+    }
+    if arcs.is_empty() {
+        return ArclineValidation::Invalid;
+    }
+
+    // Arcs should be valid
+    for arc in arcs {
+        if !arc.check(10e-8) {
+            return ArclineValidation::InvalidArc(arc.clone());
+        }
+    }
+
+    // There should be no gaps between arcs
+    let size = arcs.len();
+    for i in 0..size {
+        let arc0 = arcs[i % size];
+        let arc1 = arcs[(i + 1) % size];
+        if arc0.a == arc1.a {
+            let (t1, _) = arc0.tangents();
+            let (t2, _) = arc1.tangents();
+            if t1.close_enough(t2, 10e-8) {
+                // tangents are collinear
+                return ArclineValidation::ZeroDegreeAngle(arc0.clone(), arc1.clone());
+            }
+            continue;
+        }
+        if arc0.a == arc1.b {
+            let (t1, _) = arc0.tangents();
+            let (_, t2) = arc1.tangents();
+            if t1.close_enough(t2, 10e-8) {
+                // tangents are collinear
+                return ArclineValidation::ZeroDegreeAngle(arc0.clone(), arc1.clone());
+            }
+            continue;
+        }
+        if arc0.b == arc1.a {
+            let (_, t1) = arc0.tangents();
+            let (t2, _) = arc1.tangents();
+            if t1.close_enough(t2, 10e-8) {
+                // tangents are collinear
+                return ArclineValidation::ZeroDegreeAngle(arc0.clone(), arc1.clone());
+            }
+            continue;
+        }
+        if arc0.b == arc1.b {
+            let (_, t1) = arc0.tangents();
+            let (_, t2) = arc1.tangents();
+            if t1.close_enough(t2, 10e-8) {
+                // tangents are collinear
+                return ArclineValidation::ZeroDegreeAngle(arc0.clone(), arc1.clone());
+            }
+            continue;
+        }
+        return ArclineValidation::GapBetweenArcs(arc0.clone(), arc1.clone());
+    }
+
+    // No intersection between arcs
+    for i in 0..size {
+        for j in (i + 2)..size {
+            let arc0 = arcs[i % size];
+            let arc1 = arcs[j % size];
+            if is_really_intersecting(&arc0, &arc1) {
+                return ArclineValidation::IntersectingArcs(arc0.clone(), arc1.clone());
+            }
+        }
+    }
+
+    ArclineValidation::Valid
+}
+
+impl Arc {
+    /// Compute tangents at ends of arc
+    #[must_use]
+    pub fn tangents(&self) -> (Point, Point) {
+        if self.is_seg() {
+            let (t, _) = (self.b - self.a).normalize(false);
+            return (-t, t);
+        }
+
+        let a_to_c = self.a - self.c;
+        let b_to_c = self.b - self.c;
+        let (va, _) = point(a_to_c.y, -a_to_c.x).normalize(false);
+        let (vb, _) = point(b_to_c.y, -b_to_c.x).normalize(false);
+        (va, -vb)
+    }
+}
+
+#[cfg(test)]
+mod test_tangents {
+    use super::*;
+
+    #[test]
+    fn test_tangents() {
+        let arc = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
+        let (t1, t2) = arc.tangents();
+        assert_eq!(t1, point(0.0, -1.0));
+        assert_eq!(t2, point(0.0, -1.0));
     }
 }
