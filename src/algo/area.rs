@@ -110,7 +110,7 @@ pub fn arcline_area(arcs: &Arcline) -> f64 {
     let mut total_area = 0.0;
 
     for arc in arcs {
-        if arc.is_line() {
+        if arc.is_seg() {
             // Line segment: use shoelace formula contribution
             //total_area += (arc.a.x * arc.b.y - arc.b.x * arc.a.y) / 2.0;
             total_area += arc.a.perp(arc.b) / 2.0;
@@ -142,7 +142,7 @@ pub fn arcline_area(arcs: &Arcline) -> f64 {
 ///
 /// The signed area contribution of the arc
 fn arc_area_contribution(arc: &Arc) -> f64 {
-    if arc.is_line() {
+    if arc.is_seg() {
         // This should not be called for line segments, but handle gracefully
         //return (arc.a.x * arc.b.y - arc.b.x * arc.a.y) / 2.0;
         return arc.a.perp(arc.b) / 2.0;

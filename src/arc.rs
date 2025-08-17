@@ -150,14 +150,14 @@ impl Arc {
     /// ```
     /// use basegeom::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
-    /// assert!(!arc.is_line()); // Has finite radius
+    /// assert!(!arc.is_seg()); // Has finite radius
     ///
     /// let line = arcseg(point(0.0, 0.0), point(1.0, 0.0));
-    /// assert!(line.is_line()); // Has infinite radius (line segment)
+    /// assert!(line.is_seg()); // Has infinite radius (line segment)
     /// ```
     #[inline]
     #[must_use]
-    pub fn is_line(&self) -> bool {
+    pub fn is_seg(&self) -> bool {
         self.r == f64::INFINITY
     }
 
@@ -300,7 +300,7 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 /// ```
 /// use basegeom::prelude::*;
 /// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
-/// assert!(line.is_line());
+/// assert!(line.is_seg());
 /// assert!(!line.is_arc());
 /// assert_eq!(line.r, f64::INFINITY);
 /// ```
@@ -348,7 +348,7 @@ mod test_arc {
     #[test]
     fn test_is_arc() {
         let arc = arcseg(point(1.0, 1.0), point(1.0, 3.0));
-        assert!(arc.is_line());
+        assert!(arc.is_seg());
         assert!(!arc.is_arc());
     }
 
@@ -369,7 +369,7 @@ mod test_arc {
     fn test_arcseg_creation() {
         // Test that arcseg creates a line segment (infinite radius)
         let line_arc = arcseg(point(0.0, 0.0), point(5.0, 5.0));
-        assert!(line_arc.is_line());
+        assert!(line_arc.is_seg());
         assert!(!line_arc.is_arc());
         assert_eq!(line_arc.r, f64::INFINITY);
         assert_eq!(line_arc.a, point(0.0, 0.0));
@@ -628,7 +628,7 @@ impl Arc {
     /// assert!(!arc3.is_consistent(1e-10));
     /// ```
     pub fn is_consistent(&self, eps: f64) -> bool {
-        if self.is_line() {
+        if self.is_seg() {
             // Lines are always consistent, no center point
             return true;
         }
@@ -670,7 +670,7 @@ impl Arc {
     /// ```
     #[must_use]
     pub fn check(&self, eps: f64) -> bool {
-        if self.is_line() {
+        if self.is_seg() {
             if self.is_collapsed_ends(eps) {
                 return false;
             }
@@ -1174,7 +1174,7 @@ const MIN_BULGE: f64 = 1E-8;
 ///
 /// // Create a line (very small bulge)
 /// let line = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
-/// assert!(line.is_line());
+/// assert!(line.is_seg());
 /// ```
 #[must_use]
 pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
@@ -1503,7 +1503,7 @@ mod test_arc_g_from_points {
 pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
     let mut reversed: Vec<Arc> = Vec::with_capacity(arcs.len());
     for arc in arcs.iter().rev() {
-        if arc.is_line() {
+        if arc.is_seg() {
             reversed.push(arc.reverse());
         } else {
             reversed.push(*arc);
@@ -1516,7 +1516,7 @@ impl Arc {
     /// Makes slightly inconsistent arc consistent by adjusting the arc center
     /// and radius, keeping the endpoints fixed.
     pub fn make_consistent(&mut self) {
-        if self.is_line() {
+        if self.is_seg() {
             return;
         }
 
@@ -1626,7 +1626,7 @@ mod test_arc_make_consistent {
         arc.make_consistent();
         // Degenerate case should result in line segment
         assert!(arc.is_consistent(TEST_EPS));
-        assert!(arc.is_line());
+        assert!(arc.is_seg());
     }
 
     #[test]
@@ -1697,5 +1697,191 @@ mod test_arc_make_consistent {
             // Should use the average radius
             assert!(close_enough(arc.r, avg_radius, TEST_EPS));
         }
+    }
+}
+
+/// Checks if two arcs are genuinely intersecting, not just touching at endpoints.
+///
+/// This function determines whether two arcs have a "real" intersection that would
+/// require further processing (like splitting the arcs). It returns `true` only when
+/// the arcs intersect at interior points, not just when they touch at their endpoints.
+///
+/// The function handles all combinations of arc types:
+/// - Line segment to line segment
+/// - Arc to arc 
+/// - Line segment to arc
+/// - Arc to line segment
+///
+/// # Arguments
+///
+/// * `arc1` - The first arc (can be a line segment or circular arc)
+/// * `arc2` - The second arc (can be a line segment or circular arc)
+///
+/// # Returns
+///
+/// `true` if the arcs intersect at interior points, `false` if they don't intersect
+/// or only touch at endpoints.
+///
+/// # Examples
+///
+/// ```
+/// use basegeom::prelude::*;
+///
+/// // Two crossing line segments - really intersecting
+/// let line1 = arcseg(point(0.0, 0.0), point(2.0, 2.0));
+/// let line2 = arcseg(point(0.0, 2.0), point(2.0, 0.0));
+/// assert!(is_really_intersecting(&line1, &line2));
+///
+/// // Two line segments sharing an endpoint - not really intersecting
+/// let line1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+/// let line2 = arcseg(point(1.0, 0.0), point(2.0, 0.0));
+/// assert!(!is_really_intersecting(&line1, &line2));
+///
+/// // Arc and line segment intersecting at interior points
+/// let arc = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+/// let line = arcseg(point(0.0, -0.5), point(0.0, 1.5));
+/// assert!(is_really_intersecting(&arc, &line));
+///
+/// // Parallel line segments - no intersection
+/// let line1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+/// let line2 = arcseg(point(0.0, 1.0), point(1.0, 1.0));
+/// assert!(!is_really_intersecting(&line1, &line2));
+/// ```
+#[must_use]
+pub fn is_really_intersecting(arc1: &Arc, arc2: &Arc) -> bool {
+    if arc1.is_seg() && arc2.is_seg() {
+        let seg1 = segment(arc1.a, arc1.b);
+        let seg2 = segment(arc2.a, arc2.b);
+        return if_really_intersecting_segment_segment(&seg1, &seg2);
+    }
+    if arc1.is_arc() && arc2.is_arc() {
+        return if_really_intersecting_arc_arc(arc1, arc2);
+    }
+    if arc1.is_seg() && arc2.is_arc() {
+        let seg1 = segment(arc1.a, arc1.b);
+        return if_really_intersecting_segment_arc(&seg1, &arc2);
+    }
+    if arc1.is_arc() && arc2.is_seg() {
+        let seg2 = segment(arc2.a, arc2.b);
+        return if_really_intersecting_segment_arc(&seg2, arc1);
+    }
+    false
+}
+
+#[cfg(test)]
+mod test_is_really_intersecting {
+    use super::*;
+    use crate::point::point;
+
+    #[test]
+    fn test_crossing_line_segments() {
+        // Two line segments crossing at their midpoints
+        let line1 = arcseg(point(0.0, 0.0), point(2.0, 2.0));
+        let line2 = arcseg(point(0.0, 2.0), point(2.0, 0.0));
+        assert!(is_really_intersecting(&line1, &line2));
+    }
+
+    #[test]
+    fn test_endpoint_touching_segments() {
+        // Two line segments sharing an endpoint - not really intersecting
+        let line1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        let line2 = arcseg(point(1.0, 0.0), point(2.0, 0.0));
+        assert!(!is_really_intersecting(&line1, &line2));
+    }
+
+    #[test]
+    fn test_parallel_segments() {
+        // Parallel line segments - no intersection
+        let line1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        let line2 = arcseg(point(0.0, 1.0), point(1.0, 1.0));
+        assert!(!is_really_intersecting(&line1, &line2));
+    }
+
+    #[test]
+    fn test_overlapping_segments() {
+        // Overlapping line segments - really intersecting
+        let line1 = arcseg(point(0.0, 0.0), point(2.0, 0.0));
+        let line2 = arcseg(point(1.0, 0.0), point(3.0, 0.0));
+        assert!(is_really_intersecting(&line1, &line2));
+    }
+
+    #[test]
+    fn test_arc_to_arc_intersecting() {
+        // Two arcs that cross each other
+        let arc1 = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        let arc2 = arc(point(0.0, -1.0), point(0.0, 1.0), point(1.0, 0.0), 1.0);
+        assert!(is_really_intersecting(&arc1, &arc2));
+    }
+
+    #[test]
+    fn test_arc_to_arc_touching_endpoints() {
+        // Two arcs touching at endpoints only
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let arc2 = arc(point(1.0, 0.0), point(2.0, 0.0), point(1.5, 0.5), 1.0);
+        assert!(!is_really_intersecting(&arc1, &arc2));
+    }
+
+    #[test]
+    fn test_arc_to_arc_no_intersection() {
+        // Two arcs that don't intersect at all
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let arc2 = arc(point(2.0, 2.0), point(3.0, 2.0), point(2.5, 2.5), 1.0);
+        assert!(!is_really_intersecting(&arc1, &arc2));
+    }
+
+    #[test]
+    fn test_segment_to_arc_intersecting() {
+        // Line segment cutting through an arc
+        let arc = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        let line = arcseg(point(0.0, -0.5), point(0.0, 1.5));
+        assert!(is_really_intersecting(&line, &arc));
+    }
+
+    #[test]
+    fn test_segment_to_arc_touching_endpoint() {
+        // Line segment touching arc at its endpoint
+        let arc = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        let line = arcseg(point(-1.0, 0.0), point(-2.0, 0.0));
+        assert!(!is_really_intersecting(&line, &arc));
+    }
+
+    #[test]
+    fn test_segment_to_arc_no_intersection() {
+        // Line segment that doesn't intersect the arc
+        let arc = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        let line = arcseg(point(2.0, 0.0), point(3.0, 0.0));
+        assert!(!is_really_intersecting(&line, &arc));
+    }
+
+    #[test]
+    fn test_arc_to_segment_intersecting() {
+        // Arc cutting through a line segment (opposite order of previous test)
+        let line = arcseg(point(0.0, -0.5), point(0.0, 1.5));
+        let arc = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        assert!(is_really_intersecting(&arc, &line));
+    }
+
+    #[test]
+    fn test_tangent_cases() {
+        // Line segment tangent to arc - should not be "really intersecting"
+        let arc = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        let line = arcseg(point(-1.0, 1.0), point(1.0, 1.0));
+        assert!(!is_really_intersecting(&line, &arc));
+    }
+
+    #[test]
+    fn test_collinear_segments() {
+        // Collinear segments that don't overlap
+        let line1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        let line2 = arcseg(point(2.0, 0.0), point(3.0, 0.0));
+        assert!(!is_really_intersecting(&line1, &line2));
+    }
+
+    #[test]
+    fn test_perpendicular_segments_intersecting() {
+        // Perpendicular segments crossing
+        let line1 = arcseg(point(-1.0, 0.0), point(1.0, 0.0));
+        let line2 = arcseg(point(0.0, -1.0), point(0.0, 1.0));
+        assert!(is_really_intersecting(&line1, &line2));
     }
 }

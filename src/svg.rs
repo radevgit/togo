@@ -233,7 +233,7 @@ impl SVG {
 
     /// Draws an arc segment in the SVG format.
     pub fn arcsegment(&mut self, off: &Arc, color: &str) {
-        if off.is_line() {
+        if off.is_seg() {
             // line segment
             let seg = segment(off.a, off.b);
             self.segment(&seg, color);

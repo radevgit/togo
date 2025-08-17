@@ -59,7 +59,7 @@ use std::f64::consts::PI;
 #[must_use]
 pub fn arc_bounding_circle(arc: &Arc) -> Circle {
     // Handle line segments (infinite radius)
-    if arc.is_line() {
+    if arc.is_seg() {
         let chord_center = (arc.a + arc.b) * 0.5;
         let chord_radius = (arc.b - arc.a).norm() * 0.5;
         return Circle::new(chord_center, chord_radius);
@@ -878,7 +878,7 @@ mod test_arc_bounding_rect {
 #[must_use]
 pub fn arc_bounding_rect(arc: &Arc) -> Rect {
     // Handle line segments (infinite radius)
-    if arc.is_line() {
+    if arc.is_seg() {
         let min_x = arc.a.x.min(arc.b.x);
         let max_x = arc.a.x.max(arc.b.x);
         let min_y = arc.a.y.min(arc.b.y);
