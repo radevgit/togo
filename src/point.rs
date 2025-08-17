@@ -394,6 +394,11 @@ impl Point {
         (self.x - other.x).abs() <= eps && (self.y - other.y).abs() <= eps
     }
 
+    /// Computes the Manhattan distance to another point.
+    fn manhattan(&self, other: Self) -> f64 {
+        (self.x - other.x).abs() + (self.y - other.y).abs()
+    }
+
     // /// diff_of_prod for points
     // #[inline]
     // pub fn diff_of_prod(&self, a: f64, other: Point, b: f64) -> Point {
