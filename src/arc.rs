@@ -633,10 +633,9 @@ impl Arc {
             return true;
         }
         // Check if the radius is consistent with the center and endpoints
-        let xx = ((self.a - self.c).norm() - self.r).abs();
-        let yy = ((self.b - self.c).norm() - self.r).abs();
-        if xx > eps || yy > eps {
-            let xxx = 1;
+        let ac = ((self.a - self.c).norm() - self.r).abs();
+        let bc = ((self.b - self.c).norm() - self.r).abs();
+        if ac > eps || bc > eps {
             return false; // Inconsistent radius
         }
         true
