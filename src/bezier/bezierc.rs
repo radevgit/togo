@@ -120,7 +120,7 @@
 //     // Solve a linear 2x2 matrix equation
 //     //let det = a * d - b * c;
 //     let det = diff_of_prod(a, d, b, c);
-//     if close_enough(det, 0.0, 10e-10) {
+//     if close_enough(det, 0.0, 1e-10) {
 //         return None; // No solution
 //     }
 

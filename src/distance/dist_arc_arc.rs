@@ -56,7 +56,7 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
     let mut min_dist = min_4(dist0, dist1, dist2, dist3);
 
     // The arcs are cocircular
-    if arc0.c.close_enough(arc1.c, 10E-10) {
+    if arc0.c.close_enough(arc1.c, 1E-10) {
         // TODO: use a constant
         return min_dist;
     }
