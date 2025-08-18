@@ -355,7 +355,8 @@ pub mod prelude {
     pub use crate::algo::{is_convex_pointline, pointline_area, pointline_convex_hull};
     pub use crate::arc::{
         Arc, Arcline, arc, arc_bulge_from_points, arc_circle_parametrization,
-        arcline_translate, arcline_reverse, arcseg, is_really_intersecting,
+        arcline_translate, arcline_reverse, arcline_is_valid, arcseg, is_really_intersecting,
+        ArclineValidation
     };
     pub use crate::circle::{Circle, circle};
     pub use crate::interval::{Interval, interval};
