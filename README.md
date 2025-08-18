@@ -6,7 +6,7 @@
 
 ```toml
 [dependencies]
-basegeom = "0.3.1"
+basegeom = "0.3.2"
 ```
 ![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
