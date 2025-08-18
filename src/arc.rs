@@ -661,13 +661,13 @@ impl Arc {
     /// ```
     /// use basegeom::prelude::*;
     /// let valid_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-    /// assert!(valid_arc.check(1e-10));
+    /// assert!(valid_arc.is_valid(1e-10));
     ///
     /// let invalid_arc = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.5), 1.0);
-    /// assert!(!invalid_arc.check(1e-10)); // Collapsed endpoints
+    /// assert!(!invalid_arc.is_valid(1e-10)); // Collapsed endpoints
     ///
     /// let inconsistent_arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(0.5, 0.0), 2.0);
-    /// assert!(!inconsistent_arc.check(1e-10)); // Inconsistent geometry
+    /// assert!(!inconsistent_arc.is_valid(1e-10)); // Inconsistent geometry
     /// ```
     #[must_use]
     pub fn is_valid(&self, eps: f64) -> bool {
@@ -1957,7 +1957,8 @@ pub enum ArclineValidation {
 /// // Valid arcline: two connected line segments forming an L-shape
 /// let arc1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
 /// let arc2 = arcseg(point(1.0, 0.0), point(1.0, 1.0));
-/// let arcline = vec![arc1, arc2];
+/// let arc3 = arcseg(point(1.0, 1.0), point(0.0, 0.0));
+/// let arcline = vec![arc1, arc2, arc3];
 /// assert_eq!(arcline_is_valid(&arcline), ArclineValidation::Valid);
 ///
 /// // Invalid arcline: empty
