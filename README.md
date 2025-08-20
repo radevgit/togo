@@ -437,7 +437,7 @@ let points = vec![
 ];
 let hull = pointline_convex_hull(&points);
 // Hull should contain only the exterior points
-assert_eq!(hull.len(), 5); // 5 points on the convex hull
+assert_eq!(hull.len(), 4); // 4 points on the convex hull
 
 // Check if a polygon is convex
 let convex_polygon = vec![
