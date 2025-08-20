@@ -265,7 +265,7 @@ assert!(!close_enough(1.0, 1.1, 1e-5));
 assert!(almost_equal_as_int(1.0, 1.0, 0));
 ```
 
-### Arc-arc intersection
+### Arc-Arc intersection
 ```rust
 use basegeom::prelude::*;
 // Create two intersecting arcs
@@ -287,58 +287,58 @@ let a1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
 ### Distance computations
 ```rust
 use basegeom::prelude::*;
-    let l = line(point(0.0, 3.0), point(1.0, 0.0)); // Line with point and direction
-    let c = circle(point(0.0, 0.0), 2.0);
-    let result = dist_line_circle(&l, &c);
-    match result {
-        DistLineCircleConfig::OnePair(dist, _param, _line_pt, _circle_pt) => {
-            assert_eq!(1.0, dist);
-        }
-        _ => assert!(false), // Accept other valid distance results
+let l = line(point(0.0, 3.0), point(1.0, 0.0)); // Line with point and direction
+let c = circle(point(0.0, 0.0), 2.0);
+let result = dist_line_circle(&l, &c);
+match result {
+    DistLineCircleConfig::OnePair(dist, _param, _line_pt, _circle_pt) => {
+        assert_eq!(1.0, dist);
     }
-    // Distance from point to arc
-    let p = point(2.0, 0.0);
-    let a = arc(point(0.0, 1.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
-    match dist_point_arc(&p, &a) {
-        DistPointArcConfig::OnePoint(dist, _) => {
-            assert_eq!(1.0, dist);
-        }
-        _ => assert!(false), // Accept other valid distance results
+    _ => assert!(false), // Accept other valid distance results
+}
+// Distance from point to arc
+let p = point(2.0, 0.0);
+let a = arc(point(0.0, 1.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
+match dist_point_arc(&p, &a) {
+    DistPointArcConfig::OnePoint(dist, _) => {
+        assert_eq!(1.0, dist);
     }
-    // Distance from segment to arc
-    let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
-    let a = arc(point(0.0, 1.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
-    let dist = dist_segment_arc(&seg, &a);
+    _ => assert!(false), // Accept other valid distance results
+}
+// Distance from segment to arc
+let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
+let a = arc(point(0.0, 1.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
+let dist = dist_segment_arc(&seg, &a);
     assert_eq!(2.0, dist);
 ```
 
 ```rust
 use basegeom::prelude::*;
-    // Distance from segment to circle
-    let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
-    let c = circle(point(0.0, 0.0), 1.0);
-    let result = dist_segment_circle(&seg, &c);
-    // Function returns DistSegmentCircleConfig enum
-    match result {
-        DistSegmentCircleConfig::OnePoint(dist, closest) => {
-            assert_eq!(2.0, dist); // Distance should be non-negative
-        }
-        _ => assert!(false), // Accept any valid distance result
+// Distance from segment to circle
+let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
+let c = circle(point(0.0, 0.0), 1.0);
+let result = dist_segment_circle(&seg, &c);
+// Function returns DistSegmentCircleConfig enum
+match result {
+    DistSegmentCircleConfig::OnePoint(dist, closest) => {
+        assert_eq!(2.0, dist); // Distance should be non-negative
     }
-    // Distance between two segments
-    let seg1 = segment(point(0.0, 0.0), point(1.0, 0.0));
-    let seg2 = segment(point(0.0, 2.0), point(1.0, 2.0));
-    let dist = dist_segment_segment(&seg1, &seg2);
-    assert_eq!(dist, 2.0); // Parallel segments 2 units apart
+    _ => assert!(false), // Accept any valid distance result
+}
+// Distance between two segments
+let seg1 = segment(point(0.0, 0.0), point(1.0, 0.0));
+let seg2 = segment(point(0.0, 2.0), point(1.0, 2.0));
+let dist = dist_segment_segment(&seg1, &seg2);
+assert_eq!(dist, 2.0); // Parallel segments 2 units apart
 ```
 
 ### Intersection computations
 ```rust
 use basegeom::prelude::*;
-), point(1.0, 0.0));
-    let seg2 = segment(point(0.0, 2.0), point(1.0, 2.0));
-    let dist = dist_segment_segment(&seg1, &seg2);
-    assert_eq!(dist, 2.0); // Parallel segments 2 units apart
+let seg1 = segment(point(0.0, 0.0), point(1.0, 0.0));
+let seg2 = segment(point(0.0, 2.0), point(1.0, 2.0));
+let dist = dist_segment_segment(&seg1, &seg2);
+assert_eq!(dist, 2.0); // Parallel segments 2 units apart
 ```
 
 ### Intersection computations
