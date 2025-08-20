@@ -1202,28 +1202,28 @@ const MIN_BULGE: f64 = 1E-8;
 /// assert!(line.is_seg());
 /// ```
 #[must_use]
-pub fn arc_circle_parametrization(pp1: Point, pp2: Point, bulge: f64) -> Arc {
-    let mut p1 = pp1;
-    let mut p2 = pp2;
+pub fn arc_circle_parametrization(p1: Point, p2: Point, bulge: f64) -> Arc {
+    let mut pp1 = p1;
+    let mut pp2 = p2;
     let mut bulge = bulge;
-    if bulge.abs() < MIN_BULGE || p1.close_enough(p2, EPS_COLLAPSED) {
+    if bulge.abs() <= MIN_BULGE || pp1.close_enough(pp2, EPS_COLLAPSED) {
         // create line
-        return arcseg(pp1, pp2);
+        return arcseg(p1, p2);
     }
     if bulge < 0f64 {
         // make arc CCW
-        p1 = pp2;
-        p2 = pp1;
+        pp1 = p2;
+        pp2 = p1;
         bulge = -bulge;
     }
 
     // TODO: check for numerical issues
-    let t2 = (p2 - p1).norm();
+    let t2 = (pp2 - pp1).norm();
     let dt2 = (1.0 + bulge) * (1.0 - bulge) / (4.0 * bulge);
-    let cx = (0.5 * p1.x + 0.5 * p2.x) + dt2 * (p1.y - p2.y);
-    let cy = (0.5 * p1.y + 0.5 * p2.y) + dt2 * (p2.x - p1.x);
+    let cx = (0.5 * pp1.x + 0.5 * pp2.x) + dt2 * (pp1.y - pp2.y);
+    let cy = (0.5 * pp1.y + 0.5 * pp2.y) + dt2 * (pp2.x - pp1.x);
     let r = 0.25 * t2 * (1.0 / bulge + bulge).abs();
-    arc(p1, p2, point(cx, cy), r)
+    arc(pp1, pp2, point(cx, cy), r)
 }
 
 #[cfg(test)]
