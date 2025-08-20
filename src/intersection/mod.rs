@@ -14,7 +14,6 @@ pub mod int_line_circle;
 pub mod int_line_line;
 pub mod int_segment_arc;
 pub mod int_segment_circle;
-pub mod int_segment_point;
 pub mod int_segment_segment;
 
 // Re-export all public types and functions for easy access
@@ -26,7 +25,6 @@ pub use int_line_circle::{LineCircleConfig, int_line_circle};
 pub use int_line_line::{LineLineConfig, int_line_line};
 pub use int_segment_arc::{SegmentArcConfig, if_really_intersecting_segment_arc, int_segment_arc};
 pub use int_segment_circle::{SegmentCircleConfig, int_segment_circle};
-pub use int_segment_point::{SegmentPointConfig, int_segment_point};
 pub use int_segment_segment::{
     SegmentSegmentConfig, if_really_intersecting_segment_segment, int_segment_segment,
 };

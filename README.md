@@ -6,7 +6,7 @@
 
 ```toml
 [dependencies]
-basegeom = "0.3.2"
+basegeom = "0.3.3"
 ```
 ![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
@@ -16,10 +16,7 @@ basegeom = "0.3.2"
 
 ## Basic 2D geometric operations
 
-The intention of this library is to provide a foundation for 2D geometric operations. 
-It includes mostly basic operations like point manipulation and distance/intersection
-between line segments and circle arcs.
-
+The intention of this library is to provide a 2D geometric operations for arcs and line segments. 
 It is intended for use in My other projects, and **may not implement** all possible geometric operations.
 
 
@@ -34,9 +31,9 @@ It is intended for use in My other projects, and **may not implement** all possi
 - Support for polylines and vertex manipulation
 
 ## Distance Functions
+- dist_arc_arc
 - dist_line_circle
 - dist_point_arc
-- dist_point_arc_dist
 - dist_point_circle
 - dist_point_segment
 - dist_segment_arc
@@ -52,7 +49,6 @@ It is intended for use in My other projects, and **may not implement** all possi
 - int_line_line
 - int_segment_arc
 - int_segment_circle
-- int_segment_point
 - int_segment_segment
 - if_really_intersecting_arc_arc
 - if_really_intersecting_segment_arc

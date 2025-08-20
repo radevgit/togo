@@ -380,11 +380,11 @@ pub mod prelude {
     // Re-export intersection computation functions
     pub use crate::intersection::{
         ArcArcConfig, CircleCircleConfig, IntervalConfig, LineArcConfig, LineCircleConfig,
-        LineLineConfig, SegmentArcConfig, SegmentCircleConfig, SegmentPointConfig,
+        LineLineConfig, SegmentArcConfig, SegmentCircleConfig,
         SegmentSegmentConfig, if_really_intersecting_arc_arc, if_really_intersecting_segment_arc,
         if_really_intersecting_segment_segment, int_arc_arc, int_circle_circle,
         int_interval_interval, int_line_arc, int_line_circle, int_line_line, int_segment_arc,
-        int_segment_circle, int_segment_point, int_segment_segment,
+        int_segment_circle, int_segment_segment,
     };
 
     // Re-export utility functions
