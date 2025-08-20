@@ -1129,7 +1129,7 @@ mod test_arc_validation {
 #[must_use]
 pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     let dist = (b - a).norm();
-    if dist < 1E-10 {
+    if dist <= 1E-10 {
         // close points
         // TODO
         return 0f64;
@@ -1160,7 +1160,7 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     // But to match arc_circle_parametrization, we need to return the actual bulge
     // The relationship is: bulge = dist / (2 * seg)
     // This comes from the inverse of the parametrization formula
-    if seg.abs() < 1E-10 {
+    if seg.abs() <= 1E-10 {
         return 0f64;
     }
     dist / (2.0 * seg)
@@ -1512,6 +1512,15 @@ mod test_arc_g_from_points {
                 calculated_bulge
             );
         }
+    }
+    
+    #[test]
+    fn test_close_points_large_bulge() {
+        let r = 1.0;
+        let bulge = arc_bulge_from_points(point(0.0, 0.0), point(0.0, 3e-5), point(0.0, 1.0), r);
+        assert!(bulge > 133333.0);
+        let arc = arc_circle_parametrization(point(0.0, 0.0), point(0.0, 3e-5), bulge);
+        assert_eq!(close_enough(arc.r, r, 1e-6), true);
     }
 }
 
