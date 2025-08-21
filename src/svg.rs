@@ -23,7 +23,7 @@ use crate::prelude::*;
 /// ```
 /// use basegeom::prelude::*;
 ///
-/// let mut svg = SVG::new(200.0, 200.0, "/tmp/debug.svg");
+/// let mut svg = SVG::new(200.0, 200.0, Some("/tmp/debug.svg"));
 /// // ... render geometric elements
 /// svg.write(); // Save to file
 /// ```
@@ -49,7 +49,7 @@ impl SVG {
     /// ```
     /// use basegeom::prelude::*;
     ///
-    /// let svg = SVG::new(800.0, 600.0, "/tmp/visualization.svg");
+    /// let svg = SVG::new(800.0, 600.0, Some("/tmp/visualization.svg"));
     /// ```
     #[inline]
     pub fn new(xsize: f64, ysize: f64, out: Option<&str>) -> Self {
