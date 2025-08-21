@@ -10,6 +10,8 @@ basegeom = "0.3.5"
 ```
 ![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
+![](https://raw.githubusercontent.com/radevgit/basegeom/refs/heads/main/examples/img/bounding.png "bounding")
+
 ## Documentation
 
 [<https://docs.rs/basegeom>](https://docs.rs/basegeom)
