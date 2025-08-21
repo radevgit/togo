@@ -2,9 +2,10 @@ use basegeom::prelude::*;
 
 fn main() {
     // Writes SVG to standard output
-    let mut svg = SVG::new(200.0, 200.0, None);
+    let mut svg = SVG::new(1280.0, 640.0, None);
     let mut arc = arc_circle_parametrization(point(70.0, 10.0), point(10.0, 70.0), 0.7);
-    arc.translate(point(25.0, 25.0));
+    arc.scale(5.0);
+    arc.translate(point(120.0, 120.0));
     let bounding_circle = arc_bounding_circle(&arc);
     svg.circle(&bounding_circle, "green");
     svg.arc(&arc, "blue");
@@ -13,7 +14,8 @@ fn main() {
 
 
     let mut arc = arc_circle_parametrization(point(70.0, 10.0), point(10.0, 70.0), 0.7);
-    arc.translate(point(95.0, 95.0));
+    arc.scale(5.0);
+    arc.translate(point(700.0, 120.0));
     let bounding_rect = arc_bounding_rect(&arc);
     svg.rect(&bounding_rect, "green");
     svg.arc(&arc, "blue");

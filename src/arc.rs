@@ -188,6 +188,15 @@ impl Arc {
         self.c = self.c + point;
     }
 
+    /// Scales this arc by the given factor.
+    #[inline]
+    pub fn scale(&mut self, factor: f64) {
+        self.a = self.a * factor;
+        self.b = self.b * factor;
+        self.c = self.c * factor;
+        self.r *= factor;
+    }
+
     /// Returns a reversed copy of this Arc.
     ///
     /// The reversed arc (all arcs are CCW) is not the same as original arc, but complement of the circle.
