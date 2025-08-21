@@ -108,7 +108,7 @@ impl SVG {
         ).unwrap();
         write!(
             &mut header,
-            "\n<rect width=\"100%\" height=\"100%\" fill=\"#ffffff00\" />\n"
+            "\n<rect width=\"100%\" height=\"100%\" fill=\"#ffffffff\" />\n"
         )
         .unwrap();
         header.push('\n');

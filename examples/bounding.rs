@@ -9,8 +9,8 @@ fn main() {
     let bounding_circle = arc_bounding_circle(&arc);
     svg.circle(&bounding_circle, "green");
     svg.arc(&arc, "blue");
-    svg.circle(&circle(arc.a, 1.0), "red");
-    svg.circle(&circle(arc.b, 1.0), "red");
+    svg.circle(&circle(arc.a, 5.0), "red");
+    svg.circle(&circle(arc.b, 5.0), "red");
 
 
     let mut arc = arc_circle_parametrization(point(70.0, 10.0), point(10.0, 70.0), 0.7);
@@ -19,7 +19,7 @@ fn main() {
     let bounding_rect = arc_bounding_rect(&arc);
     svg.rect(&bounding_rect, "green");
     svg.arc(&arc, "blue");
-    svg.circle(&circle(arc.a, 1.0), "red");
-    svg.circle(&circle(arc.b, 1.0), "red");
-    svg.write_stroke_width(1.0);
+    svg.circle(&circle(arc.a, 5.0), "red");
+    svg.circle(&circle(arc.b, 5.0), "red");
+    svg.write_stroke_width(5.0);
 }
