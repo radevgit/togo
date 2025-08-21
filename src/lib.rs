@@ -352,7 +352,7 @@ mod svg;
 
 pub mod prelude {
     // Re-export core types and functions
-    pub use crate::algo::{is_convex_pointline, pointline_area, pointline_convex_hull};
+    pub use crate::algo::{is_convex_pointline, pointline_area, pointline_convex_hull, arc_bounding_circle, arc_bounding_rect};
     pub use crate::arc::{
         Arc, Arcline, arc, arc_bulge_from_points, arc_circle_parametrization,
         arcline_translate, arcline_reverse, arcline_is_valid, arcseg, is_really_intersecting,

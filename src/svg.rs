@@ -108,7 +108,7 @@ impl SVG {
         ).unwrap();
         write!(
             &mut header,
-            "\n<rect width=\"100%\" height=\"100%\" fill=\"#ffffffff\" />\n"
+            "\n<rect width=\"100%\" height=\"100%\" fill=\"#ffffff00\" />\n"
         )
         .unwrap();
         header.push('\n');
@@ -127,6 +127,24 @@ impl SVG {
             circle.c.x,
             self.ysize - circle.c.y,
             circle.r,
+            color
+        )
+        .unwrap();
+        self.s.push_str(&s);
+        self.s.push('\n');
+    }
+
+    pub fn rect(&mut self, rect: &Rect, color: &str) {
+        let mut s = String::new();
+        let width = rect.p2.x - rect.p1.x;
+        let height = rect.p2.y - rect.p1.y;
+        write!(
+            &mut s,
+            r#"<rect x="{}" y="{}" width="{}" height="{}" stroke="{}" />"#,
+            rect.p1.x,
+            self.ysize - rect.p2.y,
+            width,
+            height,
             color
         )
         .unwrap();
