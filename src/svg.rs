@@ -4,6 +4,8 @@ use std::fmt::Write as _;
 
 // Draw geometric elements for debug purposes
 
+use std::io;
+use std::path::Path;
 use std::{fs::File, io::Write};
 
 use robust::{Coord, orient2d};
@@ -26,7 +28,8 @@ use crate::prelude::*;
 /// svg.write(); // Save to file
 /// ```
 pub struct SVG {
-    f: File,
+    // f: File,
+    writer: Box<dyn Write>,
     s: String,
     pub xsize: f64,
     pub ysize: f64,
@@ -49,14 +52,22 @@ impl SVG {
     /// let svg = SVG::new(800.0, 600.0, "/tmp/visualization.svg");
     /// ```
     #[inline]
-    pub fn new(xsize: f64, ysize: f64, file: &str) -> Self {
-        let f = if file.is_empty() {
-            File::create("/tmp/out.svg").expect("creation failed")
-        } else {
-            File::create(file).expect("creation failed")
+    pub fn new(xsize: f64, ysize: f64, out: Option<&str>) -> Self {
+        let out_writer = match out {
+            Some(x) => {
+                let path = Path::new(x);
+                Box::new(File::create(&path).unwrap()) as Box<dyn Write>
+            }
+            None => Box::new(io::stdout()) as Box<dyn Write>,
         };
+
+        // let f = if file.is_empty() {
+        //     File::create("/tmp/out.svg").expect("creation failed")
+        // } else {
+        //     File::create(file).expect("creation failed")
+        // };
         let s = String::new();
-        SVG { f, s, xsize, ysize }
+        SVG { writer: out_writer, s, xsize, ysize }
     }
 }
 
@@ -80,7 +91,7 @@ impl SVG {
 #[inline]
 #[must_use]
 pub fn svg(xsize: f64, ysize: f64) -> SVG {
-    SVG::new(xsize, ysize, "")
+    SVG::new(xsize, ysize, None)
 }
 
 impl SVG {
@@ -97,15 +108,15 @@ impl SVG {
         ).unwrap();
         write!(
             &mut header,
-            "<rect width=\"100%\" height=\"100%\" fill=\"#ffffffff\" />"
+            "\n<rect width=\"100%\" height=\"100%\" fill=\"#ffffffff\" />\n"
         )
         .unwrap();
         header.push('\n');
 
         header.push_str(self.s.as_str());
 
-        header.push_str("</svg>");
-        self.f.write_all(header.as_bytes()).expect("write failed");
+        header.push_str("</svg>\n");
+        self.writer.write_all(header.as_bytes()).expect("write failed");
     }
 
     pub fn circle(&mut self, circle: &Circle, color: &str) {
@@ -297,10 +308,19 @@ mod test_svg {
     use super::*;
 
     #[test]
-    fn test_new() {
-        let s0 = SVG::new(400.0, 300.0, "");
-        let s1 = svg(400.0, 300.0);
-        assert_eq!(s0.xsize, s1.xsize);
-        assert_eq!(s0.ysize, s1.ysize);
+    fn test_circle_svg_std_out() {
+        let mut svg = svg(400.0, 300.0);
+        let c = circle(point(200.0, 150.0), 50.0);
+        svg.circle(&c, "red");
+        svg.write(); // to stdout
+    }
+
+    #[test]
+    #[ignore = "writes to file, not stdout"]
+    fn test_circle_svg_to_file() {
+        let mut svg = SVG::new(400.0, 300.0, Some("/tmp/test.svg"));
+        let c = circle(point(200.0, 150.0), 50.0);
+        svg.circle(&c, "red");
+        svg.write(); // to stdout
     }
 }

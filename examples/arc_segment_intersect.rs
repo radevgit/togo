@@ -1,8 +1,8 @@
 use basegeom::prelude::*;
 
 fn main() {
-    // Writes SVG file in selected location
-    let mut svg = SVG::new(120.0, 120.0, "/tmp/arc_segment_intersect.svg");
+    // Writes SVG to standard output
+    let mut svg = SVG::new(120.0, 120.0, None);
     let seg1 = segment(point(10.0, 10.0), point(110.0, 110.0));
     let seg2 = segment(point(10.0, 30.0), point(110.0, 30.0));
     let arc = arc(

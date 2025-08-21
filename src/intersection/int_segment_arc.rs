@@ -110,7 +110,6 @@ mod test_int_segment_arc {
     const ZERO: f64 = 0f64;
 
     #[test]
-    #[ignore = "svg output"]
     fn test_intersect_segment_arc() {
         let mut svg = svg(300.0, 350.0);
         // vertical segment and arc
