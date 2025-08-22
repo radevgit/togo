@@ -614,7 +614,7 @@ mod test_arc_bounding_rect {
     fn test_line_segment_bounding_rect() {
         // Test line segment (infinite radius)
         let line = arcseg(point(1.0, 2.0), point(4.0, 6.0));
-        let bounding = arc_bounding_rect(&line);
+        let bounding = line.bounding_rect();
 
         // Bounding rectangle should be axis-aligned rectangle containing both endpoints
         assert!((bounding.p1.x - 1.0).abs() < TEST_EPS); // min_x
@@ -631,7 +631,7 @@ mod test_arc_bounding_rect {
         let start_end = point(center.x + radius, center.y);
 
         let full_circle = arc(start_end, start_end, center, radius);
-        let bounding = arc_bounding_rect(&full_circle);
+        let bounding = full_circle.bounding_rect();
 
         // For a full circle, bounding rectangle should encompass the entire circle
         assert!((bounding.p1.x - (center.x - radius)).abs() < TEST_EPS); // min_x
@@ -650,7 +650,7 @@ mod test_arc_bounding_rect {
         let end = point(1.0, 0.0);
 
         let semicircle = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&semicircle);
+        let bounding = semicircle.bounding_rect();
 
         // Should include the bottom extreme point (0,-1) for lower semicircle
         assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x
@@ -668,7 +668,7 @@ mod test_arc_bounding_rect {
         let end = point(0.0, 1.0);
 
         let quarter_circle = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&quarter_circle);
+        let bounding = quarter_circle.bounding_rect();
 
         // Should include both endpoints but no other extreme points
         assert!((bounding.p1.x - 0.0).abs() < TEST_EPS); // min_x = end.x
@@ -686,7 +686,7 @@ mod test_arc_bounding_rect {
         let end = point(1.932, 0.518); // about 15 degrees
 
         let small_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&small_arc);
+        let bounding = small_arc.bounding_rect();
 
         // Should be bounded by the endpoints only
         let min_x = start.x.min(end.x);
@@ -709,7 +709,7 @@ mod test_arc_bounding_rect {
         let end = point(0.866, 0.5); // 30 degrees
 
         let crossing_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&crossing_arc);
+        let bounding = crossing_arc.bounding_rect();
 
         // This arc should include the right extreme point (1,0)
         assert!((bounding.p1.x - 0.866).abs() < TEST_EPS); // min_x = start.x and end.x
@@ -727,7 +727,7 @@ mod test_arc_bounding_rect {
         let end = point(-0.5, -0.866); // 240 degrees
 
         let large_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&large_arc);
+        let bounding = large_arc.bounding_rect();
 
         // This large arc should include top (90°) and left (180°) extreme points
         // Based on actual output: p1=(-1, -0.866), p2=(1, 1)
@@ -746,7 +746,7 @@ mod test_arc_bounding_rect {
         let end = point(0.0, -1.0); // 270 degrees
 
         let large_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&large_arc);
+        let bounding = large_arc.bounding_rect();
 
         // Should include right (0°), top (90°), and left (180°) extreme points
         assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x = left extreme
@@ -764,7 +764,7 @@ mod test_arc_bounding_rect {
         let end = point(5.0, 5.0); // center + (0,2)
 
         let translated_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&translated_arc);
+        let bounding = translated_arc.bounding_rect();
 
         // Should be bounded by the endpoints only (quarter arc, no extreme points included)
         assert!((bounding.p1.x - 5.0).abs() < TEST_EPS); // min_x = end.x
@@ -781,7 +781,7 @@ mod test_arc_bounding_rect {
         let end = point(1.0, 1.0);
 
         let point_arc = arc(start, end, center, 0.0);
-        let bounding = arc_bounding_rect(&point_arc);
+        let bounding = point_arc.bounding_rect();
 
         // Bounding rectangle should be a point
         assert!((bounding.p1.x - 1.0).abs() < TEST_EPS);
@@ -794,7 +794,7 @@ mod test_arc_bounding_rect {
     fn test_vertical_line_segment() {
         // Test vertical line segment
         let line = arcseg(point(2.0, 1.0), point(2.0, 5.0));
-        let bounding = arc_bounding_rect(&line);
+        let bounding = line.bounding_rect();
 
         assert!((bounding.p1.x - 2.0).abs() < TEST_EPS); // min_x = max_x
         assert!((bounding.p1.y - 1.0).abs() < TEST_EPS); // min_y
@@ -806,7 +806,7 @@ mod test_arc_bounding_rect {
     fn test_horizontal_line_segment() {
         // Test horizontal line segment
         let line = arcseg(point(1.0, 3.0), point(7.0, 3.0));
-        let bounding = arc_bounding_rect(&line);
+        let bounding = line.bounding_rect();
 
         assert!((bounding.p1.x - 1.0).abs() < TEST_EPS); // min_x
         assert!((bounding.p1.y - 3.0).abs() < TEST_EPS); // min_y = max_y
@@ -823,7 +823,7 @@ mod test_arc_bounding_rect {
         let end = point(0.707, -0.707); // 315 degrees
 
         let spanning_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_rect(&spanning_arc);
+        let bounding = spanning_arc.bounding_rect();
 
         // Should include top (90°), left (180°), and bottom (270°) extreme points
         assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x = left extreme
@@ -833,26 +833,124 @@ mod test_arc_bounding_rect {
     }
 }
 
+impl Arc {
+    /// Computes the smallest axis-aligned bounding rectangle around this circular arc.
+    ///
+    /// This method calculates the minimal axis-aligned bounding rectangle (AABB) that
+    /// completely encloses this arc. The algorithm considers:
+    /// - The arc endpoints (always included)
+    /// - The extreme points of the full circle (top, bottom, left, right) if they
+    ///   lie within the arc's angular span
+    ///
+    /// For line segments (infinite radius), it returns the bounding rectangle with
+    /// corners at the segment endpoints.
+    ///
+    /// # Algorithm
+    ///
+    /// The algorithm determines the bounding rectangle by:
+    /// 1. Starting with the arc endpoints to establish initial bounds
+    /// 2. Checking if any of the four extreme points (0°, 90°, 180°, 270°) of the
+    ///    full circle lie within the arc's angular span
+    /// 3. Including those extreme points to extend the bounds as needed
+    /// 4. Constructing the final rectangle from the min/max coordinates
+    ///
+    /// # Returns
+    ///
+    /// A `Rect` representing the smallest axis-aligned bounding rectangle
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    ///
+    /// // Quarter circle arc
+    /// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+    /// let bounding = quarter_arc.bounding_rect();
+    ///
+    /// // Small arc
+    /// let small_arc = arc(point(1.0, 0.0), point(0.9, 0.1), point(0.0, 0.0), 1.0);
+    /// let small_bounding = small_arc.bounding_rect();
+    /// ```
+    #[must_use]
+    pub fn bounding_rect(&self) -> Rect {
+        // Handle line segments (infinite radius)
+        if self.is_seg() {
+            let min_x = self.a.x.min(self.b.x);
+            let max_x = self.a.x.max(self.b.x);
+            let min_y = self.a.y.min(self.b.y);
+            let max_y = self.a.y.max(self.b.y);
+            return Rect::new(point(min_x, min_y), point(max_x, max_y));
+        }
+
+        // Handle degenerate case where start == end (full circle or point)
+        if (self.a - self.b).norm() < 1e-10 {
+            if self.r > 1e-10 {
+                // Full circle case - return rectangle encompassing entire circle
+                let min_x = self.c.x - self.r;
+                let max_x = self.c.x + self.r;
+                let min_y = self.c.y - self.r;
+                let max_y = self.c.y + self.r;
+                return Rect::new(point(min_x, min_y), point(max_x, max_y));
+            } else {
+                // Point case
+                return Rect::new(self.a, self.a);
+            }
+        }
+
+        // For circular arcs, find the bounding rectangle
+        let center = self.c;
+        let radius = self.r;
+
+        // Start with endpoints
+        let mut min_x = self.a.x.min(self.b.x);
+        let mut max_x = self.a.x.max(self.b.x);
+        let mut min_y = self.a.y.min(self.b.y);
+        let mut max_y = self.a.y.max(self.b.y);
+
+        // Calculate start and end angles
+        let start_angle = (self.a - center).y.atan2((self.a - center).x);
+        let end_angle = (self.b - center).y.atan2((self.b - center).x);
+
+        // Normalize angles to [0, 2π) and ensure CCW orientation
+        let start_norm = if start_angle < 0.0 {
+            start_angle + 2.0 * PI
+        } else {
+            start_angle
+        };
+        let end_norm = if end_angle < 0.0 {
+            end_angle + 2.0 * PI
+        } else {
+            end_angle
+        };
+
+        // Check the four extreme points of the full circle
+        let extreme_angles = [0.0, PI * 0.5, PI, PI * 1.5]; // Right, Top, Left, Bottom
+        let extreme_points = [
+            center + point(radius, 0.0),  // Right (0°): affects max_x
+            center + point(0.0, radius),  // Top (90°): affects max_y
+            center + point(-radius, 0.0), // Left (180°): affects min_x
+            center + point(0.0, -radius), // Bottom (270°): affects min_y
+        ];
+
+        // Add extreme points that lie within the arc's angular span
+        for (i, &angle) in extreme_angles.iter().enumerate() {
+            if angle_in_range(angle, start_norm, end_norm) {
+                let extreme_point = extreme_points[i];
+                min_x = min_x.min(extreme_point.x);
+                max_x = max_x.max(extreme_point.x);
+                min_y = min_y.min(extreme_point.y);
+                max_y = max_y.max(extreme_point.y);
+            }
+        }
+
+        Rect::new(point(min_x, min_y), point(max_x, max_y))
+    }
+}
+
 /// Computes the smallest axis-aligned bounding rectangle around a circular arc.
 ///
-/// This function calculates the minimal axis-aligned bounding rectangle (AABB) that
-/// completely encloses the given arc. The algorithm considers:
-/// - The arc endpoints (always included)
-/// - The extreme points of the full circle (top, bottom, left, right) if they
-///   lie within the arc's angular span
-///
-/// For line segments (infinite radius), it returns the bounding rectangle with
-/// corners at the segment endpoints.
-///
-/// # Algorithm
-///
-/// The algorithm determines the bounding rectangle by:
-/// 1. Starting with the arc endpoints to establish initial bounds
-/// 2. Checking if any of the four extreme points (0°, 90°, 180°, 270°) of the
-///    full circle lie within the arc's angular span
-/// 3. Including those extreme points to extend the bounds as needed
-/// 4. Constructing the final rectangle from the min/max coordinates
-///
+/// This is a convenience function that calls the `bounding_rect()` method on the Arc.
+/// 
 /// # Arguments
 ///
 /// * `arc` - The circular arc to bound
@@ -869,83 +967,9 @@ mod test_arc_bounding_rect {
 ///
 /// // Quarter circle arc
 /// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
-/// let bounding = arc_bounding_rect(&quarter_arc);
-///
-/// // Small arc
-/// let small_arc = arc(point(1.0, 0.0), point(0.9, 0.1), point(0.0, 0.0), 1.0);
-/// let small_bounding = arc_bounding_rect(&small_arc);
+/// let bounding = quarter_arc.bounding_rect();
 /// ```
 #[must_use]
 pub fn arc_bounding_rect(arc: &Arc) -> Rect {
-    // Handle line segments (infinite radius)
-    if arc.is_seg() {
-        let min_x = arc.a.x.min(arc.b.x);
-        let max_x = arc.a.x.max(arc.b.x);
-        let min_y = arc.a.y.min(arc.b.y);
-        let max_y = arc.a.y.max(arc.b.y);
-        return Rect::new(point(min_x, min_y), point(max_x, max_y));
-    }
-
-    // Handle degenerate case where start == end (full circle or point)
-    if (arc.a - arc.b).norm() < 1e-10 {
-        if arc.r > 1e-10 {
-            // Full circle case - return rectangle encompassing entire circle
-            let min_x = arc.c.x - arc.r;
-            let max_x = arc.c.x + arc.r;
-            let min_y = arc.c.y - arc.r;
-            let max_y = arc.c.y + arc.r;
-            return Rect::new(point(min_x, min_y), point(max_x, max_y));
-        } else {
-            // Point case
-            return Rect::new(arc.a, arc.a);
-        }
-    }
-
-    // For circular arcs, find the bounding rectangle
-    let center = arc.c;
-    let radius = arc.r;
-
-    // Start with endpoints
-    let mut min_x = arc.a.x.min(arc.b.x);
-    let mut max_x = arc.a.x.max(arc.b.x);
-    let mut min_y = arc.a.y.min(arc.b.y);
-    let mut max_y = arc.a.y.max(arc.b.y);
-
-    // Calculate start and end angles
-    let start_angle = (arc.a - center).y.atan2((arc.a - center).x);
-    let end_angle = (arc.b - center).y.atan2((arc.b - center).x);
-
-    // Normalize angles to [0, 2π) and ensure CCW orientation
-    let start_norm = if start_angle < 0.0 {
-        start_angle + 2.0 * PI
-    } else {
-        start_angle
-    };
-    let end_norm = if end_angle < 0.0 {
-        end_angle + 2.0 * PI
-    } else {
-        end_angle
-    };
-
-    // Check the four extreme points of the full circle
-    let extreme_angles = [0.0, PI * 0.5, PI, PI * 1.5]; // Right, Top, Left, Bottom
-    let extreme_points = [
-        center + point(radius, 0.0),  // Right (0°): affects max_x
-        center + point(0.0, radius),  // Top (90°): affects max_y
-        center + point(-radius, 0.0), // Left (180°): affects min_x
-        center + point(0.0, -radius), // Bottom (270°): affects min_y
-    ];
-
-    // Add extreme points that lie within the arc's angular span
-    for (i, &angle) in extreme_angles.iter().enumerate() {
-        if angle_in_range(angle, start_norm, end_norm) {
-            let extreme_point = extreme_points[i];
-            min_x = min_x.min(extreme_point.x);
-            max_x = max_x.max(extreme_point.x);
-            min_y = min_y.min(extreme_point.y);
-            max_y = max_y.max(extreme_point.y);
-        }
-    }
-
-    Rect::new(point(min_x, min_y), point(max_x, max_y))
+    arc.bounding_rect()
 }
