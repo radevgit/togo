@@ -4,135 +4,6 @@ use crate::prelude::*;
 use robust::{Coord, incircle, orient2d};
 use std::f64::consts::PI;
 
-/// Computes the smallest bounding circle around a circular arc.
-///
-/// This function calculates the minimal bounding circle that completely encloses
-/// the given arc. The algorithm considers:
-/// - The arc endpoints (always included)
-/// - The extreme points of the full circle (top, bottom, left, right) if they
-///   lie within the arc's angular span
-///
-/// For line segments (infinite radius), it returns the bounding circle with
-/// diameter equal to the segment length.
-///
-/// # Algorithm
-///
-/// The algorithm is based on the fact that the minimal bounding circle of a circular arc
-/// either:
-/// 1. Has diameter equal to the chord between endpoints (for small arcs)
-/// 2. Is determined by the endpoints and extreme points of the full circle that
-///    lie within the arc's angular span
-///
-/// The extreme points are tested by checking if their angles lie within the
-/// arc's angular range [start_angle, end_angle] in CCW direction.
-///
-/// # Arguments
-///
-/// * `arc` - The circular arc to bound
-///
-/// # Returns
-///
-/// A `Circle` representing the smallest bounding circle
-///
-/// # References
-///
-/// - Eberly, D. (2008). "Smallest Enclosing Circle of an Arc".
-///   Geometric Tools Documentation.
-/// - O'Rourke, J. (1998). "Computational Geometry in C". Cambridge University Press.
-/// - de Berg, M., et al. (2008). "Computational Geometry: Algorithms and Applications".
-///   Springer-Verlag.
-///
-/// # Examples
-///
-/// ```
-/// use basegeom::prelude::*;
-/// use basegeom::algo::bounding::arc_bounding_circle;
-///
-/// // Quarter circle arc
-/// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
-/// let bounding = arc_bounding_circle(&quarter_arc);
-///
-/// // Small arc - bounding circle has chord as diameter
-/// let small_arc = arc(point(1.0, 0.0), point(0.9, 0.1), point(0.0, 0.0), 1.0);
-/// let small_bounding = arc_bounding_circle(&small_arc);
-/// ```
-#[must_use]
-pub fn arc_bounding_circle(arc: &Arc) -> Circle {
-    // Handle line segments (infinite radius)
-    if arc.is_seg() {
-        let chord_center = (arc.a + arc.b) * 0.5;
-        let chord_radius = (arc.b - arc.a).norm() * 0.5;
-        return Circle::new(chord_center, chord_radius);
-    }
-
-    // Handle degenerate case where start == end (full circle or point)
-    if (arc.a - arc.b).norm() < 1e-10 {
-        // This is either a full circle or a point
-        if arc.r > 1e-10 {
-            // Full circle case - return the arc's circle
-            return Circle::new(arc.c, arc.r);
-        } else {
-            // Point case
-            return Circle::new(arc.a, 0.0);
-        }
-    }
-
-    // For circular arcs, we need to find the minimal bounding circle
-    let center = arc.c;
-    let radius = arc.r;
-
-    // Calculate start and end angles
-    let start_angle = (arc.a - center).y.atan2((arc.a - center).x);
-    let end_angle = (arc.b - center).y.atan2((arc.b - center).x);
-
-    // Calculate arc span in CCW direction
-    let mut span = end_angle - start_angle;
-    if span < 0.0 {
-        span += 2.0 * PI;
-    }
-
-    // For arcs spanning more than π radians (180°), the arc's own circle
-    // is always the minimal bounding circle
-    if span > PI {
-        return Circle::new(center, radius);
-    }
-
-    // For smaller arcs, use candidate points approach
-    // Start with the endpoints
-    let mut candidate_points = vec![arc.a, arc.b];
-
-    // Normalize angles to [0, 2π) and ensure CCW orientation
-    let start_norm = if start_angle < 0.0 {
-        start_angle + 2.0 * PI
-    } else {
-        start_angle
-    };
-    let end_norm = if end_angle < 0.0 {
-        end_angle + 2.0 * PI
-    } else {
-        end_angle
-    };
-
-    // Check the four extreme points of the full circle
-    let extreme_angles = [0.0, PI * 0.5, PI, PI * 1.5]; // Right, Top, Left, Bottom
-    let extreme_points = [
-        center + point(radius, 0.0),  // Right
-        center + point(0.0, radius),  // Top
-        center + point(-radius, 0.0), // Left
-        center + point(0.0, -radius), // Bottom
-    ];
-
-    // Add extreme points that lie within the arc's angular span
-    for (i, &angle) in extreme_angles.iter().enumerate() {
-        if angle_in_range(angle, start_norm, end_norm) {
-            candidate_points.push(extreme_points[i]);
-        }
-    }
-
-    // Find the minimal bounding circle of all candidate points
-    minimal_bounding_circle(&candidate_points)
-}
-
 /// Checks if an angle lies within the range [start, end] considering CCW orientation.
 fn angle_in_range(angle: f64, start: f64, end: f64) -> bool {
     if start <= end {
@@ -309,7 +180,7 @@ mod test_arc_bounding_circle {
     fn test_line_segment_bounding() {
         // Test line segment (infinite radius)
         let line = arcseg(point(0.0, 0.0), point(3.0, 4.0));
-        let bounding = arc_bounding_circle(&line);
+        let bounding = line.bounding_circle();
 
         // Bounding circle should have chord as diameter
         let expected_center = point(1.5, 2.0); // Midpoint
@@ -328,7 +199,7 @@ mod test_arc_bounding_circle {
         let start_end = point(radius, 0.0);
 
         let full_circle = arc(start_end, start_end, center, radius);
-        let bounding = arc_bounding_circle(&full_circle);
+        let bounding = full_circle.bounding_circle();
 
         // For a full circle, bounding circle should be reasonably close to the arc's circle
         // but might not be exactly the same due to numerical precision and algorithm differences
@@ -349,7 +220,7 @@ mod test_arc_bounding_circle {
         let end = point(-1.0, 0.0);
 
         let semicircle = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&semicircle);
+        let bounding = semicircle.bounding_circle();
 
         // For a semicircle, bounding circle should be the same as the arc circle
         assert!((bounding.c.x - center.x).abs() < TEST_EPS);
@@ -366,7 +237,7 @@ mod test_arc_bounding_circle {
         let end = point(0.0, 1.0);
 
         let quarter_circle = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&quarter_circle);
+        let bounding = quarter_circle.bounding_circle();
 
         // For quarter circle, check that bounding circle contains all extreme points
         // The quarter circle includes the top (0,1) and right (1,0) extreme points
@@ -399,7 +270,7 @@ mod test_arc_bounding_circle {
         let end = point(1.9318, 0.5176); // about 15 degrees
 
         let small_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&small_arc);
+        let bounding = small_arc.bounding_circle();
 
         // For a small arc, bounding circle might be smaller than the arc circle
         // and is determined by the chord between endpoints
@@ -424,7 +295,7 @@ mod test_arc_bounding_circle {
         let end = point(0.866, 0.5); // 30 degrees (π/6)
 
         let crossing_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&crossing_arc);
+        let bounding = crossing_arc.bounding_circle();
 
         // This arc should include the right extreme point (1,0)
         let right_extreme = point(1.0, 0.0);
@@ -449,7 +320,7 @@ mod test_arc_bounding_circle {
         let end = point(-0.5, -0.866); // 240 degrees (4π/3)
 
         let large_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&large_arc);
+        let bounding = large_arc.bounding_circle();
 
         // This large arc should include top and right extreme points
         let top = point(0.0, 1.0);
@@ -477,7 +348,7 @@ mod test_arc_bounding_circle {
         let end = point(-1.9, -0.3); // Just past 180 degrees
 
         let threshold_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&threshold_arc);
+        let bounding = threshold_arc.bounding_circle();
 
         // Should return the arc's own circle
         assert!((bounding.c.x - center.x).abs() < TEST_EPS);
@@ -488,7 +359,7 @@ mod test_arc_bounding_circle {
         // This should use candidate points approach
         let end2 = point(-1.9, 0.3); // Just before 180 degrees
         let small_arc = arc(start, end2, center, radius);
-        let bounding2 = arc_bounding_circle(&small_arc);
+        let bounding2 = small_arc.bounding_circle();
 
         // Should be smaller than the arc's circle since we use candidate points
         assert!(bounding2.r < radius - TEST_EPS);
@@ -503,7 +374,7 @@ mod test_arc_bounding_circle {
         let end = point(0.9999, 0.0001);
 
         let degenerate_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&degenerate_arc);
+        let bounding = degenerate_arc.bounding_circle();
 
         // Bounding circle should contain both points
         let dist_to_start = (start - bounding.c).norm();
@@ -525,7 +396,7 @@ mod test_arc_bounding_circle {
         let end = point(5.0, 5.0); // center + (0,2)
 
         let translated_arc = arc(start, end, center, radius);
-        let bounding = arc_bounding_circle(&translated_arc);
+        let bounding = translated_arc.bounding_circle();
 
         // Bounding circle should contain both endpoints
         let dist_to_start = (start - bounding.c).norm();
@@ -547,7 +418,7 @@ mod test_arc_bounding_circle {
         let end = point(1.0, 1.0);
 
         let point_arc = arc(start, end, center, 0.0);
-        let bounding = arc_bounding_circle(&point_arc);
+        let bounding = point_arc.bounding_circle();
 
         // Bounding circle should have zero radius
         assert!(bounding.r < TEST_EPS);
@@ -834,6 +705,122 @@ mod test_arc_bounding_rect {
 }
 
 impl Arc {
+    /// Computes the smallest bounding circle around this circular arc.
+    ///
+    /// This method calculates the minimal bounding circle that completely encloses
+    /// this arc. The algorithm considers:
+    /// - The arc endpoints (always included)
+    /// - The extreme points of the full circle (top, bottom, left, right) if they
+    ///   lie within the arc's angular span
+    ///
+    /// For line segments (infinite radius), it returns the bounding circle with
+    /// diameter equal to the segment length.
+    ///
+    /// # Algorithm
+    ///
+    /// The algorithm is based on the fact that the minimal bounding circle of a circular arc
+    /// either:
+    /// 1. Has diameter equal to the chord between endpoints (for small arcs)
+    /// 2. Is determined by the endpoints and extreme points of the full circle that
+    ///    lie within the arc's angular span
+    ///
+    /// The extreme points are tested by checking if their angles lie within the
+    /// arc's angular range [start_angle, end_angle] in CCW direction.
+    ///
+    /// # Returns
+    ///
+    /// A `Circle` representing the smallest bounding circle
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use basegeom::prelude::*;
+    ///
+    /// // Quarter circle arc
+    /// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+    /// let bounding = quarter_arc.bounding_circle();
+    ///
+    /// // Small arc
+    /// let small_arc = arc(point(1.0, 0.0), point(0.9, 0.1), point(0.0, 0.0), 1.0);
+    /// let small_bounding = small_arc.bounding_circle();
+    /// ```
+    #[must_use]
+    pub fn bounding_circle(&self) -> Circle {
+        // Handle line segments (infinite radius)
+        if self.is_seg() {
+            let chord_center = (self.a + self.b) * 0.5;
+            let chord_radius = (self.b - self.a).norm() * 0.5;
+            return Circle::new(chord_center, chord_radius);
+        }
+
+        // Handle degenerate case where start == end (full circle or point)
+        if (self.a - self.b).norm() < 1e-10 {
+            // This is either a full circle or a point
+            if self.r > 1e-10 {
+                // Full circle case - return the arc's circle
+                return Circle::new(self.c, self.r);
+            } else {
+                // Point case
+                return Circle::new(self.a, 0.0);
+            }
+        }
+
+        // For circular arcs, we need to find the minimal bounding circle
+        let center = self.c;
+        let radius = self.r;
+
+        // Calculate start and end angles
+        let start_angle = (self.a - center).y.atan2((self.a - center).x);
+        let end_angle = (self.b - center).y.atan2((self.b - center).x);
+
+        // Calculate arc span in CCW direction
+        let mut span = end_angle - start_angle;
+        if span < 0.0 {
+            span += 2.0 * PI;
+        }
+
+        // For arcs spanning more than π radians (180°), the arc's own circle
+        // is always the minimal bounding circle
+        if span > PI {
+            return Circle::new(center, radius);
+        }
+
+        // For smaller arcs, use candidate points approach
+        // Start with the endpoints
+        let mut candidate_points = vec![self.a, self.b];
+
+        // Normalize angles to [0, 2π) and ensure CCW orientation
+        let start_norm = if start_angle < 0.0 {
+            start_angle + 2.0 * PI
+        } else {
+            start_angle
+        };
+        let end_norm = if end_angle < 0.0 {
+            end_angle + 2.0 * PI
+        } else {
+            end_angle
+        };
+
+        // Check the four extreme points of the full circle
+        let extreme_angles = [0.0, PI * 0.5, PI, PI * 1.5]; // Right, Top, Left, Bottom
+        let extreme_points = [
+            center + point(radius, 0.0),  // Right
+            center + point(0.0, radius),  // Top
+            center + point(-radius, 0.0), // Left
+            center + point(0.0, -radius), // Bottom
+        ];
+
+        // Add extreme points that lie within the arc's angular span
+        for (i, &angle) in extreme_angles.iter().enumerate() {
+            if angle_in_range(angle, start_norm, end_norm) {
+                candidate_points.push(extreme_points[i]);
+            }
+        }
+
+        // Find the minimal bounding circle of all candidate points
+        minimal_bounding_circle(&candidate_points)
+    }
+
     /// Computes the smallest axis-aligned bounding rectangle around this circular arc.
     ///
     /// This method calculates the minimal axis-aligned bounding rectangle (AABB) that
@@ -945,6 +932,33 @@ impl Arc {
 
         Rect::new(point(min_x, min_y), point(max_x, max_y))
     }
+}
+
+/// Computes the smallest bounding circle around a circular arc.
+///
+/// This is a convenience function that calls the `bounding_circle()` method on the Arc.
+/// 
+/// # Arguments
+///
+/// * `arc` - The circular arc to bound
+///
+/// # Returns
+///
+/// A `Circle` representing the smallest bounding circle
+///
+/// # Examples
+///
+/// ```
+/// use basegeom::prelude::*;
+/// use basegeom::algo::bounding::arc_bounding_circle;
+///
+/// // Quarter circle arc
+/// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+/// let bounding = quarter_arc.bounding_circle();
+/// ```
+#[must_use]
+pub fn arc_bounding_circle(arc: &Arc) -> Circle {
+    arc.bounding_circle()
 }
 
 /// Computes the smallest axis-aligned bounding rectangle around a circular arc.

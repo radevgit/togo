@@ -6,7 +6,7 @@ fn main() {
     let mut arc = arc_circle_parametrization(point(70.0, 10.0), point(10.0, 70.0), 0.7);
     arc.scale(5.0);
     arc.translate(point(120.0, 120.0));
-    let bounding_circle = arc_bounding_circle(&arc);
+    let bounding_circle = arc.bounding_circle();
     svg.circle(&bounding_circle, "green");
     svg.arc(&arc, "blue");
     svg.circle(&circle(arc.a, 5.0), "red");
