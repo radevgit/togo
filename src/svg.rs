@@ -171,12 +171,13 @@ impl SVG {
         let mut s = String::new();
         write!(
             &mut s,
-            r#"<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="{}" />"#,
+            r#"<line x1="{}" y1="{}" x2="{}" y2="{}" stroke="{}" id="{}"/>"#,
             segment.a.x,
             self.ysize - segment.a.y,
             segment.b.x,
             self.ysize - segment.b.y,
-            color
+            color,
+            segment.id
         )
         .unwrap();
         self.s.push_str(&s);
