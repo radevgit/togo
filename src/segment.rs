@@ -1,7 +1,10 @@
 use std::fmt::Display;
+use std::sync::atomic::AtomicUsize;
 
 use crate::point::Point;
 
+
+static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
 /// A line segment defined by two endpoints.
 ///
 /// Segments are fundamental geometric primitives.
@@ -15,10 +18,13 @@ use crate::point::Point;
 ///
 /// let seg = Segment::new(point(0.0, 0.0), point(3.0, 4.0));
 /// ```
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone)]
 pub struct Segment {
     pub a: Point,
     pub b: Point,
+    /// non-unique id, used for debugging and
+    /// checking parts coming from the same segment
+    pub id: usize,
 }
 
 impl Display for Segment {
@@ -27,7 +33,14 @@ impl Display for Segment {
     }
 }
 
-impl Segment {
+// Implemented because id is different in tests
+impl PartialEq for Segment {
+    fn eq(&self, other: &Self) -> bool {
+        self.a == other.a && self.b == other.b
+    }
+}
+
+impl Segment {  
     /// Creates a new line segment between two points.
     ///
     /// # Arguments
@@ -44,7 +57,14 @@ impl Segment {
     /// ```
     #[inline]
     pub fn new(a: Point, b: Point) -> Self {
-        Segment { a, b }
+        let id = ID_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        Segment { a, b, id }
+    }
+
+    /// Set the id of the arc.
+    #[inline]
+    pub fn id(&mut self, id: usize) {
+        self.id = id;
     }
 }
 
