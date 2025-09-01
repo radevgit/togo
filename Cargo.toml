@@ -8,6 +8,7 @@ categories = ["algorithms", "data-structures", "graphics", "mathematics"]
 keywords = ["intersection", "geometry", "arcs", "distance", "segment"]
 license = "MIT"
 repository = "https://github.com/radevgit/basegeom"
+documentation = "https://docs.rs/basegeom"
 readme = "README.md"
 
 
