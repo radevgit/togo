@@ -365,7 +365,7 @@ impl Point {
     /// Almost equal comparison with another Point using `ulp` given.
     #[inline]
     #[must_use]
-    pub fn almost_eq(&self, other: Self, ulp: i64) -> bool {
+    pub fn almost_eq(&self, other: Self, ulp: u64) -> bool {
         almost_equal_as_int(self.x, other.x, ulp) && almost_equal_as_int(self.y, other.y, ulp)
     }
 

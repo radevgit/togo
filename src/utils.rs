@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-const ALMOST_EQUAL_C: u64 = 0x8000_0000_0000_0000_u64;
-const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
+const TWO_COMPLEMENT_64: u64 = 0x8000_0000_0000_0000_u64;
+const TWO_COMPLEMENT_CI_64: i64 = TWO_COMPLEMENT_64 as i64;
 /// Compares two f64 values for approximate equality
 ///
 /// Use ULP (Units in the Last Place) comparison.
@@ -47,26 +47,25 @@ const ALMOST_EQUAL_CI: i64 = ALMOST_EQUAL_C as i64;
 /// The input values must be finite (not NaN or infinite).
 #[inline]
 #[must_use]
-pub fn almost_equal_as_int(a: f64, b: f64, ulps: i64) -> bool {
+pub fn almost_equal_as_int(a: f64, b: f64, ulps: u64) -> bool {
     debug_assert!(a.is_finite());
     debug_assert!(b.is_finite());
-    if a.signum() != b.signum() {
-        return a == b;
-    }
+
     let mut a_i: i64 = a.to_bits() as i64;
     let mut b_i: i64 = b.to_bits() as i64;
-    // Make bInt lexicographically ordered as a twos-complement int
+
+    // Make a_i, b_i lexicographically ordered as a twos-complement int
     if a_i < 0i64 {
-        a_i = ALMOST_EQUAL_CI - a_i;
+        a_i = TWO_COMPLEMENT_CI_64 - a_i;
     }
     if b_i < 0i64 {
-        b_i = ALMOST_EQUAL_CI - b_i;
+        b_i = TWO_COMPLEMENT_CI_64 - b_i;
     }
-    // Now we can compare a_i and b_i to find out how far apart a and b are.
-    if (a_i - b_i).abs() <= ulps {
-        return true;
-    }
-    false
+
+    // Use saturating arithmetic to avoid overflow when values are very far apart
+    let diff = (a_i as i128) - (b_i as i128);
+    diff.abs() <= ulps as i128
+
 }
 
 /// Checks if two floating-point values are close within an epsilon tolerance.
