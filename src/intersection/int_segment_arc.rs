@@ -199,7 +199,7 @@ mod tests_segment_arc {
         let res = int_segment_arc(&s0, &arc1);
         match res {
             SegmentArcConfig::OnePoint(p0, _) => {
-                assert!(p0.close_enough(point(0.0, 1.0), 1E-8));
+                assert!(p0.point_equal(point(0.0, 1.0), 2));
             }
             _ => assert!(false),
         }

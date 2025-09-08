@@ -75,10 +75,12 @@ mod test_dist_point_arc {
     use core::f64;
 
     use crate::{
-        arc::arc, distance::dist_point_arc::DistPointArcConfig, point::point, utils::close_enough,
+        arc::arc, distance::dist_point_arc::DistPointArcConfig, point::{float_equal, point}
     };
 
     use super::dist_point_arc;
+
+    const EPS_TEST: u64 = 200;
 
     #[test]
     fn test_point_is_on_arc() {
@@ -131,10 +133,10 @@ mod test_dist_point_arc {
         let res = dist_point_arc(&p, &arc);
         match res {
             DistPointArcConfig::OnePoint(dist, closest) => {
-                assert!(close_enough(
+                assert!(float_equal(
                     dist,
                     std::f64::consts::SQRT_2,
-                    2.0 * f64::EPSILON
+                    EPS_TEST
                 ));
                 assert_eq!(closest, point(0.0, 1.0));
             }

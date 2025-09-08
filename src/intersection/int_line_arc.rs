@@ -110,8 +110,8 @@ mod test_int_line_arc {
         let res = int_line_arc(&l0, &arc1);
         match res {
             LineArcConfig::TwoPoints(p0, p1, _, _) => {
-                assert!(p0.close_enough(point(0.0, 1.0), 1E-7));
-                assert!(p1.close_enough(point(0.0, 1.0), 1E-7));
+                assert!(p0.point_equal(point(0.0, 1.0), 2));
+                assert!(p1.point_equal(point(0.0, 1.0), 2));
             }
             _ => assert!(false),
         }

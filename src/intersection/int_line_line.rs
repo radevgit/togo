@@ -70,7 +70,7 @@ pub fn int_line_line(line0: &Line, line1: &Line) -> LineLineConfig {
 mod test_int_line_line {
     use super::*;
     use crate::line::line;
-    use crate::point::{almost_equal_as_int, point};
+    use crate::point::{float_equal, point};
 
     #[test]
     fn test_parallel_distinct() {
@@ -98,8 +98,8 @@ mod test_int_line_line {
         match res {
             LineLineConfig::OnePoint(p, s0, s1) => {
                 assert_eq!(p, point(1.0, 1.0));
-                assert!(almost_equal_as_int(s0, sgrt_2, 1));
-                assert!(almost_equal_as_int(s1, sgrt_2, 1));
+                assert!(float_equal(s0, sgrt_2, 1));
+                assert!(float_equal(s1, sgrt_2, 1));
             }
             _ => assert!(false),
         }

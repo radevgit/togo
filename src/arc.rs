@@ -10,7 +10,7 @@ use std::{fmt::Display, sync::atomic::AtomicUsize};
 pub type Arcline = Vec<Arc>;
 
 static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
-const EPS_COLLAPSED: f64 = 1E-8;
+const EPS_COLLAPSED: u64 = 1000;
 
 /// An arc segment (CCW) defined by start point, end point, center, and radius.
 ///
@@ -560,9 +560,9 @@ impl Arc {
     /// let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
     /// assert!(!arc3.is_collapsed_radius(0.01)); // Valid radius
     /// ```
-    pub fn is_collapsed_radius(&self, eps: f64) -> bool {
+    pub fn is_collapsed_radius(&self, ulps: u64) -> bool {
         // no abs() since it can be negative
-        if self.r < eps || self.r.is_nan() {
+        if float_equal(self.r, ZERO, ulps) || self.r.is_nan() {
             return true;
         }
         false
@@ -591,8 +591,8 @@ impl Arc {
     /// let arc2 = arc(p1, p3, point(0.5, 0.0), 0.5);
     /// assert!(!arc2.is_collapsed_ends(0.01)); // Points far enough apart
     /// ```
-    pub fn is_collapsed_ends(&self, eps: f64) -> bool {
-        if self.a.close_enough(self.b, eps) {
+    pub fn is_collapsed_ends(&self, ulps: u64) -> bool {
+        if self.a.point_equal(self.b, ulps) {
             return true;
         }
         false
@@ -636,15 +636,15 @@ impl Arc {
     /// arc3.r = 2.0;
     /// assert!(!arc3.is_consistent(1e-10));
     /// ```
-    pub fn is_consistent(&self, eps: f64) -> bool {
+    pub fn is_consistent(&self, ulps: u64) -> bool {
         if self.is_seg() {
             // Lines are always consistent, no center point
             return true;
         }
         // Check if the radius is consistent with the center and endpoints
-        let ac = ((self.a - self.c).norm() - self.r).abs();
-        let bc = ((self.b - self.c).norm() - self.r).abs();
-        if ac > eps || bc > eps {
+        let ac = float_equal((self.a - self.c).norm(), self.r, ulps);
+        let bc = float_equal((self.b - self.c).norm(), self.r, ulps);
+        if !ac || !bc {
             return false; // Inconsistent radius
         }
         true
@@ -678,16 +678,16 @@ impl Arc {
     /// assert!(!inconsistent_arc.is_valid(1e-10)); // Inconsistent geometry
     /// ```
     #[must_use]
-    pub fn is_valid(&self, eps: f64) -> bool {
+    pub fn is_valid(&self, ulps: u64) -> bool {
         if self.is_seg() {
-            if self.is_collapsed_ends(eps) {
+            if self.is_collapsed_ends(ulps) {
                 return false;
             }
         }
         if self.is_arc() {
-            if self.is_collapsed_ends(eps)
-                || self.is_collapsed_radius(eps)
-                || !self.is_consistent(eps)
+            if self.is_collapsed_ends(ulps)
+                || self.is_collapsed_radius(ulps)
+                || !self.is_consistent(ulps)
             {
                 return false;
             }
@@ -748,9 +748,11 @@ mod test_arc_contains {
 
 #[cfg(test)]
 mod test_arc_validation {
+    use crate::utils::float_next;
+
     use super::*;
 
-    const EPS_COLLAPSED: f64 = 1E-8; // Tolerance for collapsed checks
+    const UPLS_COLLAPSED: u64 = 1000; // Tolerance for collapsed checks
 
     #[test]
     fn test_arc_is_collapsed_radius_normal_values() {
@@ -764,10 +766,10 @@ mod test_arc_validation {
             point(0.5, 0.0),
             f64::INFINITY,
         );
-        assert!(!arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc3.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc4.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(!arc1.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(!arc2.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(!arc3.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(!arc4.is_collapsed_radius(UPLS_COLLAPSED));
     }
 
     #[test]
@@ -776,35 +778,35 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-9);
         let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-10);
         let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.0);
-        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(arc2.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(arc3.is_collapsed_radius(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_boundary_values() {
-        // Test values around the EPS_COLLAPSED boundary
+        // Test values around the UPLS_COLLAPSED boundary
         let arc1 = arc(
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(0.5, 0.0),
-            EPS_COLLAPSED / 2.0,
+            float_next(ZERO, UPLS_COLLAPSED / 2),
         );
         let arc2 = arc(
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(0.5, 0.0),
-            EPS_COLLAPSED * 2.0,
+            float_next(ZERO, UPLS_COLLAPSED * 2),
         );
         let arc3 = arc(
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(0.5, 0.0),
-            EPS_COLLAPSED - f64::EPSILON,
+            float_next(ZERO, UPLS_COLLAPSED - 1),
         );
-        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(!arc2.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(arc3.is_collapsed_radius(UPLS_COLLAPSED));
     }
 
     #[test]
@@ -813,16 +815,16 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1.0);
         let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -0.1);
         let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1E-10);
-        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(arc2.is_collapsed_radius(UPLS_COLLAPSED));
+        assert!(arc3.is_collapsed_radius(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_nan() {
         // NaN values should be collapsed
         let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
-        assert!(arc.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc.is_collapsed_radius(UPLS_COLLAPSED));
     }
 
     #[test]
@@ -837,10 +839,10 @@ mod test_arc_validation {
             point(200.0, 300.0),
             100.0,
         );
-        assert!(!arc1.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(!arc2.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(!arc3.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(!arc4.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!arc1.is_collapsed_ends(UPLS_COLLAPSED));
+        assert!(!arc2.is_collapsed_ends(UPLS_COLLAPSED));
+        assert!(!arc3.is_collapsed_ends(UPLS_COLLAPSED));
+        assert!(!arc4.is_collapsed_ends(UPLS_COLLAPSED));
     }
 
     #[test]
@@ -849,46 +851,46 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.0), 1.0);
         let arc2 = arc(point(1.0, 1.0), point(1.0, 1.0), point(1.5, 1.0), 1.0);
         let arc3 = arc(point(-5.0, 10.0), point(-5.0, 10.0), point(-4.0, 10.0), 1.0);
-        assert!(arc1.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(arc2.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_ends(UPLS_COLLAPSED));
+        assert!(arc2.is_collapsed_ends(UPLS_COLLAPSED));
+        assert!(arc3.is_collapsed_ends(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_very_close_points() {
         // Points closer than EPS_COLLAPSED should be collapsed
         let p1 = point(0.0, 0.0);
-        let p2 = point(EPS_COLLAPSED / 2.0, 0.0);
+        let p2 = point(float_next(ZERO, UPLS_COLLAPSED / 2), 0.0);
         let test_arc1 = arc(p1, p2, point(0.0, 0.0), 1.0);
-        assert!(test_arc1.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(test_arc1.is_collapsed_ends(UPLS_COLLAPSED));
 
         let p3 = point(100.0, 100.0);
-        let p4 = point(100.0 + EPS_COLLAPSED / 3.0, 100.0 + EPS_COLLAPSED / 3.0);
+        let p4 = point(float_next(100.0, UPLS_COLLAPSED / 2), float_next(100.0, UPLS_COLLAPSED / 3));
         let test_arc2 = arc(p3, p4, point(100.0, 100.0), 1.0);
-        assert!(test_arc2.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(test_arc2.is_collapsed_ends(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_boundary_distance() {
-        // Points at exactly EPS_COLLAPSED distance
+        // Points at exactly UPLS_COLLAPSED distance
         let p1 = point(0.0, 0.0);
-        let p2 = point(EPS_COLLAPSED, 0.0);
+        let p2 = point(float_next(ZERO, UPLS_COLLAPSED), 0.0);
         let test_arc1 = arc(p1, p2, point(0.0, 0.0), 1.0);
         // This should not be collapsed (distance equals tolerance)
-        assert!(test_arc1.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(test_arc1.is_collapsed_ends(UPLS_COLLAPSED));
 
-        // Points slightly farther than EPS_COLLAPSED
+        // Points slightly farther than UPLS_COLLAPSED
         let p3 = point(0.0, 0.0);
-        let p4 = point(EPS_COLLAPSED * 2.0, 0.0);
+        let p4 = point(float_next(ZERO, UPLS_COLLAPSED * 2), 0.0);
         let test_arc2 = arc(p3, p4, point(0.0, 0.0), 1.0);
-        assert!(!test_arc2.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!test_arc2.is_collapsed_ends(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_valid_arcs() {
         // Valid arcs should pass the check
         let valid_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-        assert!(valid_arc1.is_valid(EPS_COLLAPSED));
+        assert!(valid_arc1.is_valid(UPLS_COLLAPSED));
 
         let valid_arc2 = arc(
             point(-1.0, -1.0),
@@ -896,50 +898,50 @@ mod test_arc_validation {
             point(0.0, 0.0),
             std::f64::consts::SQRT_2,
         );
-        assert!(valid_arc2.is_valid(EPS_COLLAPSED));
+        assert!(valid_arc2.is_valid(UPLS_COLLAPSED));
 
         // Line segments (infinite radius) should also be valid if endpoints are separated
         let valid_line = arcseg(point(0.0, 0.0), point(10.0, 0.0));
-        assert!(valid_line.is_valid(EPS_COLLAPSED));
+        assert!(valid_line.is_valid(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_collapsed_radius() {
         // Arcs with collapsed radius should fail the check
         let collapsed_radius_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-10);
-        assert!(!collapsed_radius_arc1.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_radius_arc1.is_valid(UPLS_COLLAPSED));
 
         let collapsed_radius_arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1.0);
-        assert!(!collapsed_radius_arc2.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_radius_arc2.is_valid(UPLS_COLLAPSED));
 
         let nan_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
-        assert!(!nan_radius_arc.is_valid(EPS_COLLAPSED));
+        assert!(!nan_radius_arc.is_valid(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_collapsed_ends() {
         // Arcs with collapsed endpoints should fail the check
         let collapsed_ends_arc1 = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.0, 1.0), 1.0);
-        assert!(!collapsed_ends_arc1.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_ends_arc1.is_valid(UPLS_COLLAPSED));
 
         let close_points = point(0.0, 0.0);
-        let very_close_points = point(EPS_COLLAPSED / 2.0, 0.0);
+        let very_close_points = point(float_next(ZERO, UPLS_COLLAPSED / 2), 0.0);
         let collapsed_ends_arc2 = arc(close_points, very_close_points, point(0.0, 1.0), 1.0);
-        assert!(!collapsed_ends_arc2.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_ends_arc2.is_valid(UPLS_COLLAPSED));
 
         // Line segments with collapsed endpoints should also fail
         let collapsed_line = arcseg(point(1.0, 1.0), point(1.0, 1.0));
-        assert!(!collapsed_line.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_line.is_valid(UPLS_COLLAPSED));
     }
 
     #[test]
     fn test_arc_check_both_collapsed() {
         // Arcs with both collapsed radius and collapsed endpoints should fail
         let both_collapsed = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.0, 1.0), 1E-10);
-        assert!(!both_collapsed.is_valid(EPS_COLLAPSED));
+        assert!(!both_collapsed.is_valid(UPLS_COLLAPSED));
 
         let both_collapsed2 = arc(point(5.0, 5.0), point(5.0, 5.0), point(0.0, 0.0), f64::NAN);
-        assert!(!both_collapsed2.is_valid(EPS_COLLAPSED));
+        assert!(!both_collapsed2.is_valid(UPLS_COLLAPSED));
     }
 
     #[test]
@@ -951,15 +953,15 @@ mod test_arc_validation {
             point(1E10 + 0.5, 1E10),
             0.5,
         );
-        assert!(large_coord_arc.is_valid(EPS_COLLAPSED));
+        assert!(large_coord_arc.is_valid(UPLS_COLLAPSED));
 
         // Test with very small but valid radius - ensure consistent geometry
         let small_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-        assert!(small_radius_arc.is_valid(EPS_COLLAPSED));
+        assert!(small_radius_arc.is_valid(UPLS_COLLAPSED));
 
         // Test with large radius
         let large_radius_arc = arc(point(0.0, 0.0), point(1E-6, 0.0), point(0.0, 1E6), 1E6);
-        assert!(large_radius_arc.is_valid(EPS_COLLAPSED));
+        assert!(large_radius_arc.is_valid(UPLS_COLLAPSED));
     }
 
     #[test]
@@ -1215,7 +1217,7 @@ pub fn arc_circle_parametrization(p1: Point, p2: Point, bulge: f64) -> Arc {
     let mut pp1 = p1;
     let mut pp2 = p2;
     let mut bulge = bulge;
-    if bulge.abs() <= MIN_BULGE || pp1.close_enough(pp2, EPS_COLLAPSED) {
+    if bulge.abs() <= MIN_BULGE || pp1.point_equal(pp2, EPS_COLLAPSED) {
         // create line
         return arcseg(p1, p2);
     }
@@ -1237,9 +1239,10 @@ pub fn arc_circle_parametrization(p1: Point, p2: Point, bulge: f64) -> Arc {
 
 #[cfg(test)]
 mod test_arc_g_from_points {
-    use crate::prelude::*;
+    use crate::{prelude::*};
 
     const TEST_EPS: f64 = 1E-10;
+    const TEST_UPLS: u64 = 100;
 
     #[test]
     fn test_a_b_are_close() {
@@ -1271,7 +1274,7 @@ mod test_arc_g_from_points {
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // Should be reasonably close to original bulge
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(float_equal(bulge, result, TEST_UPLS));
         assert!(result.is_finite());
     }
 
@@ -1289,7 +1292,7 @@ mod test_arc_g_from_points {
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // Should be reasonably close to original bulge
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(float_equal(bulge, result, TEST_UPLS));
         assert!(result.is_finite());
     }
 
@@ -1307,7 +1310,7 @@ mod test_arc_g_from_points {
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // For a semicircle, the function should return a finite positive value
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(float_equal(bulge, result, TEST_UPLS));
         assert!(result.is_finite());
     }
 
@@ -1325,7 +1328,7 @@ mod test_arc_g_from_points {
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // Should be reasonably close to original bulge
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(float_equal(bulge, result, TEST_UPLS));
         assert!(result.is_finite());
     }
 
@@ -1348,7 +1351,7 @@ mod test_arc_g_from_points {
         } else {
             // Calculate bulge back from points
             let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-            assert!(close_enough(bulge, result, TEST_EPS));
+            assert!(float_equal(bulge, result, TEST_UPLS));
             assert!(result.is_finite());
         }
     }
@@ -1372,7 +1375,7 @@ mod test_arc_g_from_points {
         } else {
             // Calculate bulge back from points
             let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-            assert!(close_enough(bulge, result, TEST_EPS));
+            assert!(float_equal(bulge, result, TEST_UPLS));
             assert!(result.is_finite());
         }
     }
@@ -1391,7 +1394,7 @@ mod test_arc_g_from_points {
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // Should be positive and finite
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(float_equal(bulge, result, TEST_UPLS));
         assert!(result.is_finite());
     }
 
@@ -1409,7 +1412,7 @@ mod test_arc_g_from_points {
         let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // Should be positive and finite
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(float_equal(bulge, result, TEST_UPLS));
         assert!(result.is_finite());
     }
 
@@ -1457,7 +1460,7 @@ mod test_arc_g_from_points {
         let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
 
         // Should return positive value (CCW orientation)
-        assert!(close_enough(-bulge, calculated_bulge, TEST_EPS));
+        assert!(float_equal(-bulge, calculated_bulge, TEST_UPLS));
         assert!(calculated_bulge.is_finite());
     }
 
@@ -1529,7 +1532,7 @@ mod test_arc_g_from_points {
         let bulge = arc_bulge_from_points(point(0.0, 0.0), point(0.0, 3e-5), point(0.0, 1.0), r);
         assert!(bulge > 133333.0);
         let arc = arc_circle_parametrization(point(0.0, 0.0), point(0.0, 3e-5), bulge);
-        assert_eq!(close_enough(arc.r, r, 1e-6), true);
+        assert_eq!(float_equal(arc.r, r, TEST_UPLS), true);
     }
 }
 
@@ -1556,6 +1559,7 @@ pub fn arcline_reverse(arcs: &Arcline) -> Arcline {
 }
 
 impl Arc {
+    const ULPS_MAKE_CONSISTENT: u64 = 100;
     /// Makes slightly inconsistent arc consistent by adjusting the arc center
     /// and radius, keeping the endpoints fixed.
     pub fn make_consistent(&mut self) {
@@ -1564,7 +1568,7 @@ impl Arc {
         }
 
         // Handle degenerate case where endpoints are the same
-        if self.a.close_enough(self.b, 1e-12) {
+        if self.a.point_equal(self.b, Arc::ULPS_MAKE_CONSISTENT) {
             *self = arcseg(self.a, self.b);
             return;
         }
@@ -1625,15 +1629,15 @@ impl Arc {
 
 #[cfg(test)]
 mod test_arc_make_consistent {
-    use crate::prelude::*;
+    use crate::{prelude::*, utils::float_equal};
 
-    const TEST_EPS: f64 = 1E-10;
+    const TEST_UPLS: u64 = 100;
 
     #[test]
     fn test_arc_make_consistent() {
         let mut arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 0.5);
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(TEST_UPLS));
     }
 
     #[test]
@@ -1641,11 +1645,11 @@ mod test_arc_make_consistent {
         // Create an already consistent arc
         let mut arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0);
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(TEST_UPLS));
         // Should be very close to the original
-        assert!(close_enough(arc.c.x, 1.0, TEST_EPS));
-        assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
-        assert!(close_enough(arc.r, 1.0, TEST_EPS));
+        assert!(float_equal(arc.c.x, 1.0, TEST_UPLS));
+        assert!(float_equal(arc.c.y, 0.0, TEST_UPLS));
+        assert!(float_equal(arc.r, 1.0, TEST_UPLS));
     }
 
     #[test]
@@ -1653,13 +1657,13 @@ mod test_arc_make_consistent {
         // Create an arc where endpoints are at different distances from center
         let mut arc = arc(point(0.0, 0.0), point(3.0, 4.0), point(1.0, 1.0), 2.0);
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(TEST_UPLS));
 
         // Check that both endpoints are equidistant from the new center
         let dist_a = (arc.a - arc.c).norm();
         let dist_b = (arc.b - arc.c).norm();
-        assert!(close_enough(dist_a, arc.r, TEST_EPS));
-        assert!(close_enough(dist_b, arc.r, TEST_EPS));
+        assert!(float_equal(dist_a, arc.r, TEST_UPLS));
+        assert!(float_equal(dist_b, arc.r, TEST_UPLS));
     }
 
     #[test]
@@ -1668,7 +1672,7 @@ mod test_arc_make_consistent {
         let mut arc = arc(point(1.0, 1.0), point(1.0, 1.0), point(2.0, 2.0), 1.0);
         arc.make_consistent();
         // Degenerate case should result in line segment
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(TEST_UPLS));
         assert!(arc.is_seg());
     }
 
@@ -1698,17 +1702,17 @@ mod test_arc_make_consistent {
         let avg_radius = (dist_a_c + dist_b_c) / 2.0; // ≈ 2.236
 
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(TEST_UPLS));
 
         // The average radius is about 2.236, which is larger than half chord length (2.0)
         // So it should use the computed average radius, not the minimum
-        assert!(close_enough(arc.r, avg_radius, TEST_EPS));
+        assert!(float_equal(arc.r, avg_radius, TEST_UPLS));
 
         // Verify that both endpoints are equidistant from the center
         let new_dist_a = (arc.a - arc.c).norm();
         let new_dist_b = (arc.b - arc.c).norm();
-        assert!(close_enough(new_dist_a, arc.r, TEST_EPS));
-        assert!(close_enough(new_dist_b, arc.r, TEST_EPS));
+        assert!(float_equal(new_dist_a, arc.r, TEST_UPLS));
+        assert!(float_equal(new_dist_b, arc.r, TEST_UPLS));
     }
 
     #[test]
@@ -1723,18 +1727,18 @@ mod test_arc_make_consistent {
         let half_chord = chord_length / 2.0;
 
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(TEST_UPLS));
 
         // Check if the average radius is actually smaller than half chord
         if avg_radius < half_chord {
             // Should use minimum possible radius (half chord length)
-            assert!(close_enough(arc.r, half_chord, TEST_EPS));
+            assert!(float_equal(arc.r, half_chord, TEST_UPLS));
             // Center should be at chord midpoint
-            assert!(close_enough(arc.c.x, chord_length / 2.0, TEST_EPS));
-            assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
+            assert!(float_equal(arc.c.x, chord_length / 2.0, TEST_UPLS));
+            assert!(float_equal(arc.c.y, 0.0, TEST_UPLS));
         } else {
             // Should use the average radius
-            assert!(close_enough(arc.r, avg_radius, TEST_EPS));
+            assert!(float_equal(arc.r, avg_radius, TEST_UPLS));
         }
     }
 }
@@ -1946,6 +1950,7 @@ pub enum ArclineValidation {
     IntersectingArcs(Arc, Arc),
 }
 
+
 /// Validates an arcline (sequence of connected arcs and line segments).
 ///
 /// An arcline is considered valid when it forms a proper continuous path where:
@@ -2014,7 +2019,7 @@ pub fn arcline_is_valid(arcs: &Arcline) -> ArclineValidation {
 
     // Arcs should be valid
     for arc in arcs {
-        if !arc.is_valid(1e-8) {
+        if !arc.is_valid(UPLS_ARC_IS_VALID) {
             return ArclineValidation::InvalidArc(arc.clone());
         }
     }
@@ -2084,7 +2089,7 @@ fn arc_tangents_are_collinear(arc1: &Arc, arc2: &Arc) -> bool {
             if x[i] == y[j] {
                 let t1 = arc1.tangents()[i];
                 let t2 = arc2.tangents()[j];
-                if t1.close_enough(t2, 1e-8) {
+                if t1.point_equal(t2, UPLS_ARC_IS_VALID) {
                     // Tangents are collinear
                     return true;
                 }
@@ -2114,7 +2119,8 @@ impl Arc {
 #[cfg(test)]
 mod test_tangents {
     use super::*;
-    use crate::utils::close_enough;
+
+    const TEST_UPLS: u64 = 100;
 
     #[test]
     fn test_tangents_semicircle() {
@@ -2135,12 +2141,12 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // At start point (1,0), tangent should be perpendicular to radius, pointing up
-        assert!(close_enough(t_start.x, 0.0, 1e-10));
-        assert!(close_enough(t_start.y, -1.0, 1e-10));
+        assert!(float_equal(t_start.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_start.y, -1.0, TEST_UPLS));
 
         // At end point (0,1), tangent should be perpendicular to radius, pointing left
-        assert!(close_enough(t_end.x, -1.0, 1e-10));
-        assert!(close_enough(t_end.y, 0.0, 1e-10));
+        assert!(float_equal(t_end.x, -1.0, TEST_UPLS));
+        assert!(float_equal(t_end.y, 0.0, TEST_UPLS));
     }
 
     #[test]
@@ -2156,12 +2162,12 @@ mod test_tangents {
         let expected_dir = point(0.6, 0.8);
 
         // Start tangent should be negative direction
-        assert!(close_enough(t_start.x, -expected_dir.x, 1e-10));
-        assert!(close_enough(t_start.y, -expected_dir.y, 1e-10));
+        assert!(float_equal(t_start.x, -expected_dir.x, TEST_UPLS));
+        assert!(float_equal(t_start.y, -expected_dir.y, TEST_UPLS));
 
         // End tangent should be positive direction
-        assert!(close_enough(t_end.x, expected_dir.x, 1e-10));
-        assert!(close_enough(t_end.y, expected_dir.y, 1e-10));
+        assert!(float_equal(t_end.x, expected_dir.x, TEST_UPLS));
+        assert!(float_equal(t_end.y, expected_dir.y, TEST_UPLS));
     }
 
     #[test]
@@ -2172,10 +2178,10 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Horizontal line: start tangent points left, end tangent points right
-        assert!(close_enough(t_start.x, -1.0, 1e-10));
-        assert!(close_enough(t_start.y, 0.0, 1e-10));
-        assert!(close_enough(t_end.x, 1.0, 1e-10));
-        assert!(close_enough(t_end.y, 0.0, 1e-10));
+        assert!(float_equal(t_start.x, -1.0, TEST_UPLS));
+        assert!(float_equal(t_start.y, 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.x, 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.y, 0.0, TEST_UPLS));
     }
 
     #[test]
@@ -2186,10 +2192,10 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Vertical line: start tangent points down, end tangent points up
-        assert!(close_enough(t_start.x, 0.0, 1e-10));
-        assert!(close_enough(t_start.y, -1.0, 1e-10));
-        assert!(close_enough(t_end.x, 0.0, 1e-10));
-        assert!(close_enough(t_end.y, 1.0, 1e-10));
+        assert!(float_equal(t_start.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_start.y, -1.0, TEST_UPLS));
+        assert!(float_equal(t_end.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.y, 1.0, TEST_UPLS));
     }
 
     #[test]
@@ -2201,14 +2207,14 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Tangent vectors should be unit length
-        assert!(close_enough(t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.norm(), 1.0, TEST_UPLS));
 
         // For semicircle: at (1,0) tangent points up, at (-1,0) tangent points up
-        assert!(close_enough(t_start.x, 0.0, 1e-10));
-        assert!(close_enough(t_start.y, -1.0, 1e-10));
-        assert!(close_enough(t_end.x, 0.0, 1e-10));
-        assert!(close_enough(t_end.y, -1.0, 1e-10));
+        assert!(float_equal(t_start.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_start.y, -1.0, TEST_UPLS));
+        assert!(float_equal(t_end.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.y, -1.0, TEST_UPLS));
     }
 
     #[test]
@@ -2225,16 +2231,16 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Tangent vectors should be unit length
-        assert!(close_enough(t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.norm(), 1.0, TEST_UPLS));
 
         // Tangents should be perpendicular to radii
         let radius_start = point(1.0, 0.1) - arc.c;
         let radius_end = point(0.1, 1.0) - arc.c;
 
         // Dot product of tangent and radius should be ~0 (perpendicular)
-        assert!(close_enough(t_start.dot(radius_start), 0.0, 1e-10));
-        assert!(close_enough(t_end.dot(radius_end), 0.0, 1e-10));
+        assert!(float_equal(t_start.dot(radius_start), 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.dot(radius_end), 0.0, TEST_UPLS));
     }
 
     #[test]
@@ -2252,10 +2258,10 @@ mod test_tangents {
         let cw_t_end = cw_tangents[1];
 
         // All tangent vectors should be unit length
-        assert!(close_enough(ccw_t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(ccw_t_end.norm(), 1.0, 1e-10));
-        assert!(close_enough(cw_t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(cw_t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(ccw_t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(ccw_t_end.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(cw_t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(cw_t_end.norm(), 1.0, TEST_UPLS));
     }
 
     #[test]
@@ -2268,14 +2274,14 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Even when translated, tangent vectors should be unit length
-        assert!(close_enough(t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.norm(), 1.0, TEST_UPLS));
 
         // For horizontal semicircle, tangents should be vertical
-        assert!(close_enough(t_start.x, 0.0, 1e-10));
-        assert!(close_enough(t_end.x, 0.0, 1e-10));
-        assert!(close_enough(t_start.y.abs(), 1.0, 1e-10));
-        assert!(close_enough(t_end.y.abs(), 1.0, 1e-10));
+        assert!(float_equal(t_start.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.x, 0.0, TEST_UPLS));
+        assert!(float_equal(t_start.y.abs(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.y.abs(), 1.0, TEST_UPLS));
     }
 
     #[test]
@@ -2291,12 +2297,12 @@ mod test_tangents {
         let radius_end = arc.b - arc.c; // From center to end point
 
         // Tangents should be perpendicular to radii (dot product = 0)
-        assert!(close_enough(t_start.dot(radius_start), 0.0, 1e-10));
-        assert!(close_enough(t_end.dot(radius_end), 0.0, 1e-10));
+        assert!(float_equal(t_start.dot(radius_start), 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.dot(radius_end), 0.0, TEST_UPLS));
 
         // Tangents should be unit vectors
-        assert!(close_enough(t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.norm(), 1.0, TEST_UPLS));
     }
 
     #[test]
@@ -2313,14 +2319,14 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Tangents should be unit vectors
-        assert!(close_enough(t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.norm(), 1.0, TEST_UPLS));
 
         // Tangents should be perpendicular to radii
         let radius_start = start - center;
         let radius_end = end - center;
-        assert!(close_enough(t_start.dot(radius_start), 0.0, 1e-10));
-        assert!(close_enough(t_end.dot(radius_end), 0.0, 1e-10));
+        assert!(float_equal(t_start.dot(radius_start), 0.0, TEST_UPLS));
+        assert!(float_equal(t_end.dot(radius_end), 0.0, TEST_UPLS));
     }
 
     #[test]
@@ -2332,15 +2338,15 @@ mod test_tangents {
         let t_end = tangents[1];
 
         // Should still produce unit tangent vectors
-        assert!(close_enough(t_start.norm(), 1.0, 1e-10));
-        assert!(close_enough(t_end.norm(), 1.0, 1e-10));
+        assert!(float_equal(t_start.norm(), 1.0, TEST_UPLS));
+        assert!(float_equal(t_end.norm(), 1.0, TEST_UPLS));
 
         // Direction should be normalized (1,1) -> (√2/2, √2/2)
         let expected = 1.0 / (2.0_f64.sqrt());
-        assert!(close_enough(t_start.x, -expected, 1e-10));
-        assert!(close_enough(t_start.y, -expected, 1e-10));
-        assert!(close_enough(t_end.x, expected, 1e-10));
-        assert!(close_enough(t_end.y, expected, 1e-10));
+        assert!(float_equal(t_start.x, -expected, TEST_UPLS));
+        assert!(float_equal(t_start.y, -expected, TEST_UPLS));
+        assert!(float_equal(t_end.x, expected, TEST_UPLS));
+        assert!(float_equal(t_end.y, expected, TEST_UPLS));
     }
 }
 

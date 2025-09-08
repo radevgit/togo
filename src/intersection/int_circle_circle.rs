@@ -217,7 +217,7 @@ mod tests_circle_old {
     // Old tests
     ///////////////////////
     use super::*;
-    use crate::{circle::circle, utils::perturbed_ulps_as_int};
+    use crate::{circle::circle, utils::float_perturbed_as_int64};
 
     // short funtion
     fn ff(circle0: Circle, circle1: Circle) -> CircleCircleConfig {
@@ -256,7 +256,7 @@ mod tests_circle_old {
     #[test]
     fn test_donot_intersect01() {
         // The circles do not intersect.
-        let r = perturbed_ulps_as_int(1.0, -2);
+        let r = float_perturbed_as_int64(1.0, -2);
         let circle0 = circle(point(-1.0, 0.0), r);
         let circle1 = circle(point(1.0, 0.0), 1.0);
         assert_eq!(ff(circle0, circle1), CircleCircleConfig::NoIntersection());
@@ -264,7 +264,7 @@ mod tests_circle_old {
     #[test]
     fn test_donot_intersect02() {
         // The circles do not intersect.
-        let x = perturbed_ulps_as_int(1.0, 2);
+        let x = float_perturbed_as_int64(1.0, 2);
         let circle0 = circle(point(-1.0, 0.0), 1.0);
         let circle1 = circle(point(x, 0.0), 1.0);
         assert_eq!(ff(circle0, circle1), CircleCircleConfig::NoIntersection());
@@ -273,7 +273,7 @@ mod tests_circle_old {
     #[test]
     fn test_tangent01() {
         // The circles touch in one point.
-        let x = perturbed_ulps_as_int(1.0, 1);
+        let x = float_perturbed_as_int64(1.0, 1);
         let circle0 = circle(point(-1.0, 0.0), 1.0);
         let circle1 = circle(point(x, 0.0), 1.0);
         assert_eq!(
@@ -297,8 +297,8 @@ mod tests_circle_old {
     #[test]
     fn test_tangent03() {
         // Circles with very small shift are same (cocircular)
-        let _0 = perturbed_ulps_as_int(0.0, 1);
-        let _1 = perturbed_ulps_as_int(1.0, -1);
+        let _0 = float_perturbed_as_int64(0.0, 1);
+        let _1 = float_perturbed_as_int64(1.0, -1);
         let circle0 = circle(point(0.0, 0.0), 1.0);
         let circle1 = circle(point(_0, 0.0), 1.0);
         let res = ff(circle0, circle1);
@@ -308,7 +308,7 @@ mod tests_circle_old {
     #[test]
     fn test_tangent04() {
         // Cocircular with small r difference
-        let _1 = perturbed_ulps_as_int(1.0, -1);
+        let _1 = float_perturbed_as_int64(1.0, -1);
         let circle0 = circle(point(0.0, 0.0), 1.0);
         let circle1 = circle(point(0.0, 0.0), _1);
         let res = ff(circle0, circle1);
@@ -318,8 +318,8 @@ mod tests_circle_old {
     #[test]
     fn test_tangent05() {
         // Small difference in center and radius
-        let _1m = perturbed_ulps_as_int(1.0, -1);
-        let _1p = perturbed_ulps_as_int(1.0, 1);
+        let _1m = float_perturbed_as_int64(1.0, -1);
+        let _1p = float_perturbed_as_int64(1.0, 1);
         let circle0 = circle(point(1.0, 0.0), 1.0);
         let circle1 = circle(point(_1p, 0.0), _1m);
         let res = ff(circle0, circle1);
@@ -335,8 +335,8 @@ mod tests_circle_old {
     #[test]
     fn test_tangent06() {
         // Small difference in center and smaller radius
-        let _1m = perturbed_ulps_as_int(1.0, -2);
-        let _1p = perturbed_ulps_as_int(1.0, 1);
+        let _1m = float_perturbed_as_int64(1.0, -2);
+        let _1p = float_perturbed_as_int64(1.0, 1);
         let circle0 = circle(point(1.0, 0.0), 1.0);
         let circle1 = circle(point(_1p, 0.0), _1m);
         let res = ff(circle0, circle1);

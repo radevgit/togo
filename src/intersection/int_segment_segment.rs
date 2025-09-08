@@ -6,7 +6,8 @@ use crate::intersection::int_interval_interval::{IntervalConfig, int_interval_in
 use crate::intersection::int_line_line::{LineLineConfig, int_line_line};
 use crate::interval::interval;
 
-use crate::utils::close_enough;
+use crate::point::float_equal;
+use crate::prelude::UPLS_ARC_IS_VALID;
 use crate::{line::line, point::Point, segment::Segment};
 
 // #00026
@@ -21,6 +22,7 @@ pub enum SegmentSegmentConfig {
 }
 
 const ZERO: f64 = 0f64;
+const EPS_INT_SEG_SEG: u64 = 1;
 /// Computes the intersection of two segments.
 ///
 /// This function checks if two segments intersect, are parallel but distinct, or are the same segment.
@@ -51,11 +53,11 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
     let (seg0_origin, seg0_direction, seg0_extent) = segment0.get_centered_form();
     let (seg1_origin, seg1_direction, seg1_extent) = segment1.get_centered_form();
 
-    // The some segment is a point
-    let is_point0 = segment0.a.close_enough(segment0.b, f64::EPSILON);
-    let is_point1 = segment1.a.close_enough(segment1.b, f64::EPSILON);
+    // The same segment is a point
+    let is_point0 = segment0.a.point_equal(segment0.b, UPLS_ARC_IS_VALID);
+    let is_point1 = segment1.a.point_equal(segment1.b, UPLS_ARC_IS_VALID);
     if is_point0 && is_point1 {
-        if segment0.a.close_enough(segment1.a, f64::EPSILON) {
+        if segment0.a.point_equal(segment1.a, UPLS_ARC_IS_VALID) {
             return SegmentSegmentConfig::OnePointTouching(segment0.a, ZERO, ZERO);
         } else {
             return SegmentSegmentConfig::NoIntersection();
@@ -77,7 +79,7 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
                 y: segment0.a.y,
             },
         );
-        if close_enough(sign, ZERO, f64::EPSILON) {
+        if float_equal(sign, ZERO, EPS_INT_SEG_SEG) {
             let dot = (segment1.b - segment1.a).dot(segment0.a - segment1.a);
             let dist = (segment1.b - segment1.a).dot(segment1.b - segment1.a);
             if dot >= ZERO && dot <= dist {
@@ -105,7 +107,7 @@ pub fn int_segment_segment(segment0: &Segment, segment1: &Segment) -> SegmentSeg
                 y: segment1.a.y,
             },
         );
-        if close_enough(sign, ZERO, f64::EPSILON) {
+        if float_equal(sign, ZERO, EPS_INT_SEG_SEG) {
             let dot = (segment0.b - segment0.a).dot(segment1.a - segment0.a);
             let dist = (segment0.b - segment0.a).dot(segment0.b - segment0.a);
             if dot >= ZERO && dot <= dist {
@@ -202,8 +204,11 @@ pub fn if_really_intersecting_segment_segment(part0: &Segment, part1: &Segment) 
 mod test_int_segment_segment {
     use crate::point::point;
     use crate::segment::segment;
+    use crate::utils::float_next;
 
     use super::*;
+
+    const UPLS_TEST: u64 = 2;
 
     #[test]
     fn test_no_intersection() {
@@ -233,9 +238,9 @@ mod test_int_segment_segment {
         let sqrt_2_2 = std::f64::consts::SQRT_2 / 2.0;
         let p0 = point(0.0, 0.0);
         let p1 = point(sqrt_2_2, sqrt_2_2);
-        let delta = point(f64::EPSILON, 0.0);
+        
         let s0 = segment(p0, p1);
-        let s1 = segment(p0 + delta, p1 + delta);
+        let s1 = segment(point(float_next(p0.x, UPLS_TEST), p0.y), point(float_next(p1.x, UPLS_TEST), p1.y));
         assert_eq!(
             int_segment_segment(&s0, &s1),
             SegmentSegmentConfig::NoIntersection()
@@ -246,15 +251,15 @@ mod test_int_segment_segment {
     #[test]
     fn test_parallel_overlaping() {
         // parallel the same, overlaping
-        let ulp = std::f64::EPSILON * 2.0;
+        let ulp = 2;
         let s0 = segment(point(0.0, 0.0), point(2.0, 2.0));
         let s1 = segment(point(1.0, 1.0), point(3.0, 3.0));
         match int_segment_segment(&s0, &s1) {
             SegmentSegmentConfig::TwoPoints(p0, p1, p2, p3) => {
-                assert!(p0.close_enough(point(0.0, 0.0), ulp));
-                assert!(p1.close_enough(point(1.0, 1.0), ulp));
-                assert!(p2.close_enough(point(2.0, 2.0), ulp));
-                assert!(p3.close_enough(point(3.0, 3.0), ulp));
+                assert!(p0.point_equal(point(0.0, 0.0), ulp));
+                assert!(p1.point_equal(point(1.0, 1.0), ulp));
+                assert!(p2.point_equal(point(2.0, 2.0), ulp));
+                assert!(p3.point_equal(point(3.0, 3.0), ulp));
                 assert!(if_really_intersecting_segment_segment(&s0, &s1) == true);
             }
             _ => assert!(false),
@@ -264,15 +269,15 @@ mod test_int_segment_segment {
     #[test]
     fn test_parallel_overlaping2() {
         // parallel the same, overlaping
-        let ulp = std::f64::EPSILON * 3.0;
+        let ulp = 3;
         let s0 = segment(point(0.0, 0.0), point(2.0, 2.0));
         let s1 = segment(point(4.0, 4.0), point(-4.0, -4.0));
         match int_segment_segment(&s0, &s1) {
             SegmentSegmentConfig::TwoPoints(p0, p1, p2, p3) => {
-                assert!(p0.close_enough(point(4.0, 4.0), ulp));
-                assert!(p1.close_enough(point(2.0, 2.0), ulp));
-                assert!(p2.close_enough(point(0.0, 0.0), ulp));
-                assert!(p3.close_enough(point(-4.0, -4.0), ulp));
+                assert!(p0.point_equal(point(4.0, 4.0), ulp));
+                assert!(p1.point_equal(point(2.0, 2.0), ulp));
+                assert!(p2.point_equal(point(0.0, 0.0), ulp));
+                assert!(p3.point_equal(point(-4.0, -4.0), ulp));
                 assert!(if_really_intersecting_segment_segment(&s0, &s1) == true);
             }
             _ => assert!(false),

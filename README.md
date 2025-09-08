@@ -78,8 +78,8 @@ It is intended for use in My other projects, and **may not implement** all possi
 - sort_colinear_points
 
 ## Utilities functions
-- almost_equal_as_int (ULP-s)
-- perturbed_ulps_as_int (ULP-s)
+- float_equal (ULP-s)
+- float_perturbed_as_int64 (ULP-s)
 - close_enough (eps)
 - diff_of_prod
 - sum_of_prod
@@ -264,7 +264,7 @@ use basegeom::prelude::*;
 assert!(close_enough(1.0, 1.0000001, 1e-5));
 assert!(!close_enough(1.0, 1.1, 1e-5));
 // Check if two floats are almost equal using integer comparison
-assert!(almost_equal_as_int(1.0, 1.0, 0));
+assert!(float_equal(1.0, 1.0, 0));
 ```
 
 ### Arc-Arc intersection

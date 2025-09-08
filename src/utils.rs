@@ -33,7 +33,7 @@ const TWO_COMPLEMENT_CI_64: i64 = TWO_COMPLEMENT_64 as i64;
 ///
 /// let a = 1.0f64;
 /// let b = 1.0000000000000002f64; // Next representable value after 1.0
-/// assert!(almost_equal_as_int(a, b, 1)); // Within 1 ULP
+/// assert!(float_equal(a, b, 1)); // Within 1 ULP
 /// ```
 ///
 /// # References
@@ -47,7 +47,7 @@ const TWO_COMPLEMENT_CI_64: i64 = TWO_COMPLEMENT_64 as i64;
 /// The input values must be finite (not NaN or infinite).
 #[inline]
 #[must_use]
-pub fn almost_equal_as_int(a: f64, b: f64, ulps: u64) -> bool {
+pub fn almost_equal_as_int64(a: f64, b: f64, ulps: u64) -> bool {
     debug_assert!(a.is_finite());
     debug_assert!(b.is_finite());
 
@@ -65,7 +65,10 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: u64) -> bool {
     // Use saturating arithmetic to avoid overflow when values are very far apart
     let diff = (a_i as i128) - (b_i as i128);
     diff.abs() <= ulps as i128
+}
 
+pub fn float_equal(a: f64, b: f64, ulps: u64) -> bool {
+    almost_equal_as_int64(a, b, ulps)
 }
 
 /// Checks if two floating-point values are close within an epsilon tolerance.
@@ -91,10 +94,10 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: u64) -> bool {
 /// assert!(close_enough(1.0, 1.001, 0.01));
 /// assert!(!close_enough(1.0, 1.1, 0.01));
 /// ```
-#[must_use]
-pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
-    (a - b).abs() <= eps
-}
+// #[must_use]
+// pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
+//     (a - b).abs() <= eps
+// }
 
 /// Perturbs a floating-point value by a specified number of ULPs.
 ///
@@ -114,16 +117,68 @@ pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
 ///
 /// This function is unsafe and should only be used for testing. It does not
 /// handle edge cases like overflow or underflow properly.
+#[doc(hidden)]
 #[must_use]
-pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
-    // Special case: f == 0.0 and c == -1 should return -0.0 (valid bit pattern)
+pub fn float_perturbed_as_int64(f: f64, c: i64) -> f64 {
+    debug_assert!(f.is_finite());
+
+    if c == 0 {
+        return f;
+    }
+
+    // Special cases for zero crossings in ULP ordering:
+    // +0.0 with -1 perturbation should give -0.0
+    // -0.0 with +1 perturbation should give +0.0
     if f == 0.0 && c == -1 {
         return -0.0;
     }
-    let mut f_i: i64 = f.to_bits() as i64;
-    f_i += c;
-    f64::from_bits(f_i as u64)
+    if f == -0.0 && c == 1 {
+        return 0.0;
+    }
+
+    // Convert to the same lexicographically ordered space as float_equal
+    let f_bits = f.to_bits();
+    let f_i = f_bits as i64;
+
+    // Convert to lexicographically ordered space (same as float_equal)
+    let lex_value = if f_i < 0 {
+        TWO_COMPLEMENT_CI_64 - f_i
+    } else {
+        f_i
+    };
+
+    // Apply perturbation in lexicographic space
+    let result_lex = lex_value + c;
+
+    // Convert back from lexicographically ordered space to IEEE float bits
+    let result_bits = if result_lex < 0 {
+        // Result is negative in lex space, convert back to IEEE negative representation
+        (TWO_COMPLEMENT_CI_64 - result_lex) as u64
+    } else {
+        // Result is positive in lex space, it's already in IEEE positive representation
+        result_lex as u64
+    };
+
+    f64::from_bits(result_bits)
 }
+
+#[must_use]
+pub fn float_prev(f: f64, ulps: u64) -> f64 {
+    float_perturbed_as_int64(f, ulps as i64 * -1)
+}
+
+#[must_use]
+pub fn float_next(f: f64, ulps: u64) -> f64 {
+    float_perturbed_as_int64(f, ulps as i64)
+}
+
+
+
+
+// #[must_use]
+// pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
+//     (a - b).abs() <= eps
+// }
 
 #[cfg(test)]
 mod test_almost_equal_as_int {
@@ -133,51 +188,51 @@ mod test_almost_equal_as_int {
     #[test]
     fn test_almost_equal_as_int_negative_zero() {
         // Make sure that zero and negativeZero compare as equal.
-        assert!(almost_equal_as_int(0.0, -0.0, 0));
+        assert!(float_equal(0.0, -0.0, 0));
     }
 
     #[test]
     fn test_almost_equal_as_int_nearby_numbers() {
         // Make sure that nearby numbers compare as equal.
-        let result: bool = almost_equal_as_int(2.0, 1.999999999999999, 10);
+        let result: bool = float_equal(2.0, 1.999999999999999, 10);
         assert_eq!(result, true);
-        let result: bool = almost_equal_as_int(-2.0, -1.999999999999999, 10);
+        let result: bool = float_equal(-2.0, -1.999999999999999, 10);
         assert_eq!(result, true);
     }
 
     #[test]
     fn test_almost_equal_as_int_slightly_more_distant() {
         // Make sure that slightly more distant numbers compare as equal.
-        let result: bool = almost_equal_as_int(2.0, 1.999999999999998, 10);
+        let result: bool = float_equal(2.0, 1.999999999999998, 10);
         assert_eq!(result, true);
-        let result: bool = almost_equal_as_int(-2.0, -1.999999999999998, 10);
+        let result: bool = float_equal(-2.0, -1.999999999999998, 10);
         assert_eq!(result, true);
     }
 
     #[test]
     fn test_almost_equal_as_int_slightly_more_distant_reversed() {
         // Make sure the results are the same with parameters reversed.
-        let result: bool = almost_equal_as_int(1.999999999999998, 2.0, 10);
+        let result: bool = float_equal(1.999999999999998, 2.0, 10);
         assert_eq!(result, true);
-        let result: bool = almost_equal_as_int(-1.999999999999998, -2.0, 10);
+        let result: bool = float_equal(-1.999999999999998, -2.0, 10);
         assert_eq!(result, true);
     }
 
     #[test]
     fn test_almost_equal_as_int_distant() {
         // Make sure that even more distant numbers don't compare as equal.
-        let result: bool = almost_equal_as_int(2.0, 1.999999999999997, 10);
+        let result: bool = float_equal(2.0, 1.999999999999997, 10);
         assert_eq!(result, false);
-        let result: bool = almost_equal_as_int(-2.0, -1.999999999999997, 10);
+        let result: bool = float_equal(-2.0, -1.999999999999997, 10);
         assert_eq!(result, false);
     }
 
     #[test]
     fn test_almost_equal_as_int_distant_reversed() {
         // Make sure the results are the same with parameters reversed
-        let result: bool = almost_equal_as_int(1.999999999999997, 2.0, 10);
+        let result: bool = float_equal(1.999999999999997, 2.0, 10);
         assert_eq!(result, false);
-        let result: bool = almost_equal_as_int(-1.999999999999997, -2.0, 10);
+        let result: bool = float_equal(-1.999999999999997, -2.0, 10);
         assert_eq!(result, false);
     }
 
@@ -187,7 +242,7 @@ mod test_almost_equal_as_int {
         let mut f_u: u64 = f64::MAX.to_bits();
         f_u -= 2;
         let f_f = f64::from_bits(f_u);
-        let result: bool = almost_equal_as_int(f64::MAX, f_f, 3);
+        let result: bool = float_equal(f64::MAX, f_f, 3);
         assert_eq!(result, true);
     }
 
@@ -197,7 +252,7 @@ mod test_almost_equal_as_int {
         let mut f_u: u64 = f64::MAX.to_bits();
         f_u -= 4;
         let f_f = f64::from_bits(f_u);
-        let result: bool = almost_equal_as_int(f64::MAX, f_f, 3);
+        let result: bool = float_equal(f64::MAX, f_f, 3);
         assert_eq!(result, false);
     }
 
@@ -207,7 +262,7 @@ mod test_almost_equal_as_int {
         let mut f_u: u64 = f64::MIN.to_bits();
         f_u -= 2;
         let f_f = f64::from_bits(f_u);
-        let result: bool = almost_equal_as_int(f64::MIN, f_f, 3);
+        let result: bool = float_equal(f64::MIN, f_f, 3);
         assert_eq!(result, true);
     }
 
@@ -217,13 +272,13 @@ mod test_almost_equal_as_int {
         let mut f_u: u64 = f64::MIN.to_bits();
         f_u -= 4;
         let f_f = f64::from_bits(f_u);
-        let result: bool = almost_equal_as_int(f64::MIN, f_f, 3);
+        let result: bool = float_equal(f64::MIN, f_f, 3);
         assert_eq!(result, false);
     }
 
     #[test]
     fn test_almost_equal_as_int_some_numbers() {
-        let result: bool = almost_equal_as_int(100.0, -300.0, 10);
+        let result: bool = float_equal(100.0, -300.0, 10);
         assert_eq!(result, false);
     }
 
@@ -272,10 +327,10 @@ mod test_almost_equal_as_int {
     #[test]
     fn test_perturbed_ulps_as_int_0_minus_1() {
         // f = 0.0, c = -1 should return -0.0
-        let result = perturbed_ulps_as_int(0.0, -1);
+        let result = float_perturbed_as_int64(0.0, -1);
         assert_eq!(result, -0.0);
         // Check that -0.0 and 0.0 are considered almost equal
-        assert!(almost_equal_as_int(result, 0.0, 0));
+        assert!(float_equal(result, 0.0, 0));
         // Check that the bit pattern is correct
         assert_eq!(result.to_bits(), (-0.0f64).to_bits());
     }
@@ -283,25 +338,25 @@ mod test_almost_equal_as_int {
     #[test]
     fn test_perturbed_ulps_as_int() {
         let t = 1.0;
-        let tt = perturbed_ulps_as_int(t, -1);
-        let res = almost_equal_as_int(t, tt, 1);
+        let tt = float_perturbed_as_int64(t, -1);
+        let res = float_equal(t, tt, 1);
         //println!("{:.20} {:.20}", t, tt);
         assert_eq!(res, true);
 
         let t = 1.0;
-        let tt = perturbed_ulps_as_int(t, -1000);
-        let res = almost_equal_as_int(t, tt, 1000);
+        let tt = float_perturbed_as_int64(t, -1000);
+        let res = float_equal(t, tt, 1000);
         assert_eq!(res, true);
 
         let t = f64::MAX;
-        let tt = perturbed_ulps_as_int(t, -1000);
-        let res = almost_equal_as_int(t, tt, 1000);
+        let tt = float_perturbed_as_int64(t, -1000);
+        let res = float_equal(t, tt, 1000);
         assert_eq!(res, true);
         //println!("{:.20} {:.20}", t, tt);
 
         let t = f64::MAX;
-        let tt = perturbed_ulps_as_int(t, -1000000000);
-        let res = almost_equal_as_int(t, tt, 1000000000);
+        let tt = float_perturbed_as_int64(t, -1000000000);
+        let res = float_equal(t, tt, 1000000000);
         assert_eq!(res, true);
         //println!("{:.20} {:.20}", t, tt);
     }
@@ -309,7 +364,7 @@ mod test_almost_equal_as_int {
     #[test]
     fn test_positive_negative_zero() {
         // Check that positive and negative zeros are equal
-        assert!(almost_equal_as_int(-0f64, 0f64, 0));
+        assert!(float_equal(-0f64, 0f64, 0));
     }
 }
 
@@ -506,10 +561,11 @@ mod test_sum_min_close {
     }
 
     #[test]
-    fn test_close_enough_bounds() {
-        // Strict comparison: |a-b| < eps
-        assert!(close_enough(1.0, 1.0009, 0.001));
-        assert!(!close_enough(1.0, 1.002, 0.001));
-        assert!(close_enough(-1.0, -1.0005, 0.001));
+    fn test_float_perturbed() {
+        for i in (0..=5000i64).step_by(100) {
+            let a = 1.0;
+            let b = float_perturbed_as_int64(a, i);
+            println!("float_equal({}, {}) = {:.2e}", a, i, b-a);
+        }
     }
 }

@@ -68,7 +68,7 @@ pub fn int_segment_circle(seg: &Segment, circle: &Circle) -> SegmentCircleConfig
 
 #[cfg(test)]
 mod tests_segment_circle {
-    use crate::{circle::circle, point::point, segment::segment, utils::perturbed_ulps_as_int};
+    use crate::{circle::circle, point::point, segment::segment, utils::float_perturbed_as_int64};
 
     use super::*;
 
@@ -114,7 +114,7 @@ mod tests_segment_circle {
 
     #[test]
     fn test_two_points() {
-        let _1_eps = perturbed_ulps_as_int(1.0, -1);
+        let _1_eps = float_perturbed_as_int64(1.0, -1);
         let s0 = segment(point(-1.0, _1_eps), point(1.0, _1_eps));
         let c0 = circle(point(0.0, 0.0), 1.0);
         let res = int_segment_circle(&s0, &c0);

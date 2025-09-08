@@ -69,7 +69,7 @@ pub fn int_line_circle(line_orig: &Line, circle: &Circle) -> LineCircleConfig {
 
 #[cfg(test)]
 mod test_intersect_line_circle {
-    use crate::{circle::circle, point::point, utils::perturbed_ulps_as_int};
+    use crate::{circle::circle, point::point, utils::float_perturbed_as_int64};
 
     use super::*;
 
@@ -96,7 +96,7 @@ mod test_intersect_line_circle {
 
     #[test]
     fn test_two_points() {
-        let _1_eps = perturbed_ulps_as_int(1.0, -1);
+        let _1_eps = float_perturbed_as_int64(1.0, -1);
         let l0 = Line::new(point(0.0, _1_eps), point(1.0, 0.0));
         let c0 = circle(point(0.0, 0.0), 1.0);
         let res = int_line_circle(&l0, &c0);

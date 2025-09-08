@@ -167,7 +167,7 @@ fn arc_area_contribution(arc: &Arc) -> f64 {
     }
 
     // Handle the special case of a full circle (start == end)
-    if start.close_enough(end, 1e-10) {
+    if start.point_equal(end, UPLS_ARC_IS_VALID) {
         arc_angle = 2.0 * std::f64::consts::PI;
     }
 

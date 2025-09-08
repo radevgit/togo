@@ -3,7 +3,7 @@
 
 use robust::{Coord, orient2d};
 
-pub use crate::utils::almost_equal_as_int;
+pub use crate::utils::float_equal;
 use crate::utils::{diff_of_prod, sum_of_prod};
 use std::fmt::Display;
 use std::ops;
@@ -340,34 +340,6 @@ impl Point {
         }
     }
 
-    /// Checks if this point is almost equal to another point within a given ULP tolerance.
-    ///
-    /// Uses ULP (Units in the Last Place) comparison for floating point equality.
-    ///
-    /// # Arguments
-    ///
-    /// * `other` - The other point to compare with
-    /// * `ulp` - The ULP tolerance for comparison
-    ///
-    /// # Returns
-    ///
-    /// True if the points are almost equal within the tolerance
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use basegeom::prelude::*;
-    ///
-    /// let p1 = point(1.0, 2.0);
-    /// let p2 = point(1.0000001, 2.0000001);
-    /// let almost_equal = p1.almost_eq(p2, 10);
-    /// ```
-    /// Almost equal comparison with another Point using `ulp` given.
-    #[inline]
-    #[must_use]
-    pub fn almost_eq(&self, other: Self, ulp: u64) -> bool {
-        almost_equal_as_int(self.x, other.x, ulp) && almost_equal_as_int(self.y, other.y, ulp)
-    }
 
     /// Checks if this point is close enough to another point within an epsilon tolerance.
     ///
@@ -390,14 +362,14 @@ impl Point {
     /// let close = p1.close_enough(p2, 0.01);
     /// ```
     #[inline]
-    pub fn close_enough(&self, other: Self, eps: f64) -> bool {
-        (self.x - other.x).abs() <= eps && (self.y - other.y).abs() <= eps
+    pub fn point_equal(&self, other: Self, ulps: u64) -> bool {
+        float_equal(self.x, other.x, ulps) && float_equal(self.y, other.y, ulps)
     }
 
-    /// Computes the Manhattan distance to another point.
-    fn manhattan(&self, other: Self) -> f64 {
-        (self.x - other.x).abs() + (self.y - other.y).abs()
-    }
+    // /// Computes the Manhattan distance to another point.
+    // fn manhattan(&self, other: Self) -> f64 {
+    //     (self.x - other.x).abs() + (self.y - other.y).abs()
+    // }
 
     // /// diff_of_prod for points
     // #[inline]
@@ -484,16 +456,16 @@ mod test_binary_op {
 
     macro_rules! test_binary_op {
         ($v1:ident, $v2:ident, $op:tt, $expected:expr) => {
-            assert!(($v1 $op $v2).almost_eq($expected, 10));
-            assert!((&$v1 $op $v2).almost_eq($expected, 10));
-            assert!(($v1 $op &$v2).almost_eq($expected, 10));
-            assert!((&$v1 $op &$v2).almost_eq($expected, 10));
+            assert!(($v1 $op $v2).point_equal($expected, 1));
+            assert!((&$v1 $op $v2).point_equal($expected, 1));
+            assert!(($v1 $op &$v2).point_equal($expected, 1));
+            assert!((&$v1 $op &$v2).point_equal($expected, 1));
         };
     }
 
     macro_rules! test_num_op {
         ($v1:ident, $v2:ident, $op:tt, $expected:expr) => {
-            assert!(($v1 $op $v2).almost_eq($expected, 10));
+            assert!(($v1 $op $v2).point_equal($expected, 1));
         };
     }
 
@@ -519,7 +491,7 @@ mod test_binary_op {
 #[cfg(test)]
 mod test_point {
     use super::*;
-    use crate::point::point;
+    use crate::{point::point, utils::float_next};
 
     #[test]
     fn test_new() {
@@ -716,106 +688,52 @@ mod test_point {
     }
 
     #[test]
-    fn test_almost_eq() {
+    fn test_point_equal() {
         // Exactly equal points
         let p1 = point(1.0, 2.0);
         let p2 = point(1.0, 2.0);
-        assert!(p1.almost_eq(p2, 0));
+        assert!(p1.point_equal(p2, 0));
 
         // Very close points (should need some ULP tolerance)
         let p3 = point(1.0, 2.0);
-        let p4 = point(1.0 + f64::EPSILON, 2.0 + f64::EPSILON); // Much smaller difference
-        assert!(p3.almost_eq(p4, 1)); // 1 ULP should be enough for EPSILON difference
+        let p4 = point(float_next(1.0, 1), float_next(2.0, 1)); // Much smaller difference
+        assert!(p3.point_equal(p4, 1)); // 1 ULP should be enough for EPSILON difference
 
         // Different points
         let p5 = point(1.0, 2.0);
         let p6 = point(1.1, 2.1);
-        assert!(!p5.almost_eq(p6, 10));
+        assert!(!p5.point_equal(p6, 10));
 
         // Zero points
         let zero1 = point(0.0, 0.0);
         let zero2 = point(0.0, 0.0);
-        assert!(zero1.almost_eq(zero2, 0));
+        assert!(zero1.point_equal(zero2, 0));
 
         // Negative zero vs positive zero
         let neg_zero = point(-0.0, -0.0);
         let pos_zero = point(0.0, 0.0);
-        assert!(neg_zero.almost_eq(pos_zero, 0));
+        assert!(neg_zero.point_equal(pos_zero, 0));
 
         // Large values with minimal difference
         let big1 = point(1e10, 1e10);
-        let big2 = point(1e10 * (1.0 + f64::EPSILON), 1e10 * (1.0 + f64::EPSILON));
-        assert!(big1.almost_eq(big2, 100)); // ULP tolerance needed for large values
+        let big2 = point(float_next(1e10, 1), float_next(1e10, 1));
+        assert!(big1.point_equal(big2, 100)); // ULP tolerance needed for large values
 
-        // One coordinate different by EPSILON
+        // One coordinate different by 1 ULP
         let p7 = point(1.0, 2.0);
-        let p8 = point(1.0 + f64::EPSILON, 2.0);
-        assert!(p7.almost_eq(p8, 1));
+        let p8 = point(float_next(1.0, 1), 2.0);
+        assert!(p7.point_equal(p8, 1));
 
         let p9 = point(1.0, 2.0);
-        let p10 = point(1.0, 2.0 + f64::EPSILON);
-        assert!(p9.almost_eq(p10, 1));
+        let p10 = point(1.0, 2.0 + float_next(2.0, 1));
+        assert!(p9.point_equal(p10, 1));
 
         // Test different signs - should only be equal if both are zero
         let pos = point(1.0, 1.0);
         let neg = point(-1.0, -1.0);
-        assert!(!pos.almost_eq(neg, 1000));
+        assert!(!pos.point_equal(neg, 1000));
     }
 
-    #[test]
-    fn test_close_enough() {
-        // Exactly equal points
-        let p1 = point(1.0, 2.0);
-        let p2 = point(1.0, 2.0);
-        assert!(p1.close_enough(p2, 0.0));
-
-        // Points within epsilon (both coordinates must be within epsilon)
-        let p3 = point(1.0, 2.0);
-        let p4 = point(1.005, 2.005); // Both coordinates are 0.005 different
-        assert!(p3.close_enough(p4, 0.006)); // eps > 0.005
-        assert!(!p3.close_enough(p4, 0.004)); // eps < 0.005
-
-        // Points outside epsilon
-        let p5 = point(1.0, 2.0);
-        let p6 = point(1.1, 2.1); // Both coordinates are 0.1 different
-        assert!(!p5.close_enough(p6, 0.05));
-        assert!(p5.close_enough(p6, 0.15));
-
-        // Zero tolerance - requires exact equality
-        let p7 = point(1.0, 2.0);
-        let p8 = point(1.0, 2.0);
-        assert!(p7.close_enough(p8, f64::EPSILON)); // Use smallest epsilon instead of 0.0
-
-        let p9 = point(1.0, 2.0);
-        let p10 = point(1.001, 2.001);
-        assert!(!p9.close_enough(p10, 0.0));
-
-        // Negative coordinates
-        let p11 = point(-1.0, -2.0);
-        let p12 = point(-1.005, -2.005);
-        assert!(p11.close_enough(p12, 0.01));
-
-        // Mixed signs
-        let p13 = point(1.0, -2.0);
-        let p14 = point(1.005, -2.005);
-        assert!(p13.close_enough(p14, 0.01));
-
-        // Large epsilon
-        let p15 = point(0.0, 0.0);
-        let p16 = point(5.0, 5.0);
-        assert!(p15.close_enough(p16, 10.0));
-
-        // One coordinate within, one outside - should fail
-        let p17 = point(1.0, 2.0);
-        let p18 = point(1.005, 2.05); // x within 0.01, y outside 0.01
-        assert!(!p17.close_enough(p18, 0.01));
-
-        // Boundary case - exactly at epsilon
-        let p19 = point(1.0, 2.0);
-        let p20 = point(1.01, 2.01); // exactly 0.01 difference
-        assert!(!p19.close_enough(p20, 0.01)); // < epsilon, not <= epsilon
-        assert!(p19.close_enough(p20, 0.011)); // > epsilon
-    }
 
     // #[test]
     // fn test_diff_of_prod() {
