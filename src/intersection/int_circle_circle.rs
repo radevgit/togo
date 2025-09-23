@@ -42,7 +42,7 @@ const ZERO: f64 = 0f64;
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let circle0 = circle(point(0.0, 0.0), 1.0);
 /// let circle1 = circle(point(1.0, 0.0), 1.0);

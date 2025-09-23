@@ -22,7 +22,7 @@ use crate::{arc::Arcline, prelude::*};
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// // Square points
 /// let points = vec![
@@ -627,7 +627,7 @@ mod test_arcline_convex_hull {
 /// # Examples
 ///
 /// ```ignore
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// // Simple case: square made of line segments
 /// let arcs = vec![

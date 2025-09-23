@@ -1,4 +1,4 @@
-use basegeom::prelude::*;
+use togo::prelude::*;
 
 fn main() {
     // Writes SVG to standard output

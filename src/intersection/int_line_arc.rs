@@ -30,7 +30,7 @@ pub enum LineArcConfig {
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let line = Line::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let arc = Arc::new(point(0.0, 1.0), point(1.0, 0.0), point(1.0, 1.0), 1.0);
 /// let result = int_line_arc(&line, &arc);

@@ -745,8 +745,8 @@ mod test_arc_bounding_rect {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
-/// use basegeom::algo::bounding::arc_bounding_circle;
+/// use togo::prelude::*;
+/// use togo::algo::bounding::arc_bounding_circle;
 ///
 /// // Quarter circle arc
 /// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
@@ -864,8 +864,8 @@ pub fn arc_bounding_circle(arc: &Arc) -> Circle {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
-/// use basegeom::algo::bounding::arc_bounding_rect;
+/// use togo::prelude::*;
+/// use togo::algo::bounding::arc_bounding_rect;
 ///
 /// // Quarter circle arc
 /// let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);

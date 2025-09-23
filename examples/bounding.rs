@@ -1,5 +1,5 @@
-use basegeom::prelude::*;
-use basegeom::algo::bounding::{arc_bounding_circle, arc_bounding_rect};
+use togo::prelude::*;
+use togo::algo::bounding::{arc_bounding_circle, arc_bounding_rect};
 
 fn main() {
     // Writes SVG to standard output

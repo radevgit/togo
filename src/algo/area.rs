@@ -21,8 +21,8 @@ use crate::prelude::*;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
-/// use basegeom::algo::area::pointline_area;
+/// use togo::prelude::*;
+/// use togo::algo::area::pointline_area;
 ///
 /// let square = vec![
 ///     point(0.0, 0.0),
@@ -74,8 +74,8 @@ pub fn pointline_area(points: &Pointline) -> f64 {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
-/// use basegeom::algo::area::arcline_area;
+/// use togo::prelude::*;
+/// use togo::algo::area::arcline_area;
 ///
 /// // Square made of line segments (CCW oriented)
 /// let square_arcs = vec![

@@ -32,7 +32,7 @@ const ZERO: f64 = 0.0f64;
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let line = line(point(0.0, 0.0), point(1.0, 0.0));
 /// let circle = circle(point(1.0, 1.0), 1.0);
 /// let res = dist_line_circle(&line, &circle);

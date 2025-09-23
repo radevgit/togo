@@ -30,7 +30,7 @@ impl Rect {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let rect = Rect::new(point(0.0, 0.0), point(1.0, 1.0));
     /// ```
@@ -52,7 +52,7 @@ impl Rect {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let rect = rect(point(3.0, 4.0), point(5.0, 6.0));
 /// ```

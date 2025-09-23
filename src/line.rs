@@ -25,7 +25,7 @@ impl Line {
     ///
     /// # Examples
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let line = Line::new(point(1.0, 2.0), point(3.0, 4.0));
     /// ```
     #[inline]
@@ -38,7 +38,7 @@ impl Line {
     ///
     /// # Examples
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let line = Line::new(point(1.0, 2.0), point(3.0, 4.0));
     /// let unit_line = line.unitdir();
     /// assert_eq!(unit_line.dir.norm(), 1.0);

@@ -28,7 +28,7 @@ const ZERO: f64 = 0f64;
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let line = Line::new(point(0.0, 0.0), point(1.0, 1.0));
 /// let circle = Circle::new(point(0.0, 1.0), 1.0);
 /// let result = int_line_circle(&line, &circle);

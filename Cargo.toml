@@ -1,5 +1,5 @@
 [package]
-name = "basegeom"
+name = "togo"
 description = "A library for 2D geometry, providing geometric algorithms for intersection/distance between circular arcs/line segments."
 version = "0.3.11"
 rust-version = "1.88"
@@ -7,8 +7,8 @@ edition = "2024"
 categories = ["algorithms", "data-structures", "graphics", "mathematics"]
 keywords = ["intersection", "geometry", "arcs", "distance", "segment"]
 license = "MIT"
-repository = "https://github.com/radevgit/basegeom"
-documentation = "https://docs.rs/basegeom"
+repository = "https://github.com/radevgit/togo"
+documentation = "https://docs.rs/togo"
 readme = "README.md"
 
 

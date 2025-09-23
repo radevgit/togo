@@ -28,7 +28,7 @@ const EPS_COLLAPSED: f64 = 1E-8;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let start = point(0.0, 1.0);
 /// let end = point(1.0, 0.0);
@@ -87,7 +87,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// // Create a quarter circle arc
     /// let arc = Arc::new(
@@ -126,7 +126,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(arc.is_arc()); // Has finite radius
     ///
@@ -148,7 +148,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// assert!(!arc.is_seg()); // Has finite radius
     ///
@@ -170,7 +170,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let mut my_arc = arc(
     ///     point(0.0, 0.0),
@@ -208,7 +208,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
     /// let reversed = arc.reverse();
     /// ```
@@ -233,7 +233,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let arc0 = arc(point(0.0, 0.0), point(1.0, 1.0), point(0.5, 0.5), 1.0);
     /// assert!(arc0.contains(point(1.0, 0.0))); // Point on the arc
     /// assert!(!arc0.contains(point(0.0, 1.0))); // Point outside the arc
@@ -277,7 +277,7 @@ impl Arc {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1.0);
 /// assert_eq!(arc.a, point(0.0, 0.0));
 /// assert_eq!(arc.b, point(1.0, 0.0));
@@ -307,7 +307,7 @@ pub fn arc(a: Point, b: Point, c: Point, r: f64) -> Arc {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let line = arcseg(point(0.0, 0.0), point(1.0, 1.0));
 /// assert!(line.is_seg());
 /// assert!(!line.is_arc());
@@ -552,7 +552,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.0001);
     /// assert!(arc1.is_collapsed_radius(0.01)); // Radius too small
     /// let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
@@ -581,7 +581,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let p1 = point(0.0, 0.0);
     /// let p2 = point(0.0001, 0.0);
     /// let p3 = point(1.0, 0.0);
@@ -615,7 +615,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// // Consistent arc: center is equidistant from both endpoints
     /// let start = point(0.0, 0.0);
@@ -667,7 +667,7 @@ impl Arc {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     /// let valid_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
     /// assert!(valid_arc.is_valid(1e-10));
     ///
@@ -1123,7 +1123,7 @@ mod test_arc_validation {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let start = point(0.0, 0.0);
 /// let end = point(2.0, 0.0);
@@ -1200,7 +1200,7 @@ const MIN_BULGE: f64 = 1E-8;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// // Create a semicircle arc
 /// let arc = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1.0);
@@ -1764,7 +1764,7 @@ mod test_arc_make_consistent {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// // Two crossing line segments - really intersecting
 /// let line1 = arcseg(point(0.0, 0.0), point(2.0, 2.0));
@@ -1969,7 +1969,7 @@ pub enum ArclineValidation {
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// // Valid arcline: two connected line segments forming an L-shape
 /// let arc1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));

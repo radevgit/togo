@@ -26,7 +26,7 @@ use crate::prelude::*;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// // Straight line segment
 /// let straight = pvertex(point(0.0, 0.0), 0.0);
@@ -62,7 +62,7 @@ impl PVertex {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let vertex = PVertex::new(point(1.0, 2.0), 0.5);
     /// ```
@@ -84,7 +84,7 @@ impl PVertex {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let vertex = pvertex(point(1.0, 2.0), 0.5);
 /// ```
@@ -116,7 +116,7 @@ pub type Polyline = Vec<PVertex>;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let original = vec![
 ///     pvertex(point(0.0, 0.0), 0.5),
@@ -185,7 +185,7 @@ pub fn polylines_reverse(poly: &Vec<Polyline>) -> Vec<Polyline> {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let original = vec![
 ///     pvertex(point(1.0, 2.0), 0.5),
@@ -220,7 +220,7 @@ pub fn polyline_scale(poly: &Polyline, scale: f64) -> Polyline {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let original = vec![
 ///     pvertex(point(1.0, 2.0), 0.5),

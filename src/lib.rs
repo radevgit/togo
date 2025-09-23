@@ -13,7 +13,7 @@
 //! ## Creating and working with points
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create points using the constructor or convenience function
 //! let p1 = Point::new(1.0, 2.0);
@@ -32,7 +32,7 @@
 //! ## Working with geometric primitives
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create a circle and segment
 //! let center = point(0.0, 0.0);
@@ -48,7 +48,7 @@
 //! ## Distance computations
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Distance from point to circle returns (distance, closest_point, is_equidistant)
 //! let p = point(10.0, 0.0);
@@ -66,7 +66,7 @@
 //! ## Intersection tests
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Test intersection between two circles
 //! let c1 = circle(point(0.0, 0.0), 3.0);
@@ -91,7 +91,7 @@
 //! <div class="warning">NOTE: Arcs are always CCW (counter-clockwise) in this library.</div>
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create an arc from three points and radius (start, end, center, radius)
 //! let start = point(1.0, 0.0);
@@ -108,7 +108,7 @@
 //! ## Working with lines
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create a line from a point and direction vector
 //! let origin = point(0.0, 0.0);
@@ -122,7 +122,7 @@
 //! ## Working with intervals
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create an interval (tuple struct with two f64 values)
 //! let iv = interval(1.0, 5.0);
@@ -137,7 +137,7 @@
 //! ## Working with polylines (PVertex)
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create vertices for a polyline
 //! let p1 = pvertex(point(0.0, 0.0), 0.0);
@@ -156,7 +156,7 @@
 //! ## Arc-arc distance computation
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create two separate arcs
 //! let a1 = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
@@ -170,7 +170,7 @@
 //! ## Line-circle intersection
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create a line and circle that intersect
 //! let l = line(point(-3.0, 0.0), point(1.0, 0.0)); // Horizontal line through origin
@@ -189,7 +189,7 @@
 //! ## Segment-segment intersection
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create two intersecting segments
 //! let seg1 = segment(point(0.0, 0.0), point(2.0, 2.0));
@@ -208,7 +208,7 @@
 //! ## Utility functions
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Test floating point equality with tolerance
 //! assert!(close_enough(1.0, 1.0000001, 1e-5));
@@ -222,7 +222,7 @@
 //! ## Arc-arc intersection
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Create two intersecting arcs
 //! let a1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
@@ -242,7 +242,7 @@
 //! ## Distance computations
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!     let l = line(point(0.0, 3.0), point(1.0, 0.0)); // Line with point and direction
 //!     let c = circle(point(0.0, 0.0), 2.0);
 //!     let result = dist_line_circle(&l, &c);
@@ -271,7 +271,7 @@
 //! ```
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!     // Distance from segment to circle
 //!     let seg = segment(point(3.0, 0.0), point(4.0, 0.0));
 //!     let c = circle(point(0.0, 0.0), 1.0);
@@ -295,7 +295,7 @@
 //! ## Intersection computations
 //!
 //! ```
-//! use basegeom::prelude::*;
+//! use togo::prelude::*;
 //!
 //! // Interval-interval intersection
 //! let iv1 = interval(1.0, 5.0);

@@ -2,7 +2,7 @@
 
 // #00014
 
-// use basegeom::prelude::*;
+// use togo::prelude::*;
 
 // This path can contain lines, quadratics ([`QuadBez`]), cubics ([`CubicBez`])
 // and arcs ([`Arc`]) and is used to represent a Bezier path.

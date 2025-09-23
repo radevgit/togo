@@ -35,7 +35,7 @@ const ONE: f64 = 1.0;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let seg = segment(point(0.0, 0.0), point(3.0, 4.0));
 /// let c = circle(point(1.0, 1.0), 2.0);
 /// let dist = dist_segment_circle(&seg, &c);

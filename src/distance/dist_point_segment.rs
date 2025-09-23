@@ -32,7 +32,7 @@ const ONE: f64 = 1f64;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let p = point(1.0, 1.0);
 /// let seg = segment(point(0.0, 0.0), point(2.0, 0.0));

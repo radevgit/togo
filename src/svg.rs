@@ -21,7 +21,7 @@ use crate::prelude::*;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let mut svg = SVG::new(200.0, 200.0, Some("/tmp/debug.svg"));
 /// // ... render geometric elements
@@ -47,7 +47,7 @@ impl SVG {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let svg = SVG::new(800.0, 600.0, Some("/tmp/visualization.svg"));
     /// ```
@@ -84,7 +84,7 @@ impl SVG {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let svg_context = svg(400.0, 300.0);
 /// ```

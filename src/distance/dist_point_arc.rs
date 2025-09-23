@@ -30,7 +30,7 @@ pub enum DistPointArcConfig {
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let arc = arc(point(1.0, 0.0), point(1.0, 2.0), point(1.0, 1.0), 1.0);
 /// let p = point(2.0, 1.0);
 /// let res = dist_point_arc(&p, &arc);

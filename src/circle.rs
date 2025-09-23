@@ -8,7 +8,7 @@ use std::fmt::Display;
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let circle = Circle::new(point(0.0, 0.0), 5.0);
 /// ```
@@ -38,7 +38,7 @@ impl Circle {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let circle = Circle::new(point(3.0, 4.0), 5.0);
     /// ```
@@ -60,7 +60,7 @@ impl Circle {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let circle = circle(point(3.0, 4.0), 5.0);
 /// ```

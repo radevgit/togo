@@ -30,7 +30,7 @@ const ZERO: f64 = 0.0;
 ///
 /// # Examples
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 /// let c = circle(point(1.0, 1.0), 1.0);
 /// let p = point(3.0, 1.0);
 /// let (dist, closest, equidistant) = dist_point_circle(&p, &c);

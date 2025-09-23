@@ -14,7 +14,7 @@ static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let seg = Segment::new(point(0.0, 0.0), point(3.0, 4.0));
 /// ```
@@ -51,7 +51,7 @@ impl Segment {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let seg = Segment::new(point(0.0, 0.0), point(1.0, 1.0));
     /// ```
@@ -80,7 +80,7 @@ impl Segment {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let seg = segment(point(0.0, 0.0), point(1.0, 1.0));
 /// ```
@@ -105,7 +105,7 @@ impl Segment {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let seg = segment(point(0.0, 0.0), point(4.0, 0.0));
     /// let (center, direction, extent) = seg.get_centered_form();

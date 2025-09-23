@@ -13,13 +13,13 @@ const ZERO: f64 = 0f64;
 
 /// A 2D point with double precision floating point coordinates.
 ///
-/// This is a fundamental data type used throughout the basegeom library
+/// This is a fundamental data type used throughout the togo library
 /// to represent positions and vectors in 2D space.
 ///
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let p1 = point(3.0, 4.0);
 /// let p2 = point(1.0, 2.0);
@@ -46,7 +46,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p = Point::new(3.0, 4.0);
     /// assert_eq!(p.x, 3.0);
@@ -69,7 +69,7 @@ impl Point {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let p = point(3.0, 4.0);
 /// assert_eq!(p.x, 3.0);
@@ -104,7 +104,7 @@ pub fn point(x: f64, y: f64) -> Point {
 /// # Examples
 ///
 /// ```
-/// use basegeom::prelude::*;
+/// use togo::prelude::*;
 ///
 /// let a = point(0.0, 0.0);
 /// let b = point(1.0, 0.0);
@@ -229,7 +229,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p1 = point(3.0, 4.0);
     /// let p2 = point(1.0, 2.0);
@@ -258,7 +258,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p1 = point(3.0, 4.0);
     /// let p2 = point(1.0, 2.0);
@@ -278,7 +278,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
     /// let magnitude = p.norm(); // sqrt(3² + 4²) = 5.0
@@ -302,7 +302,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p = point(3.0, 4.0);
     /// let (normalized, magnitude) = p.normalize(false);
@@ -356,7 +356,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p1 = point(1.0, 2.0);
     /// let p2 = point(1.0000001, 2.0000001);
@@ -383,7 +383,7 @@ impl Point {
     /// # Examples
     ///
     /// ```
-    /// use basegeom::prelude::*;
+    /// use togo::prelude::*;
     ///
     /// let p1 = point(1.0, 2.0);
     /// let p2 = point(1.001, 2.001);
