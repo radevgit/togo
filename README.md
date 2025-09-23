@@ -1,12 +1,15 @@
-# TOGO
+# TOGO - Basic 2D geometric operations
 ![Build](https://github.com/radevgit/togo/actions/workflows/rust.yml/badge.svg)
+
+This library provides 2D geometric operations for arcs and line segments. 
+It is used in my other projects and **may not implement** all possible geometric operations.
 
 
 ## Adding the library to Cargo.toml
 
 ```toml
 [dependencies]
-togo = "0.3.11"
+togo = "0.4.0"
 ```
 ![](https://raw.githubusercontent.com/radevgit/togo/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
@@ -15,13 +18,6 @@ togo = "0.3.11"
 ## Documentation
 
 [<https://docs.rs/togo>](https://docs.rs/togo)
-
-## Basic 2D geometric operations
-
-The intention of this library is to provide a 2D geometric operations for arcs and line segments. 
-It is intended for use in My other projects, and **may not implement** all possible geometric operations.
-
-
 
 ## Implemented Features
 
