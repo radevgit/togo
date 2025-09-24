@@ -235,8 +235,8 @@ impl SVG {
             let arc = arc_circle_parametrization(p0, p1, g);
             self.arc(&arc, color);
         }
-        self.circle(&circle(p0, 0.5), "blue");
-        self.circle(&circle(p1, 0.5), "blue");
+        // self.circle(&circle(p0, 0.5), "blue");
+        // self.circle(&circle(p1, 0.5), "blue");
     }
 
     /// Draws a polyline in the SVG format.
