@@ -1,5 +1,7 @@
 # TOGO - Basic 2D geometric operations
-![Build](https://github.com/radevgit/togo/actions/workflows/rust.yml/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/togo.svg?color=blue)](https://crates.io/crates/togo)
+[![Documentation](https://docs.rs/togo/badge.svg)](https://docs.rs/togo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 This library provides 2D geometric operations for arcs and line segments. 
 It is used in my other projects and **may not implement** all possible geometric operations.
