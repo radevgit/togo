@@ -110,10 +110,6 @@ pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
 ///
 /// The perturbed floating-point value
 ///
-/// # Safety
-///
-/// This function is unsafe and should only be used for testing. It does not
-/// handle edge cases like overflow or underflow properly.
 #[must_use]
 pub fn perturbed_ulps_as_int(f: f64, c: i64) -> f64 {
     // Special case: f == 0.0 and c == -1 should return -0.0 (valid bit pattern)
@@ -409,46 +405,9 @@ pub fn min_3(a: f64, b: f64, c: f64) -> f64 {
     a.min(b).min(c)
 }
 
-// #[cfg(test)]
-// use rand::distr::{Distribution, Uniform};
-// #[cfg(test)]
-// use rand::rngs::StdRng;
 
-// #[cfg(test)]
-// use crate::segment::Segment;
-// #[cfg(test)]
-// use crate::Arc;
-// #[cfg(test)]
-// pub fn random_arc(wa: f64, wb: f64, ha: f64, hb: f64, b: f64, rng: &mut StdRng) -> Arc {
-//     use crate::{arc::arc_circle_parametrization, point};
 
-//     let range_w = Uniform::new(wa, wb).unwrap();
-//     let range_h = Uniform::new(ha, hb).unwrap();
-//     let bulge = if b != 0.0 {
-//         let range_b = Uniform::new(-b, b).unwrap();
-//         range_b.sample(rng)
-//     } else {
-//         0.0
-//     };
-//     let x0 = range_w.sample(rng);
-//     let y0 = range_h.sample(rng);
-//     let x1 = range_w.sample(rng);
-//     let y1 = range_h.sample(rng);
-//     arc_circle_parametrization(point(x0, y0), point(x1, y1), bulge)
-// }
 
-// #[cfg(test)]
-// pub fn random_segment(wa: f64, wb: f64, ha: f64, hb: f64, rng: &mut StdRng) -> Segment {
-//     use crate::{point, segment::segment};
-
-//     let range_w = Uniform::new(wa, wb).unwrap();
-//     let range_h = Uniform::new(ha, hb).unwrap();
-//     let x0 = range_w.sample(rng);
-//     let y0 = range_h.sample(rng);
-//     let x1 = range_w.sample(rng);
-//     let y1 = range_h.sample(rng);
-//     segment(point(x0, y0), point(x1, y1))
-// }
 
 #[cfg(test)]
 mod test_diff_of_prod {

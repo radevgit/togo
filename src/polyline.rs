@@ -134,7 +134,10 @@ pub fn polyline_reverse(poly: &Polyline) -> Polyline {
         // If there's only one vertex, just negate the bulge
         return vec![pvertex(poly[0].p, -poly[0].b)];
     }
-    let last = poly.last().unwrap();
+    let last = match poly.last() {
+        Some(l) => l,
+        None => unreachable!("polyline_reverse: poly is empty, should be handled above"),
+    };
     let mut reverse = poly.clone();
     reverse.reverse();
     let mut res: Polyline = Vec::with_capacity(poly.len());
@@ -142,7 +145,10 @@ pub fn polyline_reverse(poly: &Polyline) -> Polyline {
         let e = pvertex(reverse[i].p, -reverse[i + 1].b);
         res.push(e);
     }
-    let e = pvertex(reverse.last().unwrap().p, -last.b);
+    let e = pvertex(match reverse.last() {
+        Some(v) => v.p,
+        None => unreachable!("polyline_reverse: reverse is empty, should be impossible here"),
+    }, -last.b);
     res.push(e);
 
     res

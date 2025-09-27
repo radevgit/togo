@@ -77,9 +77,15 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
     let start = unique_points
         .iter()
         .enumerate()
-        .min_by(|(_, a), (_, b)| match a.x.partial_cmp(&b.x).unwrap() {
-            std::cmp::Ordering::Equal => a.y.partial_cmp(&b.y).unwrap(),
-            other => other,
+        .min_by(|(_, a), (_, b)| {
+            match a.x.partial_cmp(&b.x) {
+                Some(std::cmp::Ordering::Equal) => match a.y.partial_cmp(&b.y) {
+                    Some(ord) => ord,
+                    None => unreachable!("Point.y is NaN in convex hull computation"),
+                },
+                Some(other) => other,
+                None => unreachable!("Point.x is NaN in convex hull computation"),
+            }
         })
         .map_or(0, |(idx, _)| idx);
 
