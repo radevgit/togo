@@ -332,6 +332,9 @@ mod polyline;
 mod rect;
 mod segment;
 
+// Centralized constants for numeric stability
+pub mod constants;
+
 // Geometric algorithms and utilities
 pub mod algo;
 mod interval;
@@ -354,7 +357,7 @@ pub mod prelude {
     // Re-export core types and functions
     pub use crate::algo::{is_convex_pointline, pointline_area, arcline_area, pointline_convex_hull, arc_bounding_circle, arc_bounding_rect};
     pub use crate::arc::{
-        Arc, Arcline, arc, arc_bulge_from_points, arc_circle_parametrization,
+        Arc, Arcline, arc, bulge_from_arc, arc_from_bulge,
         arcline_translate, arcline_reverse, arcline_is_valid, arcseg, is_really_intersecting,
         ArclineValidation
     };
@@ -398,7 +401,10 @@ pub mod prelude {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests;
+
+#[cfg(test)]
+mod inline_tests {
     use super::prelude::*;
 
     #[test]

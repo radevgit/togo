@@ -6,6 +6,7 @@
 #![allow(dead_code)]
 
 use crate::prelude::*;
+use robust::{orient2d, Coord};
 
 // Re-export algorithm submodules here when they are added
 // pub mod triangulation;
@@ -43,10 +44,17 @@ pub fn is_convex_pointline(points: &Pointline) -> bool {
         let p2 = points[(i + 1) % n];
         let p3 = points[(i + 2) % n];
 
-        let cross = (p2 - p1).perp(p3 - p2);
+        // Use robust orient2d predicate for orientation test
+        // orient2d returns exactly 0.0 for collinear points (via exact arithmetic),
+        // so comparing to 0.0 is safe here (not a floating-point precision issue)
+        let orientation = orient2d(
+            Coord { x: p1.x, y: p1.y },
+            Coord { x: p2.x, y: p2.y },
+            Coord { x: p3.x, y: p3.y },
+        );
 
-        if cross != 0.0 {
-            let current_sign = if cross > 0.0 { 1 } else { -1 };
+        if orientation != 0.0 {
+            let current_sign = if orientation > 0.0 { 1 } else { -1 };
             if sign == 0 {
                 sign = current_sign;
             } else if sign != current_sign {
@@ -83,5 +91,41 @@ mod tests {
             point(0.0, 2.0),
         ];
         assert!(!is_convex_pointline(&concave));
+    }
+
+    #[test]
+    fn test_is_convex_polygon_with_collinear_segments() {
+        // Rectangle with an extra point on one edge (collinear with adjacent points)
+        // Points: (0,0) → (1,0) → (2,0) [collinear] → (2,1) → (2,2) → (0,2) → (0,0)
+        // This should be considered convex (collinear segments don't violate convexity)
+        let polygon_with_collinear = vec![
+            point(0.0, 0.0),
+            point(1.0, 0.0),  // collinear with next two
+            point(2.0, 0.0),  // on the edge from (0,0) to (2,0)
+            point(2.0, 1.0),
+            point(2.0, 2.0),
+            point(0.0, 2.0),
+        ];
+        assert!(is_convex_pointline(&polygon_with_collinear));
+    }
+
+    #[test]
+    fn test_is_convex_polygon_multiple_collinear() {
+        // A more complex case with collinear points on multiple edges
+        // This forms a rectangle: (0,0)→(3,0)→(3,3)→(0,3)→back to (0,0)
+        // But with intermediate collinear points on edges
+        let polygon = vec![
+            point(0.0, 0.0),
+            point(1.0, 0.0),  // collinear on bottom edge
+            point(2.0, 0.0),  // collinear on bottom edge
+            point(3.0, 0.0),
+            point(3.0, 1.0),  // collinear on right edge
+            point(3.0, 2.0),  // collinear on right edge
+            point(3.0, 3.0),
+            point(2.0, 3.0),  // collinear on top edge
+            point(1.0, 3.0),  // collinear on top edge
+            point(0.0, 3.0),
+        ];
+        assert!(is_convex_pointline(&polygon));
     }
 }

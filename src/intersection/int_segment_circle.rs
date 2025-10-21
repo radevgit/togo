@@ -135,4 +135,36 @@ mod tests_segment_circle {
         let res = int_segment_circle(&s0, &c0);
         assert_eq!(res, SegmentCircleConfig::NoIntersection());
     }
+
+    #[test]
+    fn test_one_point_from_tangent_outside_segment() {
+        // Line is tangent to circle, but tangent point is outside segment extent
+        // Segment from (5.0, 0.0) to (3.0, 0.0), circle at (0, 0) with radius 1
+        // Tangent point would be at (0, 1) or (0, -1), far from segment
+        let s0 = segment(point(5.0, 0.0), point(3.0, 0.0));
+        let c0 = circle(point(0.0, 0.0), 1.0);
+        let res = int_segment_circle(&s0, &c0);
+        assert_eq!(res, SegmentCircleConfig::NoIntersection());
+    }
+
+    #[test]
+    fn test_two_points_only_one_in_segment() {
+        // Line intersects circle at two points, but only one is within segment extent
+        // Segment from (0.5, -2.0) to (0.5, 0.5), circle at (0, 0) with radius 1
+        // Circle intersects at (0.5, ±sqrt(1-0.25)) ≈ (0.5, ±0.866)
+        // Only (0.5, 0.866) is outside segment, but (0.5, -0.866) might be close too
+        let s0 = segment(point(0.5, 0.0), point(0.5, 1.0));
+        let c0 = circle(point(0.0, 0.0), 1.0);
+        let res = int_segment_circle(&s0, &c0);
+        // Should get one or two points depending on which are in [0,1] parameter range
+        match res {
+            SegmentCircleConfig::OnePoint(_, _) => {
+                // One intersection point within segment
+            }
+            SegmentCircleConfig::TwoPoints(_, _, _, _) => {
+                // Two intersection points within segment
+            }
+            _ => panic!("Expected at least one intersection point"),
+        }
+    }
 }

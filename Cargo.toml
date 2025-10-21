@@ -5,16 +5,17 @@ version = "0.4.1"
 rust-version = "1.88"
 edition = "2024"
 categories = ["algorithms", "data-structures", "graphics", "mathematics"]
-keywords = ["intersection", "geometry", "arcs", "distance", "segment"]
+keywords = ["intersection", "geometry", "arc", "distance", "segment"]
 license = "MIT"
 repository = "https://github.com/radevgit/togo"
 documentation = "https://docs.rs/togo"
+homepage = "https://github.com/radevgit/togo"
 readme = "README.md"
 
 
 
 [dependencies]
-robust = "1.2.0"
+robust = "1.2"
 
 [lib]
 crate-type = ["lib"]

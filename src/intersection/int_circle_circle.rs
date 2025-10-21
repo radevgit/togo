@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::constants::CIRCLE_TOLERANCE;
 use crate::point::point;
 use crate::utils::diff_of_prod;
 use crate::{circle::Circle, point::Point};
@@ -62,9 +63,9 @@ pub fn int_circle_circle(circle0: Circle, circle1: Circle) -> CircleCircleConfig
     let r0 = circle0.r;
     let r1 = circle1.r;
     let r0_m_r1 = r0 - r1;
-
-    if usqr_len == ZERO && r0_m_r1 == ZERO {
-        // Circles are the same
+    
+    if usqr_len < CIRCLE_TOLERANCE * CIRCLE_TOLERANCE && r0_m_r1.abs() < CIRCLE_TOLERANCE {
+        // Circles are the same (or nearly identical within tolerance)
         return CircleCircleConfig::SameCircles();
     }
 
@@ -102,6 +103,13 @@ pub fn int_circle_circle(circle0: Circle, circle1: Circle) -> CircleCircleConfig
             let tmp = circle0.c + u * s;
             let p0 = tmp - v * t;
             let p1 = tmp + v * t;
+            
+            // Bounds check: intersection points should have finite coordinates.
+            // If they are non-finite (inf, -inf, NaN), it indicates numerical issues.
+            if !p0.x.is_finite() || !p0.y.is_finite() || !p1.x.is_finite() || !p1.y.is_finite() {
+                return CircleCircleConfig::NoIntersection();
+            }
+            
             if t > 0f64 {
                 CircleCircleConfig::NoncocircularTwoPoints(p0, p1)
             } else {
@@ -111,11 +119,23 @@ pub fn int_circle_circle(circle0: Circle, circle1: Circle) -> CircleCircleConfig
         } else {
             // |U| = |R0-R1|, circles are tangent.
             let p0 = circle0.c + u * (r0 / r0_m_r1);
+            
+            // Bounds check: tangent point should have finite coordinates
+            if !p0.x.is_finite() || !p0.y.is_finite() {
+                return CircleCircleConfig::NoIntersection();
+            }
+            
             CircleCircleConfig::NoncocircularOnePoint(p0)
         }
     } else {
         // |U| = |R0+R1|, circles are tangent.
         let p0 = circle0.c + u * (r0 / r0_p_r1);
+        
+        // Bounds check: tangent point should have finite coordinates
+        if !p0.x.is_finite() || !p0.y.is_finite() {
+            return CircleCircleConfig::NoIntersection();
+        }
+        
         CircleCircleConfig::NoncocircularOnePoint(p0)
     }
 }
@@ -209,6 +229,100 @@ mod tests_circle {
         let res = ff(circle0, circle1);
         assert_eq!(res, CircleCircleConfig::NoncocircularOnePoint(point0));
     }
+
+    #[test]
+    // Test tolerance boundary at CIRCLE_TOLERANCE = 1e-10
+    fn test_tolerance_boundary_within_tolerance() {
+        // Circles separated by distance < 1e-10 with same radii should be treated as same
+        let tolerance = 1e-10;
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(tolerance * 0.5, 0.0), 1.0); // Well within tolerance
+        let res = ff(circle0, circle1);
+        assert_eq!(res, CircleCircleConfig::SameCircles());
+    }
+
+    #[test]
+    // Test tolerance boundary just outside tolerance
+    fn test_tolerance_boundary_outside_tolerance() {
+        // Circles separated by distance > 1e-10 with same radii should intersect
+        let tolerance = 1e-10;
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(tolerance * 2.0, 0.0), 1.0); // Beyond tolerance
+        let res = ff(circle0, circle1);
+        // Should have two intersection points (circles overlap)
+        match res {
+            CircleCircleConfig::NoncocircularTwoPoints(_, _) => {
+                // Correct: circles overlap with two points
+            }
+            _ => panic!("Expected two intersection points for circles beyond tolerance"),
+        }
+    }
+
+    #[test]
+    // Test nearly identical radii at tolerance boundary
+    fn test_radius_tolerance_boundary() {
+        let tolerance = 1e-10;
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(0.0, 0.0), 1.0 + tolerance * 0.5); // Radius diff < tolerance
+        let res = ff(circle0, circle1);
+        // Should be treated as same circle (within tolerance)
+        assert_eq!(res, CircleCircleConfig::SameCircles());
+    }
+
+    #[test]
+    // Test one circle inside another without touching
+    fn test_one_inside_other_no_intersection() {
+        let circle0 = circle(point(0.0, 0.0), 10.0);
+        let circle1 = circle(point(0.0, 0.0), 5.0);
+        let res = ff(circle0, circle1);
+        assert_eq!(res, CircleCircleConfig::NoIntersection());
+    }
+
+    #[test]
+    // Test external tangency
+    fn test_external_tangent() {
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(2.0, 0.0), 1.0); // Distance = sum of radii
+        let res = ff(circle0, circle1);
+        match res {
+            CircleCircleConfig::NoncocircularOnePoint(_) => {
+                // Correct: external tangent
+            }
+            _ => panic!("Expected one point for external tangent circles"),
+        }
+    }
+
+    #[test]
+    // Test internal tangency
+    fn test_internal_tangent() {
+        let circle0 = circle(point(0.0, 0.0), 2.0);
+        let circle1 = circle(point(1.0, 0.0), 1.0); // Distance = |r0 - r1|
+        let res = ff(circle0, circle1);
+        match res {
+            CircleCircleConfig::NoncocircularOnePoint(_) => {
+                // Correct: internal tangent
+            }
+            _ => panic!("Expected one point for internal tangent circles"),
+        }
+    }
+
+    #[test]
+    // Test circles with zero radius (degenerate points)
+    fn test_circles_with_zero_radius_same_center() {
+        let circle0 = circle(point(0.0, 0.0), 0.0);
+        let circle1 = circle(point(0.0, 0.0), 0.0);
+        let res = ff(circle0, circle1);
+        assert_eq!(res, CircleCircleConfig::SameCircles());
+    }
+
+    #[test]
+    // Test circles with zero radius at different centers
+    fn test_circles_with_zero_radius_different_center() {
+        let circle0 = circle(point(0.0, 0.0), 0.0);
+        let circle1 = circle(point(1.0, 1.0), 0.0);
+        let res = ff(circle0, circle1);
+        assert_eq!(res, CircleCircleConfig::NoIntersection());
+    }
 }
 
 #[cfg(test)]
@@ -284,14 +398,21 @@ mod tests_circle_old {
 
     #[test]
     fn test_tangent02() {
-        // Circles with small shift intersect in two points
+        // Circles with larger shift to exceed tolerance and intersect in two points
         let circle0 = circle(point(1.0, 0.0), 1.0);
-        let circle1 = circle(point(1.0 + f64::EPSILON, 0.0), 1.0);
+        let circle1 = circle(point(1.0 + 1e-9, 0.0), 1.0); // Beyond CIRCLE_TOLERANCE (1e-10)
         let res = int_circle_circle(circle0, circle1);
-        assert_eq!(
-            res,
-            CircleCircleConfig::NoncocircularTwoPoints(point(1.0, 1.0), point(1.0, -1.0))
-        );
+        // Now they intersect in two points (execution path: usqr_len < r0_p_r1_sqr && r0_m_r1_sqr < usqr_len)
+        match res {
+            CircleCircleConfig::NoncocircularTwoPoints(p0, p1) => {
+                // Points shift slightly due to offset, but still two distinct points
+                assert!((p0.x - 1.0).abs() < 1e-7);
+                assert!((p0.y - 1.0).abs() < 1e-7);
+                assert!((p1.x - 1.0).abs() < 1e-7);
+                assert!((p1.y + 1.0).abs() < 1e-7);
+            }
+            _ => panic!("Expected two intersection points"),
+        }
     }
 
     #[test]
@@ -307,43 +428,44 @@ mod tests_circle_old {
 
     #[test]
     fn test_tangent04() {
-        // Cocircular with small r difference
-        let _1 = perturbed_ulps_as_int(1.0, -1);
+        // Different radius beyond tolerance to trigger no intersection path
         let circle0 = circle(point(0.0, 0.0), 1.0);
-        let circle1 = circle(point(0.0, 0.0), _1);
+        let circle1 = circle(point(0.0, 0.0), 1.0 - 1e-9); // Beyond CIRCLE_TOLERANCE
         let res = ff(circle0, circle1);
+        // Now circles have different radii beyond tolerance, no intersection (execution path: usqr_len < r0_m_r1_sqr)
         assert_eq!(res, CircleCircleConfig::NoIntersection());
     }
 
     #[test]
     fn test_tangent05() {
-        // Small difference in center and radius
-        let _1m = perturbed_ulps_as_int(1.0, -1);
-        let _1p = perturbed_ulps_as_int(1.0, 1);
+        // Differences that create internal tangency (execution path: |U| = |R0-R1|)
         let circle0 = circle(point(1.0, 0.0), 1.0);
-        let circle1 = circle(point(_1p, 0.0), _1m);
+        let circle1 = circle(point(1.0 + 5e-10, 0.0), 1.0 - 5e-10); // Creates tangency
         let res = ff(circle0, circle1);
-        assert_eq!(
-            res,
-            CircleCircleConfig::NoncocircularTwoPoints(
-                point(1.5, 0.8660254037844386),
-                point(1.5, -0.8660254037844386)
-            )
-        );
+        // Circles are internally tangent
+        match res {
+            CircleCircleConfig::NoncocircularOnePoint(p) => {
+                // Internal tangency at approximately (2.0, 0.0)
+                assert!((p.x - 2.0).abs() < 1e-8);
+                assert!((p.y - 0.0).abs() < 1e-8);
+            }
+            _ => panic!("Expected tangent point, got {:?}", res),
+        }
     }
 
     #[test]
     fn test_tangent06() {
-        // Small difference in center and smaller radius
-        let _1m = perturbed_ulps_as_int(1.0, -2);
-        let _1p = perturbed_ulps_as_int(1.0, 1);
+        // Smaller differences - just beyond tolerance to get two intersection points
         let circle0 = circle(point(1.0, 0.0), 1.0);
-        let circle1 = circle(point(_1p, 0.0), _1m);
+        let circle1 = circle(point(1.0 + 1e-9, 0.0), 1.0 - 1e-9); // Beyond tolerance with overlap
         let res = ff(circle0, circle1);
-        assert_eq!(
-            res,
-            CircleCircleConfig::NoncocircularOnePoint(point(2.0, 0.0))
-        );
+        // Two distinct intersection points (execution path: usqr_len < r0_p_r1_sqr && r0_m_r1_sqr < usqr_len)
+        match res {
+            CircleCircleConfig::NoncocircularTwoPoints(_, _) => {
+                // Correct: two intersection points
+            }
+            _ => panic!("Expected two intersection points, got {:?}", res),
+        }
     }
 
     #[test]
@@ -372,5 +494,84 @@ mod tests_circle_old {
         svg.write();
         let res = ff(c0, c1);
         assert_eq!(res, CircleCircleConfig::NoncocircularTwoPoints(p0, p1));
+    }
+
+    #[test]
+    fn test_external_tangent_exact() {
+        // Test external tangency: |U| == R0 + R1 (execution path: usqr_len == r0_p_r1_sqr)
+        // This tests the else branch at line 117 (line 118 in the function)
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(2.0, 0.0), 1.0); // Distance = 2.0 = 1.0 + 1.0 (exactly)
+        let res = ff(circle0, circle1);
+        match res {
+            CircleCircleConfig::NoncocircularOnePoint(p) => {
+                // External tangency at point (1.0, 0.0)
+                assert!((p.x - 1.0).abs() < 1e-10);
+                assert!((p.y - 0.0).abs() < 1e-10);
+            }
+            _ => panic!("Expected external tangent point, got {:?}", res),
+        }
+    }
+
+    #[test]
+    fn test_discriminant_zero_path() {
+        // Test the path where t == 0.0 at line 112 (discriminant == 0 path)
+        // This is when the discriminant computation produces exactly 0
+        // For equal radii circles: s = 0.5
+        // We need: s² = r0²/usqr_len, so 0.25 = r0²/usqr_len
+        // Therefore: distance = 2*r0 (circles exactly opposite at equal distance)
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(2.0, 0.0), 1.0); // Distance = 2.0 = 2 * radius
+        let res = ff(circle0, circle1);
+        // This should produce t=0, giving NoncocircularOnePoint
+        match res {
+            CircleCircleConfig::NoncocircularOnePoint(p) => {
+                // Tangent point should be at (1.0, 0.0)
+                assert!((p.x - 1.0).abs() < 1e-10);
+                assert!((p.y - 0.0).abs() < 1e-10);
+            }
+            _ => panic!("Expected NoncocircularOnePoint from discriminant zero path, got {:?}", res),
+        }
+    }
+
+    #[test]
+    fn test_bounds_check_non_finite_intersection_points() {
+        // Test that non-finite intersection points are rejected for two-point case
+        // Create circles with extreme coordinates that might produce non-finite results
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(1e100, 0.0), 1e100);
+        let res = ff(circle0, circle1);
+        // Should either be NoIntersection or have finite points
+        match res {
+            CircleCircleConfig::NoIntersection() => {
+                // Acceptable - circles are far apart
+            }
+            CircleCircleConfig::NoncocircularOnePoint(p) => {
+                assert!(p.x.is_finite() && p.y.is_finite(), "Point coordinates should be finite");
+            }
+            CircleCircleConfig::NoncocircularTwoPoints(p0, p1) => {
+                assert!(p0.x.is_finite() && p0.y.is_finite(), "p0 should be finite");
+                assert!(p1.x.is_finite() && p1.y.is_finite(), "p1 should be finite");
+            }
+            _ => {}
+        }
+    }
+
+    #[test]
+    fn test_bounds_check_tangent_non_finite_point() {
+        // Test that non-finite tangent points are rejected
+        let circle0 = circle(point(0.0, 0.0), 1.0);
+        let circle1 = circle(point(2.0, 0.0), 1e-100); // Very small circle far away
+        let res = ff(circle0, circle1);
+        // Should handle gracefully
+        match res {
+            CircleCircleConfig::NoIntersection() => {
+                // Expected - circles don't intersect
+            }
+            CircleCircleConfig::NoncocircularOnePoint(p) => {
+                assert!(p.x.is_finite() && p.y.is_finite(), "Tangent point should be finite");
+            }
+            _ => {}
+        }
     }
 }

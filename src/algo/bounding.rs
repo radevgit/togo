@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::constants::GEOMETRIC_EPSILON;
 use crate::prelude::*;
 use robust::{Coord, incircle, orient2d};
 use std::f64::consts::PI;
@@ -83,10 +84,9 @@ fn minimal_circle_with_point(points: &[Point], p: Point) -> Circle {
 /// Checks if a circle contains all given points (with small tolerance).
 /// Uses robust distance computation for better numerical stability.
 fn circle_contains_all_points(circle: &Circle, points: &[Point]) -> bool {
-    const EPS: f64 = 1e-10;
     points
         .iter()
-        .all(|&p| (p - circle.c).norm() <= circle.r + EPS)
+        .all(|&p| (p - circle.c).norm() <= circle.r + GEOMETRIC_EPSILON)
 }
 
 /// Validates if a point is inside a circle using robust predicates.
@@ -172,9 +172,8 @@ fn circumcircle(p1: Point, p2: Point, p3: Point) -> Option<Circle> {
 #[cfg(test)]
 mod test_arc_bounding_circle {
     use super::*;
+    use crate::constants::GEOMETRIC_EPSILON;
     use std::f64::consts::PI;
-
-    const TEST_EPS: f64 = 1e-10;
 
     #[test]
     fn test_line_segment_bounding() {
@@ -186,9 +185,9 @@ mod test_arc_bounding_circle {
         let expected_center = point(1.5, 2.0); // Midpoint
         let expected_radius = 2.5; // Half of 5.0 (3-4-5 triangle)
 
-        assert!((bounding.c.x - expected_center.x).abs() < TEST_EPS);
-        assert!((bounding.c.y - expected_center.y).abs() < TEST_EPS);
-        assert!((bounding.r - expected_radius).abs() < TEST_EPS);
+        assert!((bounding.c.x - expected_center.x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.c.y - expected_center.y).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.r - expected_radius).abs() < GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -203,12 +202,12 @@ mod test_arc_bounding_circle {
 
         // For a full circle, bounding circle should be reasonably close to the arc's circle
         // but might not be exactly the same due to numerical precision and algorithm differences
-        assert!(bounding.r >= radius - TEST_EPS); // Should be at least as big
+        assert!(bounding.r >= radius - GEOMETRIC_EPSILON); // Should be at least as big
         assert!(bounding.r <= radius + 0.1); // Should not be much larger
 
         // Check that the original points are contained
         let dist_to_point = (start_end - bounding.c).norm();
-        assert!(dist_to_point <= bounding.r + TEST_EPS);
+        assert!(dist_to_point <= bounding.r + GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -223,9 +222,9 @@ mod test_arc_bounding_circle {
         let bounding = arc_bounding_circle(&semicircle);
 
         // For a semicircle, bounding circle should be the same as the arc circle
-        assert!((bounding.c.x - center.x).abs() < TEST_EPS);
-        assert!((bounding.c.y - center.y).abs() < TEST_EPS);
-        assert!((bounding.r - radius).abs() < TEST_EPS);
+        assert!((bounding.c.x - center.x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.c.y - center.y).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.r - radius).abs() < GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -248,17 +247,17 @@ mod test_arc_bounding_circle {
         let dist_to_top = (top - bounding.c).norm();
         let dist_to_right = (right - bounding.c).norm();
 
-        assert!(dist_to_top <= bounding.r + TEST_EPS);
-        assert!(dist_to_right <= bounding.r + TEST_EPS);
+        assert!(dist_to_top <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_right <= bounding.r + GEOMETRIC_EPSILON);
 
         // Bounding circle should be reasonably sized (not larger than arc circle)
-        assert!(bounding.r <= radius + TEST_EPS);
+        assert!(bounding.r <= radius + GEOMETRIC_EPSILON);
 
         // Should also contain the endpoints
         let dist_to_start = (start - bounding.c).norm();
         let dist_to_end = (end - bounding.c).norm();
-        assert!(dist_to_start <= bounding.r + TEST_EPS);
-        assert!(dist_to_end <= bounding.r + TEST_EPS);
+        assert!(dist_to_start <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_end <= bounding.r + GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -279,11 +278,11 @@ mod test_arc_bounding_circle {
         let dist_to_start = (start - bounding.c).norm();
         let dist_to_end = (end - bounding.c).norm();
 
-        assert!(dist_to_start <= bounding.r + TEST_EPS);
-        assert!(dist_to_end <= bounding.r + TEST_EPS);
+        assert!(dist_to_start <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_end <= bounding.r + GEOMETRIC_EPSILON);
 
         // For a small arc, bounding radius should be close to chord radius
-        assert!(bounding.r <= radius + TEST_EPS); // Can't be larger than arc circle
+        assert!(bounding.r <= radius + GEOMETRIC_EPSILON); // Can't be larger than arc circle
     }
 
     #[test]
@@ -301,14 +300,14 @@ mod test_arc_bounding_circle {
         let right_extreme = point(1.0, 0.0);
         let dist_to_right = (right_extreme - bounding.c).norm();
 
-        assert!(dist_to_right <= bounding.r + TEST_EPS);
+        assert!(dist_to_right <= bounding.r + GEOMETRIC_EPSILON);
 
         // Bounding circle should contain both endpoints
         let dist_to_start = (start - bounding.c).norm();
         let dist_to_end = (end - bounding.c).norm();
 
-        assert!(dist_to_start <= bounding.r + TEST_EPS);
-        assert!(dist_to_end <= bounding.r + TEST_EPS);
+        assert!(dist_to_start <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_end <= bounding.r + GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -329,13 +328,13 @@ mod test_arc_bounding_circle {
         let dist_to_top = (top - bounding.c).norm();
         let dist_to_right = (right - bounding.c).norm();
 
-        assert!(dist_to_top <= bounding.r + TEST_EPS);
-        assert!(dist_to_right <= bounding.r + TEST_EPS);
+        assert!(dist_to_top <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_right <= bounding.r + GEOMETRIC_EPSILON);
 
         // For this case, bounding should be same as arc circle
-        assert!((bounding.c.x - center.x).abs() < TEST_EPS);
-        assert!((bounding.c.y - center.y).abs() < TEST_EPS);
-        assert!((bounding.r - radius).abs() < TEST_EPS);
+        assert!((bounding.c.x - center.x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.c.y - center.y).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.r - radius).abs() < GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -351,9 +350,9 @@ mod test_arc_bounding_circle {
         let bounding = arc_bounding_circle(&threshold_arc);
 
         // Should return the arc's own circle
-        assert!((bounding.c.x - center.x).abs() < TEST_EPS);
-        assert!((bounding.c.y - center.y).abs() < TEST_EPS);
-        assert!((bounding.r - radius).abs() < TEST_EPS);
+        assert!((bounding.c.x - center.x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.c.y - center.y).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.r - radius).abs() < GEOMETRIC_EPSILON);
 
         // Test arc that spans exactly π - small epsilon (just under 180°)
         // This should use candidate points approach
@@ -362,7 +361,7 @@ mod test_arc_bounding_circle {
         let bounding2 = arc_bounding_circle(&small_arc);
 
         // Should be smaller than the arc's circle since we use candidate points
-        assert!(bounding2.r < radius - TEST_EPS);
+        assert!(bounding2.r < radius - GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -380,11 +379,11 @@ mod test_arc_bounding_circle {
         let dist_to_start = (start - bounding.c).norm();
         let dist_to_end = (end - bounding.c).norm();
 
-        assert!(dist_to_start <= bounding.r + TEST_EPS);
-        assert!(dist_to_end <= bounding.r + TEST_EPS);
+        assert!(dist_to_start <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_end <= bounding.r + GEOMETRIC_EPSILON);
 
         // For nearly degenerate arc, radius should be very small
-        assert!(bounding.r <= radius + TEST_EPS);
+        assert!(bounding.r <= radius + GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -402,12 +401,12 @@ mod test_arc_bounding_circle {
         let dist_to_start = (start - bounding.c).norm();
         let dist_to_end = (end - bounding.c).norm();
 
-        assert!(dist_to_start <= bounding.r + TEST_EPS);
-        assert!(dist_to_end <= bounding.r + TEST_EPS);
+        assert!(dist_to_start <= bounding.r + GEOMETRIC_EPSILON);
+        assert!(dist_to_end <= bounding.r + GEOMETRIC_EPSILON);
 
         // Should be reasonably sized
-        assert!(bounding.r <= radius + TEST_EPS);
-        assert!(bounding.r >= (end - start).norm() * 0.5 - TEST_EPS); // At least as big as chord radius
+        assert!(bounding.r <= radius + GEOMETRIC_EPSILON);
+        assert!(bounding.r >= (end - start).norm() * 0.5 - GEOMETRIC_EPSILON); // At least as big as chord radius
     }
 
     #[test]
@@ -421,9 +420,9 @@ mod test_arc_bounding_circle {
         let bounding = arc_bounding_circle(&point_arc);
 
         // Bounding circle should have zero radius
-        assert!(bounding.r < TEST_EPS);
-        assert!((bounding.c.x - center.x).abs() < TEST_EPS);
-        assert!((bounding.c.y - center.y).abs() < TEST_EPS);
+        assert!(bounding.r < GEOMETRIC_EPSILON);
+        assert!((bounding.c.x - center.x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.c.y - center.y).abs() < GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -447,21 +446,21 @@ mod test_arc_bounding_circle {
         // Empty points
         let empty: Vec<Point> = vec![];
         let circle = minimal_bounding_circle(&empty);
-        assert!(circle.r < TEST_EPS);
+        assert!(circle.r < GEOMETRIC_EPSILON);
 
         // Single point
         let single = vec![point(1.0, 2.0)];
         let circle = minimal_bounding_circle(&single);
-        assert!(circle.r < TEST_EPS);
-        assert!((circle.c.x - 1.0).abs() < TEST_EPS);
-        assert!((circle.c.y - 2.0).abs() < TEST_EPS);
+        assert!(circle.r < GEOMETRIC_EPSILON);
+        assert!((circle.c.x - 1.0).abs() < GEOMETRIC_EPSILON);
+        assert!((circle.c.y - 2.0).abs() < GEOMETRIC_EPSILON);
 
         // Two points
         let two = vec![point(0.0, 0.0), point(3.0, 4.0)];
         let circle = minimal_bounding_circle(&two);
-        assert!((circle.r - 2.5).abs() < TEST_EPS);
-        assert!((circle.c.x - 1.5).abs() < TEST_EPS);
-        assert!((circle.c.y - 2.0).abs() < TEST_EPS);
+        assert!((circle.r - 2.5).abs() < GEOMETRIC_EPSILON);
+        assert!((circle.c.x - 1.5).abs() < GEOMETRIC_EPSILON);
+        assert!((circle.c.y - 2.0).abs() < GEOMETRIC_EPSILON);
 
         // Three points forming a triangle
         let triangle = vec![point(0.0, 0.0), point(4.0, 0.0), point(0.0, 3.0)];
@@ -470,7 +469,7 @@ mod test_arc_bounding_circle {
         // All points should be within the circle
         for &p in &triangle {
             let dist = (p - circle.c).norm();
-            assert!(dist <= circle.r + TEST_EPS);
+            assert!(dist <= circle.r + GEOMETRIC_EPSILON);
         }
     }
 }
@@ -479,7 +478,7 @@ mod test_arc_bounding_circle {
 mod test_arc_bounding_rect {
     use super::*;
 
-    const TEST_EPS: f64 = 1e-10;
+    const GEOMETRIC_EPSILON: f64 = 1e-10;
 
     #[test]
     fn test_line_segment_bounding_rect() {
@@ -488,10 +487,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&line);
 
         // Bounding rectangle should be axis-aligned rectangle containing both endpoints
-        assert!((bounding.p1.x - 1.0).abs() < TEST_EPS); // min_x
-        assert!((bounding.p1.y - 2.0).abs() < TEST_EPS); // min_y
-        assert!((bounding.p2.x - 4.0).abs() < TEST_EPS); // max_x
-        assert!((bounding.p2.y - 6.0).abs() < TEST_EPS); // max_y
+        assert!((bounding.p1.x - 1.0).abs() < GEOMETRIC_EPSILON); // min_x
+        assert!((bounding.p1.y - 2.0).abs() < GEOMETRIC_EPSILON); // min_y
+        assert!((bounding.p2.x - 4.0).abs() < GEOMETRIC_EPSILON); // max_x
+        assert!((bounding.p2.y - 6.0).abs() < GEOMETRIC_EPSILON); // max_y
     }
 
     #[test]
@@ -505,10 +504,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&full_circle);
 
         // For a full circle, bounding rectangle should encompass the entire circle
-        assert!((bounding.p1.x - (center.x - radius)).abs() < TEST_EPS); // min_x
-        assert!((bounding.p1.y - (center.y - radius)).abs() < TEST_EPS); // min_y
-        assert!((bounding.p2.x - (center.x + radius)).abs() < TEST_EPS); // max_x
-        assert!((bounding.p2.y - (center.y + radius)).abs() < TEST_EPS); // max_y
+        assert!((bounding.p1.x - (center.x - radius)).abs() < GEOMETRIC_EPSILON); // min_x
+        assert!((bounding.p1.y - (center.y - radius)).abs() < GEOMETRIC_EPSILON); // min_y
+        assert!((bounding.p2.x - (center.x + radius)).abs() < GEOMETRIC_EPSILON); // max_x
+        assert!((bounding.p2.y - (center.y + radius)).abs() < GEOMETRIC_EPSILON); // max_y
     }
 
     #[test]
@@ -524,10 +523,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&semicircle);
 
         // Should include the bottom extreme point (0,-1) for lower semicircle
-        assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x
-        assert!((bounding.p1.y - (-1.0)).abs() < TEST_EPS); // min_y (includes bottom)
-        assert!((bounding.p2.x - 1.0).abs() < TEST_EPS); // max_x
-        assert!((bounding.p2.y - 0.0).abs() < TEST_EPS); // max_y (top of endpoints)
+        assert!((bounding.p1.x - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_x
+        assert!((bounding.p1.y - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_y (includes bottom)
+        assert!((bounding.p2.x - 1.0).abs() < GEOMETRIC_EPSILON); // max_x
+        assert!((bounding.p2.y - 0.0).abs() < GEOMETRIC_EPSILON); // max_y (top of endpoints)
     }
 
     #[test]
@@ -542,10 +541,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&quarter_circle);
 
         // Should include both endpoints but no other extreme points
-        assert!((bounding.p1.x - 0.0).abs() < TEST_EPS); // min_x = end.x
-        assert!((bounding.p1.y - 0.0).abs() < TEST_EPS); // min_y = start.y
-        assert!((bounding.p2.x - 1.0).abs() < TEST_EPS); // max_x = start.x
-        assert!((bounding.p2.y - 1.0).abs() < TEST_EPS); // max_y = end.y
+        assert!((bounding.p1.x - 0.0).abs() < GEOMETRIC_EPSILON); // min_x = end.x
+        assert!((bounding.p1.y - 0.0).abs() < GEOMETRIC_EPSILON); // min_y = start.y
+        assert!((bounding.p2.x - 1.0).abs() < GEOMETRIC_EPSILON); // max_x = start.x
+        assert!((bounding.p2.y - 1.0).abs() < GEOMETRIC_EPSILON); // max_y = end.y
     }
 
     #[test]
@@ -565,10 +564,10 @@ mod test_arc_bounding_rect {
         let min_y = start.y.min(end.y);
         let max_y = start.y.max(end.y);
 
-        assert!((bounding.p1.x - min_x).abs() < TEST_EPS);
-        assert!((bounding.p1.y - min_y).abs() < TEST_EPS);
-        assert!((bounding.p2.x - max_x).abs() < TEST_EPS);
-        assert!((bounding.p2.y - max_y).abs() < TEST_EPS);
+        assert!((bounding.p1.x - min_x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.p1.y - min_y).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.p2.x - max_x).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.p2.y - max_y).abs() < GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -583,10 +582,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&crossing_arc);
 
         // This arc should include the right extreme point (1,0)
-        assert!((bounding.p1.x - 0.866).abs() < TEST_EPS); // min_x = start.x and end.x
-        assert!((bounding.p1.y - (-0.5)).abs() < TEST_EPS); // min_y = start.y
-        assert!((bounding.p2.x - 1.0).abs() < TEST_EPS); // max_x = right extreme
-        assert!((bounding.p2.y - 0.5).abs() < TEST_EPS); // max_y = end.y
+        assert!((bounding.p1.x - 0.866).abs() < GEOMETRIC_EPSILON); // min_x = start.x and end.x
+        assert!((bounding.p1.y - (-0.5)).abs() < GEOMETRIC_EPSILON); // min_y = start.y
+        assert!((bounding.p2.x - 1.0).abs() < GEOMETRIC_EPSILON); // max_x = right extreme
+        assert!((bounding.p2.y - 0.5).abs() < GEOMETRIC_EPSILON); // max_y = end.y
     }
 
     #[test]
@@ -602,10 +601,10 @@ mod test_arc_bounding_rect {
 
         // This large arc should include top (90°) and left (180°) extreme points
         // Based on actual output: p1=(-1, -0.866), p2=(1, 1)
-        assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x = left extreme
+        assert!((bounding.p1.x - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_x = left extreme
         assert!((bounding.p1.y - (-0.866)).abs() < 0.001); // min_y = end.y
-        assert!((bounding.p2.x - 1.0).abs() < TEST_EPS); // max_x = start.x
-        assert!((bounding.p2.y - 1.0).abs() < TEST_EPS); // max_y = top extreme
+        assert!((bounding.p2.x - 1.0).abs() < GEOMETRIC_EPSILON); // max_x = start.x
+        assert!((bounding.p2.y - 1.0).abs() < GEOMETRIC_EPSILON); // max_y = top extreme
     }
 
     #[test]
@@ -620,10 +619,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&large_arc);
 
         // Should include right (0°), top (90°), and left (180°) extreme points
-        assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x = left extreme
-        assert!((bounding.p1.y - (-1.0)).abs() < TEST_EPS); // min_y = end.y
-        assert!((bounding.p2.x - 1.0).abs() < TEST_EPS); // max_x = right extreme/start
-        assert!((bounding.p2.y - 1.0).abs() < TEST_EPS); // max_y = top extreme
+        assert!((bounding.p1.x - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_x = left extreme
+        assert!((bounding.p1.y - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_y = end.y
+        assert!((bounding.p2.x - 1.0).abs() < GEOMETRIC_EPSILON); // max_x = right extreme/start
+        assert!((bounding.p2.y - 1.0).abs() < GEOMETRIC_EPSILON); // max_y = top extreme
     }
 
     #[test]
@@ -638,10 +637,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&translated_arc);
 
         // Should be bounded by the endpoints only (quarter arc, no extreme points included)
-        assert!((bounding.p1.x - 5.0).abs() < TEST_EPS); // min_x = end.x
-        assert!((bounding.p1.y - 3.0).abs() < TEST_EPS); // min_y = start.y
-        assert!((bounding.p2.x - 7.0).abs() < TEST_EPS); // max_x = start.x
-        assert!((bounding.p2.y - 5.0).abs() < TEST_EPS); // max_y = end.y
+        assert!((bounding.p1.x - 5.0).abs() < GEOMETRIC_EPSILON); // min_x = end.x
+        assert!((bounding.p1.y - 3.0).abs() < GEOMETRIC_EPSILON); // min_y = start.y
+        assert!((bounding.p2.x - 7.0).abs() < GEOMETRIC_EPSILON); // max_x = start.x
+        assert!((bounding.p2.y - 5.0).abs() < GEOMETRIC_EPSILON); // max_y = end.y
     }
 
     #[test]
@@ -655,10 +654,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&point_arc);
 
         // Bounding rectangle should be a point
-        assert!((bounding.p1.x - 1.0).abs() < TEST_EPS);
-        assert!((bounding.p1.y - 1.0).abs() < TEST_EPS);
-        assert!((bounding.p2.x - 1.0).abs() < TEST_EPS);
-        assert!((bounding.p2.y - 1.0).abs() < TEST_EPS);
+        assert!((bounding.p1.x - 1.0).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.p1.y - 1.0).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.p2.x - 1.0).abs() < GEOMETRIC_EPSILON);
+        assert!((bounding.p2.y - 1.0).abs() < GEOMETRIC_EPSILON);
     }
 
     #[test]
@@ -667,10 +666,10 @@ mod test_arc_bounding_rect {
         let line = arcseg(point(2.0, 1.0), point(2.0, 5.0));
         let bounding = arc_bounding_rect(&line);
 
-        assert!((bounding.p1.x - 2.0).abs() < TEST_EPS); // min_x = max_x
-        assert!((bounding.p1.y - 1.0).abs() < TEST_EPS); // min_y
-        assert!((bounding.p2.x - 2.0).abs() < TEST_EPS); // max_x
-        assert!((bounding.p2.y - 5.0).abs() < TEST_EPS); // max_y
+        assert!((bounding.p1.x - 2.0).abs() < GEOMETRIC_EPSILON); // min_x = max_x
+        assert!((bounding.p1.y - 1.0).abs() < GEOMETRIC_EPSILON); // min_y
+        assert!((bounding.p2.x - 2.0).abs() < GEOMETRIC_EPSILON); // max_x
+        assert!((bounding.p2.y - 5.0).abs() < GEOMETRIC_EPSILON); // max_y
     }
 
     #[test]
@@ -679,10 +678,10 @@ mod test_arc_bounding_rect {
         let line = arcseg(point(1.0, 3.0), point(7.0, 3.0));
         let bounding = arc_bounding_rect(&line);
 
-        assert!((bounding.p1.x - 1.0).abs() < TEST_EPS); // min_x
-        assert!((bounding.p1.y - 3.0).abs() < TEST_EPS); // min_y = max_y
-        assert!((bounding.p2.x - 7.0).abs() < TEST_EPS); // max_x
-        assert!((bounding.p2.y - 3.0).abs() < TEST_EPS); // max_y
+        assert!((bounding.p1.x - 1.0).abs() < GEOMETRIC_EPSILON); // min_x
+        assert!((bounding.p1.y - 3.0).abs() < GEOMETRIC_EPSILON); // min_y = max_y
+        assert!((bounding.p2.x - 7.0).abs() < GEOMETRIC_EPSILON); // max_x
+        assert!((bounding.p2.y - 3.0).abs() < GEOMETRIC_EPSILON); // max_y
     }
 
     #[test]
@@ -697,10 +696,10 @@ mod test_arc_bounding_rect {
         let bounding = arc_bounding_rect(&spanning_arc);
 
         // Should include top (90°), left (180°), and bottom (270°) extreme points
-        assert!((bounding.p1.x - (-1.0)).abs() < TEST_EPS); // min_x = left extreme
-        assert!((bounding.p1.y - (-1.0)).abs() < TEST_EPS); // min_y = bottom extreme
+        assert!((bounding.p1.x - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_x = left extreme
+        assert!((bounding.p1.y - (-1.0)).abs() < GEOMETRIC_EPSILON); // min_y = bottom extreme
         assert!((bounding.p2.x - 0.707).abs() < 0.001); // max_x = start.x and end.x
-        assert!((bounding.p2.y - 1.0).abs() < TEST_EPS); // max_y = top extreme
+        assert!((bounding.p2.y - 1.0).abs() < GEOMETRIC_EPSILON); // max_y = top extreme
     }
 }
 

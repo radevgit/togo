@@ -232,7 +232,7 @@ impl SVG {
             let seg = segment(p0, p1);
             self.segment(&seg, color);
         } else {
-            let arc = arc_circle_parametrization(p0, p1, g);
+            let arc = arc_from_bulge(p0, p1, g);
             self.arc(&arc, color);
         }
         // self.circle(&circle(p0, 0.5), "blue");

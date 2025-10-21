@@ -103,7 +103,7 @@ pub fn if_really_intersecting_segment_arc(segment: &Segment, arc: &Arc) -> bool 
 
 #[cfg(test)]
 mod test_int_segment_arc {
-    use crate::{arc::arc_circle_parametrization, point::point, segment::segment, svg::svg};
+    use crate::{arc::arc_from_bulge, point::point, segment::segment, svg::svg};
 
     use super::*;
     const ONE: f64 = 1f64;
@@ -118,7 +118,7 @@ mod test_int_segment_arc {
         let v2 = point(130.0, 200.0);
         let v3 = point(130.0, 0.0);
         let b = -0.5;
-        let arc = arc_circle_parametrization(v0, v1, b);
+        let arc = arc_from_bulge(v0, v1, b);
         let segment = segment(v2, v3);
         let res = int_segment_arc(&segment, &arc);
         let (pc, pd) = match res {
@@ -142,7 +142,7 @@ mod test_int_segment_arc {
 #[cfg(test)]
 mod tests_segment_arc {
     use crate::{
-        arc::{arc, arc_circle_parametrization},
+        arc::{arc, arc_from_bulge},
         point::point,
         segment::segment,
     };
@@ -154,7 +154,7 @@ mod tests_segment_arc {
         let sgrt_2_2 = std::f64::consts::SQRT_2 / 2.0;
         let s0 = segment(point(0.0, 0.0), point(sgrt_2_2, sgrt_2_2));
         let arc0 =
-            arc_circle_parametrization(point(1.0, 0.0), point(2.0, 1.0), -1.0 + f64::EPSILON);
+            arc_from_bulge(point(1.0, 0.0), point(2.0, 1.0), -1.0 + f64::EPSILON);
         assert_eq!(
             int_segment_arc(&s0, &arc0),
             SegmentArcConfig::NoIntersection()

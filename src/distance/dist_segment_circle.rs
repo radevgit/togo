@@ -218,4 +218,101 @@ mod test_dist_segment_circle {
             )
         );
     }
+
+    #[test]
+    fn test_segment_tangent_to_circle() {
+        // Segment is tangent to circle - closest point at param in [0, 1]
+        let c = circle(point(0.0, 0.0), 1.0);
+        let seg = segment(point(-2.0, 1.0), point(2.0, 1.0));
+        let dist = super::dist_segment_circle(&seg, &c);
+        assert_eq!(
+            dist,
+            DistSegmentCircleConfig::OnePoint(0.0, point(0.0, 1.0))
+        );
+    }
+
+    #[test]
+    fn test_closest_point_outside_segment_left() {
+        // Line intersects circle but closest point is before segment start (param < 0)
+        // The segment doesn't reach the circle, so closest is one of the endpoints
+        let c = circle(point(0.0, 0.0), 1.0);
+        let seg = segment(point(2.0, 1.0), point(4.0, 1.0));
+        let dist = super::dist_segment_circle(&seg, &c);
+        // The closest point on the circle from segment start point (2.0, 1.0)
+        let (expected_dist, expected_closest, _) = super::super::dist_point_circle::dist_point_circle(&point(2.0, 1.0), &c);
+        assert_eq!(dist, DistSegmentCircleConfig::OnePoint(expected_dist, expected_closest));
+    }
+
+    #[test]
+    fn test_closest_point_outside_segment_right() {
+        // Line is tangent to circle, but the tangent point is past segment end (param > 1)
+        let c = circle(point(0.0, 0.0), 1.0);
+        // Create a horizontal line y=1 (tangent to circle at (0, 1))
+        // Segment from (-1, 1) to (0, 1). Tangent point (0, 1) is RIGHT of segment end at (0, 1)
+        // Actually, (0, 1) IS the segment end, so let me use (-2, 1) to (-1, 1)
+        // Tangent point is still (0, 1), which is RIGHT of (-1, 1)
+        let seg = segment(point(-2.0, 1.0), point(-1.0, 1.0));
+        let dist = super::dist_segment_circle(&seg, &c);
+        // Distances from endpoints to circle
+        let (_, _, _) = super::super::dist_point_circle::dist_point_circle(&seg.a, &c);
+        let (dist_b, closest_b, _) = super::super::dist_point_circle::dist_point_circle(&seg.b, &c);
+        // dist_a > dist_b since (-2, 1) is farther than (-1, 1)
+        // So the result should use dist_b and closest_b (line 99)
+        assert_eq!(
+            dist,
+            DistSegmentCircleConfig::OnePoint(dist_b, closest_b)
+        );
+    }
+
+    #[test]
+    fn test_tangent_line_param_greater_than_one_dist0_less_equal() {
+        // Test line 97: OnePair case where param > ONE and dist0 <= dist1
+        // We need: tangent line, tangent point beyond segment end, seg.a closer to circle
+        let c = circle(point(0.0, 0.0), 1.0);
+        // Vertical line x=1 is tangent to unit circle at (1, 0)
+        // Use segment from (1, -1) to (1, 0): tangent point is (1, 0) which is at segment end
+        // We want tangent point BEYOND segment end (param > 1)
+        // Use segment from (1, -2) to (1, -1): tangent point (1, 0) is beyond segment end
+        // seg.a at (1, -2) is dist=sqrt(1 + 4) = sqrt(5) from origin
+        // seg.b at (1, -1) is dist=sqrt(1 + 1) = sqrt(2) from origin
+        // So dist_a > dist_b, which triggers line 99
+        
+        // Let me try: segment from (1, 0) to (1, 1)
+        // seg.a at (1, 0) is dist=1 from origin (ON circle!)
+        // This won't work.
+        
+        // Try: segment from (1, -0.5) to (1, 0.5)
+        // seg.a at (1, -0.5) is dist=sqrt(1.25) ≈ 1.118
+        // seg.b at (1, 0.5) is dist=sqrt(1.25) ≈ 1.118
+        // They're equidistant! But line may intersect, not be tangent
+        
+        // For a tangent line x=1, with segment endpoints at different distances,
+        // where seg.a is closer:
+        // seg.a = (1, -1) at dist sqrt(2) ≈ 1.414
+        // seg.b = (1, 0) at dist 1 (ON circle)
+        // But this puts seg.b on the circle...
+        
+        // Actually, let me use a negative tangent line: x = -1
+        // Tangent point is (-1, 0)
+        // Segment from (-1, -1) to (-1, 0): seg.b is ON circle
+        // Segment from (-1, -1) to (-1, -0.5):
+        // seg.a at (-1, -1) is dist sqrt(2)
+        // seg.b at (-1, -0.5) is dist sqrt(1.25)
+        // dist_a > dist_b, still line 99
+        
+        // Try reversed: segment from (-1, 0.5) to (-1, 1)
+        // seg.a at (-1, 0.5) is dist sqrt(1.25) ≈ 1.118
+        // seg.b at (-1, 1) is dist sqrt(2) ≈ 1.414
+        // dist_a < dist_b! This should trigger line 97
+        let seg = segment(point(-1.0, 0.5), point(-1.0, 1.0));
+        let dist = super::dist_segment_circle(&seg, &c);
+        
+        // Compute distances from endpoints
+        let (dist_a, closest_a, _) = super::super::dist_point_circle::dist_point_circle(&seg.a, &c);
+        let (dist_b, _, _) = super::super::dist_point_circle::dist_point_circle(&seg.b, &c);
+        
+        // With dist_a < dist_b, we should get line 97
+        assert!(dist_a < dist_b);
+        assert_eq!(dist, DistSegmentCircleConfig::OnePoint(dist_a, closest_a));
+    }
 }

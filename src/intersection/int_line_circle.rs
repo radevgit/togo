@@ -35,7 +35,7 @@ const ZERO: f64 = 0f64;
 /// assert_eq!(result, LineCircleConfig::TwoPoints(point(0.0, 0.0), point(0.9999999999999998, 0.9999999999999998), 0.0, 1.414213562373095));
 /// ```
 pub fn int_line_circle(line_orig: &Line, circle: &Circle) -> LineCircleConfig {
-    // Kahan’s Algorithm for a Correct Discriminant Computation at Last Formally Proven 2009.pdf
+    // Kahan's Algorithm for a Correct Discriminant Computation at Last Formally Proven 2009.pdf
     // https://www.cs.ubc.ca/~rbridson/docs/kahan_discriminant.pdf
     // Line direction can be non-unit length
     let line = line_orig.unitdir();
@@ -50,6 +50,14 @@ pub fn int_line_circle(line_orig: &Line, circle: &Circle) -> LineCircleConfig {
         let root = discr.sqrt();
         let parameter0 = -a1 - root;
         let parameter1 = -a1 + root;
+        
+        // Bounds check: parameters should be finite to indicate valid intersections.
+        // If parameters are non-finite (inf, -inf, or NaN), treat as no intersection.
+        // This can occur with degenerate geometry or numerical precision issues.
+        if !parameter0.is_finite() || !parameter1.is_finite() {
+            return LineCircleConfig::NoIntersection();
+        }
+        
         let point0 = line.origin + line.dir * parameter0;
         let point1 = line.origin + line.dir * parameter1;
         LineCircleConfig::TwoPoints(point0, point1, parameter0, parameter1)
@@ -62,6 +70,12 @@ pub fn int_line_circle(line_orig: &Line, circle: &Circle) -> LineCircleConfig {
         // components and circular components use interval-interval
         // intersection tests which consume both parameters.
         let parameter0 = -a1;
+        
+        // Bounds check: parameter should be finite for valid tangent point
+        if !parameter0.is_finite() {
+            return LineCircleConfig::NoIntersection();
+        }
+        
         let point0 = line.origin + line.dir * parameter0;
         LineCircleConfig::OnePoint(point0, parameter0)
     }
@@ -120,5 +134,53 @@ mod test_intersect_line_circle {
             res,
             LineCircleConfig::TwoPoints(point(-0.5, 0.0), point(-2.5, 0.0), 2.0, 4.0)
         );
+    }
+
+    #[test]
+    fn test_bounds_check_non_finite_parameters_one_point() {
+        // Test that non-finite parameters are rejected for single intersection
+        // Create a scenario that would produce infinity or NaN without bounds check
+        // A line with very large parameter could cause issues
+        let l0 = Line::new(point(0.0, 0.0), point(1.0, 0.0));
+        let c0 = circle(point(1e100, 1.0), 1.0);
+        let res = int_line_circle(&l0, &c0);
+        // Should handle gracefully - either NoIntersection or valid finite points
+        match res {
+            LineCircleConfig::NoIntersection() => {
+                // Acceptable - circles are far away
+            }
+            LineCircleConfig::OnePoint(p, t) => {
+                assert!(t.is_finite(), "Parameter should be finite");
+                assert!(p.x.is_finite() && p.y.is_finite(), "Point coordinates should be finite");
+            }
+            LineCircleConfig::TwoPoints(p0, p1, t0, t1) => {
+                assert!(t0.is_finite() && t1.is_finite(), "Parameters should be finite");
+                assert!(p0.x.is_finite() && p0.y.is_finite(), "Points should be finite");
+                assert!(p1.x.is_finite() && p1.y.is_finite(), "Points should be finite");
+            }
+        }
+    }
+
+    #[test]
+    fn test_bounds_check_non_finite_parameters_two_points() {
+        // Test that non-finite parameters are rejected for two intersections
+        let l0 = Line::new(point(0.0, 0.0), point(1.0, 0.0));
+        let c0 = circle(point(0.5, 0.0), 1e50);
+        let res = int_line_circle(&l0, &c0);
+        // Should produce finite results
+        match res {
+            LineCircleConfig::OnePoint(p, t) => {
+                assert!(t.is_finite(), "Parameter should be finite");
+                assert!(p.x.is_finite() && p.y.is_finite(), "Point coordinates should be finite");
+            }
+            LineCircleConfig::TwoPoints(p0, p1, t0, t1) => {
+                assert!(t0.is_finite() && t1.is_finite(), "Parameters should be finite");
+                assert!(p0.x.is_finite() && p0.y.is_finite(), "Points should be finite");
+                assert!(p1.x.is_finite() && p1.y.is_finite(), "Points should be finite");
+            }
+            LineCircleConfig::NoIntersection() => {
+                // Also acceptable
+            }
+        }
     }
 }

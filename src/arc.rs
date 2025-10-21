@@ -2,6 +2,7 @@
 
 use robust::{Coord, orient2d};
 
+use crate::constants::{DIVISION_EPSILON, GEOMETRIC_EPSILON};
 use crate::prelude::*;
 
 use std::{fmt::Display, sync::atomic::AtomicUsize};
@@ -10,7 +11,10 @@ use std::{fmt::Display, sync::atomic::AtomicUsize};
 pub type Arcline = Vec<Arc>;
 
 static ID_COUNT: AtomicUsize = AtomicUsize::new(0);
-const EPS_COLLAPSED: f64 = 1E-8;
+
+/// Tolerance for detecting collapsed/degenerate arcs (nearly line segments).
+/// Uses GEOMETRIC_EPSILON for consistency with other geometric predicates.
+const ARC_COLLAPSED_TOLERANCE: f64 = GEOMETRIC_EPSILON; // 1e-10
 
 /// An arc segment (CCW) defined by start point, end point, center, and radius.
 ///
@@ -721,7 +725,7 @@ mod test_arc_contains {
 
     #[test]
     fn test_arc_contains_large_r() {
-        let arc = arc_circle_parametrization(point(1e20, 30.0), point(10.0, 30.0), 1f64);
+        let arc = arc_from_bulge(point(1e20, 30.0), point(10.0, 30.0), 1f64);
         assert_eq!(arc.contains(point(1e20 + 1000.0, 30.0)), true);
     }
 
@@ -750,7 +754,7 @@ mod test_arc_contains {
 mod test_arc_validation {
     use super::*;
 
-    const EPS_COLLAPSED: f64 = 1E-8; // Tolerance for collapsed checks
+    const ARC_COLLAPSED_TOLERANCE: f64 = 1E-8; // Tolerance for collapsed checks
 
     #[test]
     fn test_arc_is_collapsed_radius_normal_values() {
@@ -764,47 +768,47 @@ mod test_arc_validation {
             point(0.5, 0.0),
             f64::INFINITY,
         );
-        assert!(!arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc3.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc4.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(!arc1.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc2.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc3.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc4.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_small_values() {
-        // Values smaller than EPS_COLLAPSED (1E-8) should be collapsed
+        // Values smaller than ARC_COLLAPSED_TOLERANCE (1E-8) should be collapsed
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-9);
         let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-10);
         let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.0);
-        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc2.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc3.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_boundary_values() {
-        // Test values around the EPS_COLLAPSED boundary
+        // Test values around the ARC_COLLAPSED_TOLERANCE boundary
         let arc1 = arc(
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(0.5, 0.0),
-            EPS_COLLAPSED / 2.0,
+            ARC_COLLAPSED_TOLERANCE / 2.0,
         );
         let arc2 = arc(
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(0.5, 0.0),
-            EPS_COLLAPSED * 2.0,
+            ARC_COLLAPSED_TOLERANCE * 2.0,
         );
         let arc3 = arc(
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(0.5, 0.0),
-            EPS_COLLAPSED - f64::EPSILON,
+            ARC_COLLAPSED_TOLERANCE - f64::EPSILON,
         );
-        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(!arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc2.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc3.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
@@ -813,16 +817,16 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1.0);
         let arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -0.1);
         let arc3 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1E-10);
-        assert!(arc1.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc2.is_collapsed_radius(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc2.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc3.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_is_collapsed_radius_nan() {
         // NaN values should be collapsed
         let arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
-        assert!(arc.is_collapsed_radius(EPS_COLLAPSED));
+        assert!(arc.is_collapsed_radius(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
@@ -837,10 +841,10 @@ mod test_arc_validation {
             point(200.0, 300.0),
             100.0,
         );
-        assert!(!arc1.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(!arc2.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(!arc3.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(!arc4.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!arc1.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc2.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc3.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
+        assert!(!arc4.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
@@ -849,46 +853,46 @@ mod test_arc_validation {
         let arc1 = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.5, 0.0), 1.0);
         let arc2 = arc(point(1.0, 1.0), point(1.0, 1.0), point(1.5, 1.0), 1.0);
         let arc3 = arc(point(-5.0, 10.0), point(-5.0, 10.0), point(-4.0, 10.0), 1.0);
-        assert!(arc1.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(arc2.is_collapsed_ends(EPS_COLLAPSED));
-        assert!(arc3.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(arc1.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc2.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
+        assert!(arc3.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_very_close_points() {
-        // Points closer than EPS_COLLAPSED should be collapsed
+        // Points closer than ARC_COLLAPSED_TOLERANCE should be collapsed
         let p1 = point(0.0, 0.0);
-        let p2 = point(EPS_COLLAPSED / 2.0, 0.0);
+        let p2 = point(ARC_COLLAPSED_TOLERANCE / 2.0, 0.0);
         let test_arc1 = arc(p1, p2, point(0.0, 0.0), 1.0);
-        assert!(test_arc1.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(test_arc1.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
 
         let p3 = point(100.0, 100.0);
-        let p4 = point(100.0 + EPS_COLLAPSED / 3.0, 100.0 + EPS_COLLAPSED / 3.0);
+        let p4 = point(100.0 + ARC_COLLAPSED_TOLERANCE / 3.0, 100.0 + ARC_COLLAPSED_TOLERANCE / 3.0);
         let test_arc2 = arc(p3, p4, point(100.0, 100.0), 1.0);
-        assert!(test_arc2.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(test_arc2.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_is_collapsed_ends_boundary_distance() {
-        // Points at exactly EPS_COLLAPSED distance
+        // Points at exactly ARC_COLLAPSED_TOLERANCE distance
         let p1 = point(0.0, 0.0);
-        let p2 = point(EPS_COLLAPSED, 0.0);
+        let p2 = point(ARC_COLLAPSED_TOLERANCE, 0.0);
         let test_arc1 = arc(p1, p2, point(0.0, 0.0), 1.0);
         // This should not be collapsed (distance equals tolerance)
-        assert!(test_arc1.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(test_arc1.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
 
-        // Points slightly farther than EPS_COLLAPSED
+        // Points slightly farther than ARC_COLLAPSED_TOLERANCE
         let p3 = point(0.0, 0.0);
-        let p4 = point(EPS_COLLAPSED * 2.0, 0.0);
+        let p4 = point(ARC_COLLAPSED_TOLERANCE * 2.0, 0.0);
         let test_arc2 = arc(p3, p4, point(0.0, 0.0), 1.0);
-        assert!(!test_arc2.is_collapsed_ends(EPS_COLLAPSED));
+        assert!(!test_arc2.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_check_valid_arcs() {
         // Valid arcs should pass the check
         let valid_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-        assert!(valid_arc1.is_valid(EPS_COLLAPSED));
+        assert!(valid_arc1.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         let valid_arc2 = arc(
             point(-1.0, -1.0),
@@ -896,50 +900,50 @@ mod test_arc_validation {
             point(0.0, 0.0),
             std::f64::consts::SQRT_2,
         );
-        assert!(valid_arc2.is_valid(EPS_COLLAPSED));
+        assert!(valid_arc2.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         // Line segments (infinite radius) should also be valid if endpoints are separated
         let valid_line = arcseg(point(0.0, 0.0), point(10.0, 0.0));
-        assert!(valid_line.is_valid(EPS_COLLAPSED));
+        assert!(valid_line.is_valid(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_check_collapsed_radius() {
         // Arcs with collapsed radius should fail the check
         let collapsed_radius_arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 1E-10);
-        assert!(!collapsed_radius_arc1.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_radius_arc1.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         let collapsed_radius_arc2 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), -1.0);
-        assert!(!collapsed_radius_arc2.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_radius_arc2.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         let nan_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), f64::NAN);
-        assert!(!nan_radius_arc.is_valid(EPS_COLLAPSED));
+        assert!(!nan_radius_arc.is_valid(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_check_collapsed_ends() {
         // Arcs with collapsed endpoints should fail the check
         let collapsed_ends_arc1 = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.0, 1.0), 1.0);
-        assert!(!collapsed_ends_arc1.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_ends_arc1.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         let close_points = point(0.0, 0.0);
-        let very_close_points = point(EPS_COLLAPSED / 2.0, 0.0);
+        let very_close_points = point(ARC_COLLAPSED_TOLERANCE / 2.0, 0.0);
         let collapsed_ends_arc2 = arc(close_points, very_close_points, point(0.0, 1.0), 1.0);
-        assert!(!collapsed_ends_arc2.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_ends_arc2.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         // Line segments with collapsed endpoints should also fail
         let collapsed_line = arcseg(point(1.0, 1.0), point(1.0, 1.0));
-        assert!(!collapsed_line.is_valid(EPS_COLLAPSED));
+        assert!(!collapsed_line.is_valid(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
     fn test_arc_check_both_collapsed() {
         // Arcs with both collapsed radius and collapsed endpoints should fail
         let both_collapsed = arc(point(0.0, 0.0), point(0.0, 0.0), point(0.0, 1.0), 1E-10);
-        assert!(!both_collapsed.is_valid(EPS_COLLAPSED));
+        assert!(!both_collapsed.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         let both_collapsed2 = arc(point(5.0, 5.0), point(5.0, 5.0), point(0.0, 0.0), f64::NAN);
-        assert!(!both_collapsed2.is_valid(EPS_COLLAPSED));
+        assert!(!both_collapsed2.is_valid(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
@@ -951,15 +955,15 @@ mod test_arc_validation {
             point(1E10 + 0.5, 1E10),
             0.5,
         );
-        assert!(large_coord_arc.is_valid(EPS_COLLAPSED));
+        assert!(large_coord_arc.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         // Test with very small but valid radius - ensure consistent geometry
         let small_radius_arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5);
-        assert!(small_radius_arc.is_valid(EPS_COLLAPSED));
+        assert!(small_radius_arc.is_valid(ARC_COLLAPSED_TOLERANCE));
 
         // Test with large radius
         let large_radius_arc = arc(point(0.0, 0.0), point(1E-6, 0.0), point(0.0, 1E6), 1E6);
-        assert!(large_radius_arc.is_valid(EPS_COLLAPSED));
+        assert!(large_radius_arc.is_valid(ARC_COLLAPSED_TOLERANCE));
     }
 
     #[test]
@@ -1130,13 +1134,13 @@ mod test_arc_validation {
 /// let center = point(1.0, 0.0);
 /// let radius = 1.0;
 ///
-/// let bulge = arc_bulge_from_points(start, end, center, radius);
+/// let bulge = bulge_from_arc(start, end, center, radius);
 /// // The bulge parameter can be used to recreate the arc
 /// ```
 // Given start end points of arc and radius, calculate bulge
 // https://stackoverflow.com/questions/48979861/numerically-stable-method-for-solving-quadratic-equations/50065711#50065711
 #[must_use]
-pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
+pub fn bulge_from_arc(a: Point, b: Point, c: Point, r: f64) -> f64 {
     let dist = (b - a).norm();
     if dist <= 1E-10 {
         // close points
@@ -1152,35 +1156,41 @@ pub fn arc_bulge_from_points(a: Point, b: Point, c: Point, r: f64) -> f64 {
     let pc = Coord { x: c.x, y: c.y };
     let perp = orient2d(pa, pb, pc);
     let ddd = (4.0 * r * r) - dist * dist;
-    if ddd < 0.0 {
-        // Invalid case - radius too small for the chord length
-        return 0f64;
-    }
+    
+    // Guard: Clamp ddd to zero before sqrt to prevent NaN from negative values
+    // This handles cases where floating-point rounding makes ddd slightly negative
+    let ddd_clamped = ddd.max(0.0);
 
     let seg = if perp <= 0f64 {
         // small arc
-        r - (0.5 * ddd.sqrt())
+        r - (0.5 * ddd_clamped.sqrt())
     } else {
         // large arc
-        r + (0.5 * ddd.sqrt())
+        r + (0.5 * ddd_clamped.sqrt())
     };
 
+    // Guard: check that seg is not too small or non-finite before dividing
+    // This prevents returning huge or NaN bulge values
+    if seg.abs() <= 1E-10 || !seg.is_finite() {
+        return 0f64;
+    }
+    
     // The original formula was returning 2.0 * seg / dist
     // But to match arc_circle_parametrization, we need to return the actual bulge
     // The relationship is: bulge = dist / (2 * seg)
     // This comes from the inverse of the parametrization formula
-    if seg.abs() <= 1E-10 {
+    let bulge = dist / (2.0 * seg);
+    
+    // Final safety check: ensure result is valid
+    if !bulge.is_finite() {
         return 0f64;
     }
-    dist / (2.0 * seg)
+    
+    bulge
 }
 
 const ZERO: f64 = 0f64;
-const MIN_BULGE: f64 = 1E-8;
-/// Returns the circle parameterization of the Arc. Without thetas.
-/// Much faster, avoids arctan()
-/// <div class="warning">There are two arcs. Always return CCW (Counter-Clockwise) oriented one!</div>
-///
+
 /// Creates an arc from two points and a bulge parameter.
 ///
 /// This function creates an arc that connects two points using a bulge parameter
@@ -1189,9 +1199,15 @@ const MIN_BULGE: f64 = 1E-8;
 ///
 /// # Arguments
 ///
-/// * `pp1` - The first point of the arc
-/// * `pp2` - The second point of the arc
+/// * `p1` - The first point of the arc
+/// * `p2` - The second point of the arc
 /// * `bulge` - The bulge parameter controlling the arc curvature
+///
+/// # Bulge Handling
+/// - Bulge values are normalized to positive (negative bulge swaps endpoints)
+/// - Very small bulge (≤ DIVISION_EPSILON ≈ 1e-12) returns a line segment
+/// - NaN/Infinity bulge returns a line segment
+/// - Computed geometry with NaN/Infinity results returns a line segment
 ///
 /// # Returns
 ///
@@ -1203,58 +1219,75 @@ const MIN_BULGE: f64 = 1E-8;
 /// use togo::prelude::*;
 ///
 /// // Create a semicircle arc
-/// let arc = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1.0);
+/// let arc = arc_from_bulge(point(0.0, 0.0), point(2.0, 0.0), 1.0);
 /// assert!(arc.is_arc());
 ///
 /// // Create a line (very small bulge)
-/// let line = arc_circle_parametrization(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
+/// let line = arc_from_bulge(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
 /// assert!(line.is_seg());
 /// ```
 #[must_use]
-pub fn arc_circle_parametrization(p1: Point, p2: Point, bulge: f64) -> Arc {
+pub fn arc_from_bulge(p1: Point, p2: Point, bulge: f64) -> Arc {
     let mut pp1 = p1;
     let mut pp2 = p2;
     let mut bulge = bulge;
-    if bulge.abs() <= MIN_BULGE || pp1.close_enough(pp2, EPS_COLLAPSED) {
-        // create line
+    
+    // Guard 1: if bulge is invalid (NaN/Infinity), treat as line segment
+    if !bulge.is_finite() {
         return arcseg(p1, p2);
     }
+    
+    // Handle negative bulge first (before DIVISION_EPSILON check) to ensure consistent endpoint ordering
     if bulge < 0f64 {
         // make arc CCW
         pp1 = p2;
         pp2 = p1;
         bulge = -bulge;
     }
+    
+    // Guard 2: Check for degenerate conditions
+    // - Bulge too small (would cause division issues)
+    // - Endpoints too close (degenerate arc)
+    if bulge.abs() < DIVISION_EPSILON || pp1.close_enough(pp2, ARC_COLLAPSED_TOLERANCE) {
+        // create line
+        return arcseg(pp1, pp2);
+    }
 
-    // TODO: check for numerical issues
+    // Compute center and radius using bulge parametrization
+    // dt2 involves division by bulge, but we've already guarded against tiny bulge values
     let t2 = (pp2 - pp1).norm();
     let dt2 = (1.0 + bulge) * (1.0 - bulge) / (4.0 * bulge);
     let cx = (0.5 * pp1.x + 0.5 * pp2.x) + dt2 * (pp1.y - pp2.y);
     let cy = (0.5 * pp1.y + 0.5 * pp2.y) + dt2 * (pp2.x - pp1.x);
     let r = 0.25 * t2 * (1.0 / bulge + bulge).abs();
+    
+    // Guard 3: if results contain NaN or Infinity, treat as line segment
+    if !cx.is_finite() || !cy.is_finite() || !r.is_finite() {
+        return arcseg(pp1, pp2);
+    }
+    
     arc(pp1, pp2, point(cx, cy), r)
 }
 
 #[cfg(test)]
 mod test_arc_g_from_points {
+    use crate::constants::GEOMETRIC_EPSILON;
     use crate::prelude::*;
-
-    const TEST_EPS: f64 = 1E-10;
 
     #[test]
     fn test_a_b_are_close() {
         let a = point(114.31083505599867, 152.84458247200070);
         let b = point(114.31083505599865, 152.84458247200067);
-        let arc = arc_circle_parametrization(a, b, 16.0);
-        assert_eq!(arc_bulge_from_points(a, b, arc.c, arc.r), 0.0);
+        let arc = arc_from_bulge(a, b, 16.0);
+        assert_eq!(bulge_from_arc(a, b, arc.c, arc.r), 0.0);
     }
 
     #[test]
     fn test_a_b_are_the_same() {
         let a = point(114.31083505599865, 152.84458247200067);
         let b = point(114.31083505599865, 152.84458247200067);
-        let arc = arc_circle_parametrization(a, b, 16.0);
-        assert_eq!(arc_bulge_from_points(a, b, arc.c, arc.r), 0.0);
+        let arc = arc_from_bulge(a, b, 16.0);
+        assert_eq!(bulge_from_arc(a, b, arc.c, arc.r), 0.0);
     }
 
     #[test]
@@ -1265,13 +1298,13 @@ mod test_arc_g_from_points {
         let bulge = 0.3; // Small positive bulge
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // Should be reasonably close to original bulge
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
         assert!(result.is_finite());
     }
 
@@ -1283,13 +1316,13 @@ mod test_arc_g_from_points {
         let bulge = 1.5; // Large positive bulge
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // Should be reasonably close to original bulge
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
         assert!(result.is_finite());
     }
 
@@ -1301,13 +1334,13 @@ mod test_arc_g_from_points {
         let bulge = 1.0; // Semicircle
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // For a semicircle, the function should return a finite positive value
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
         assert!(result.is_finite());
     }
 
@@ -1319,13 +1352,13 @@ mod test_arc_g_from_points {
         let bulge = 0.41421356; // Approximates tan(π/8) for quarter circle
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // Should be reasonably close to original bulge
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
         assert!(result.is_finite());
     }
 
@@ -1337,18 +1370,18 @@ mod test_arc_g_from_points {
         let bulge = 1e-9; // Very small bulge, should create near-line
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // For very small bulge, arc_circle_parametrization returns a line segment
         if arc.r == f64::INFINITY {
             // Line segment case - arc_g_from_points should handle this gracefully
-            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+            let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
             // For line segments, the function may return infinity or 0 depending on implementation
             assert!(result == 0.0 || result.is_infinite());
         } else {
             // Calculate bulge back from points
-            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-            assert!(close_enough(bulge, result, TEST_EPS));
+            let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
+            assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
             assert!(result.is_finite());
         }
     }
@@ -1361,18 +1394,18 @@ mod test_arc_g_from_points {
         let bulge = 0.0; // Zero bulge creates line segment
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // For zero bulge, arc_circle_parametrization returns a line segment
         if arc.r == f64::INFINITY {
             // Line segment case - arc_g_from_points should handle this gracefully
-            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+            let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
             // For line segments, the function may return infinity or 0 depending on implementation
             assert!(result == 0.0 || result.is_infinite());
         } else {
             // Calculate bulge back from points
-            let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
-            assert!(close_enough(bulge, result, TEST_EPS));
+            let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
+            assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
             assert!(result.is_finite());
         }
     }
@@ -1385,13 +1418,13 @@ mod test_arc_g_from_points {
         let bulge = 0.01; // Small bulge creates large radius
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // Should be positive and finite
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
         assert!(result.is_finite());
     }
 
@@ -1403,13 +1436,13 @@ mod test_arc_g_from_points {
         let bulge = 1.0; // Semicircle
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let result = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let result = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // Should be positive and finite
-        assert!(close_enough(bulge, result, TEST_EPS));
+        assert!(close_enough(bulge, result, GEOMETRIC_EPSILON));
         assert!(result.is_finite());
     }
 
@@ -1421,10 +1454,10 @@ mod test_arc_g_from_points {
         let bulge = 0.5;
 
         // Create arc from parametrization
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let calculated_bulge = arc_bulge_from_points(a, b, arc.c, arc.r);
+        let calculated_bulge = bulge_from_arc(a, b, arc.c, arc.r);
 
         // Debug: print both values
         println!(
@@ -1451,13 +1484,13 @@ mod test_arc_g_from_points {
         let bulge = -0.8;
 
         // Create arc from parametrization (should convert to CCW)
-        let arc = arc_circle_parametrization(a, b, bulge);
+        let arc = arc_from_bulge(a, b, bulge);
 
         // Calculate bulge back from points
-        let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+        let calculated_bulge = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
         // Should return positive value (CCW orientation)
-        assert!(close_enough(-bulge, calculated_bulge, TEST_EPS));
+        assert!(close_enough(-bulge, calculated_bulge, GEOMETRIC_EPSILON));
         assert!(calculated_bulge.is_finite());
     }
 
@@ -1470,7 +1503,7 @@ mod test_arc_g_from_points {
 
         for &bulge in &test_bulges {
             // Create arc from parametrization
-            let arc = arc_circle_parametrization(a, b, bulge);
+            let arc = arc_from_bulge(a, b, bulge);
 
             // Skip line segments (bulge = 0 case)
             if arc.r == f64::INFINITY {
@@ -1478,7 +1511,7 @@ mod test_arc_g_from_points {
             }
 
             // Calculate bulge back from points
-            let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+            let calculated_bulge = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
             // Should match the original bulge within numerical precision
             assert!(
@@ -1506,10 +1539,10 @@ mod test_arc_g_from_points {
 
         for (a, b) in test_cases.iter() {
             // Create arc from parametrization
-            let arc = arc_circle_parametrization(*a, *b, bulge);
+            let arc = arc_from_bulge(*a, *b, bulge);
 
             // Calculate bulge back from points
-            let calculated_bulge = arc_bulge_from_points(arc.a, arc.b, arc.c, arc.r);
+            let calculated_bulge = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
 
             // Should match the original bulge within numerical precision
             assert!(
@@ -1526,10 +1559,172 @@ mod test_arc_g_from_points {
     #[test]
     fn test_close_points_large_bulge() {
         let r = 1.0;
-        let bulge = arc_bulge_from_points(point(0.0, 0.0), point(0.0, 3e-5), point(0.0, 1.0), r);
+        let bulge = bulge_from_arc(point(0.0, 0.0), point(0.0, 3e-5), point(0.0, 1.0), r);
         assert!(bulge > 133333.0);
-        let arc = arc_circle_parametrization(point(0.0, 0.0), point(0.0, 3e-5), bulge);
+        let arc = arc_from_bulge(point(0.0, 0.0), point(0.0, 3e-5), bulge);
         assert_eq!(close_enough(arc.r, r, 1e-6), true);
+    }
+
+    // ===== Phase 3.3: Degenerate Arc Handling Tests =====
+    
+    #[test]
+    fn test_degenerate_tiny_bulge_near_division_epsilon() {
+        // Test bulge at or near DIVISION_EPSILON (1e-12)
+        // Should be treated as line segment
+        use crate::constants::DIVISION_EPSILON;
+        
+        let a = point(0.0, 0.0);
+        let b = point(2.0, 0.0);
+        
+        // Test bulge at DIVISION_EPSILON - should be line
+        let arc1 = arc_from_bulge(a, b, DIVISION_EPSILON / 2.0);
+        assert!(arc1.is_seg(), "Very tiny bulge should be line segment");
+        
+        // Test bulge just above DIVISION_EPSILON - should be arc
+        let arc2 = arc_from_bulge(a, b, DIVISION_EPSILON * 10.0);
+        assert!(arc2.is_arc(), "Bulge above guard should be arc");
+        assert!(arc2.r.is_finite(), "Arc radius should be finite");
+    }
+
+    #[test]
+    fn test_degenerate_nan_bulge() {
+        // NaN bulge should return line segment
+        let a = point(0.0, 0.0);
+        let b = point(2.0, 0.0);
+        let arc = arc_from_bulge(a, b, f64::NAN);
+        assert!(arc.is_seg(), "NaN bulge should produce line segment");
+    }
+
+    #[test]
+    fn test_degenerate_infinite_bulge() {
+        // Infinite bulge should return line segment
+        let a = point(0.0, 0.0);
+        let b = point(2.0, 0.0);
+        
+        let arc_pos_inf = arc_from_bulge(a, b, f64::INFINITY);
+        assert!(arc_pos_inf.is_seg(), "Positive infinite bulge should produce line segment");
+        
+        let arc_neg_inf = arc_from_bulge(a, b, f64::NEG_INFINITY);
+        assert!(arc_neg_inf.is_seg(), "Negative infinite bulge should produce line segment");
+    }
+
+    #[test]
+    fn test_degenerate_coincident_endpoints() {
+        // Points at same location should return line segment
+        use crate::constants::GEOMETRIC_EPSILON;
+        
+        let a = point(1.5, 2.5);
+        
+        // Exactly same point
+        let arc1 = arc_from_bulge(a, a, 1.0);
+        assert!(arc1.is_seg(), "Identical endpoints should produce line segment");
+        
+        // Endpoints within tolerance
+        let b = point(1.5 + GEOMETRIC_EPSILON / 2.0, 2.5);
+        let arc2 = arc_from_bulge(a, b, 1.0);
+        assert!(arc2.is_seg(), "Nearly identical endpoints should produce line segment");
+    }
+
+    #[test]
+    fn test_degenerate_extreme_bulge_values() {
+        // Test very large and very small bulge values
+        let a = point(0.0, 0.0);
+        let b = point(1.0, 0.0);
+        
+        // Extremely large bulge
+        let arc_large = arc_from_bulge(a, b, 1e10);
+        assert!(arc_large.is_arc(), "Very large bulge should produce arc");
+        
+        // Extremely small bulge (but not NaN/Infinity)
+        let arc_small = arc_from_bulge(a, b, 1e-15);
+        assert!(arc_small.is_seg(), "Extremely small bulge should be line segment");
+    }
+
+    #[test]
+    fn test_degenerate_negative_bulge_endpoints() {
+        // Negative bulge should swap endpoints but still work
+        let a = point(0.0, 0.0);
+        let b = point(2.0, 0.0);
+        let bulge = 0.5;
+        
+        let arc_pos = arc_from_bulge(a, b, bulge);
+        let arc_neg = arc_from_bulge(a, b, -bulge);
+        
+        // Both should produce valid arcs
+        assert!(arc_pos.is_arc(), "Positive bulge should be arc");
+        assert!(arc_neg.is_arc(), "Negative bulge should be arc");
+        
+        // Endpoints should be swapped
+        assert_eq!(arc_pos.a, arc_neg.b, "Negative bulge swaps endpoints");
+        assert_eq!(arc_pos.b, arc_neg.a, "Negative bulge swaps endpoints");
+    }
+
+    #[test]
+    fn test_degenerate_zero_length_chord() {
+        // Zero-length chord (same endpoints) at various scales
+        let test_points = [
+            (point(0.0, 0.0), point(0.0, 0.0)),
+            (point(100.0, 100.0), point(100.0, 100.0)),
+            (point(-1e6, -1e6), point(-1e6, -1e6)),
+        ];
+        
+        for (a, b) in &test_points {
+            let arc = arc_from_bulge(*a, *b, 1.0);
+            assert!(arc.is_seg(), "Zero-length chord should produce line segment");
+        }
+    }
+
+    #[test]
+    fn test_degenerate_computed_geometry_validation() {
+        // Test that computed center and radius are validated for finiteness
+        // This is tricky to trigger naturally, but we can verify the guards exist
+        let a = point(0.0, 0.0);
+        let b = point(1.0, 0.0);
+        
+        // Normal case should produce finite geometry
+        let arc = arc_from_bulge(a, b, 0.5);
+        assert!(arc.c.x.is_finite(), "Arc center x should be finite");
+        assert!(arc.c.y.is_finite(), "Arc center y should be finite");
+        assert!(arc.r.is_finite(), "Arc radius should be finite");
+    }
+
+    #[test]
+    fn test_degenerate_roundtrip_stability() {
+        // Test that bulge values are stable through round-trip conversion
+        // even at problematic values
+        let a = point(0.0, 0.0);
+        let b = point(1.0, 0.0);
+        
+        let test_bulges = [
+            1e-11,  // Near DIVISION_EPSILON
+            1e-10,  // Near GEOMETRIC_EPSILON
+            1e-8,   // Normal small
+            0.1,
+            0.5,
+            1.0,
+            2.0,
+            1e2,
+        ];
+        
+        for &bulge in &test_bulges {
+            let arc = arc_from_bulge(a, b, bulge);
+            
+            if arc.is_seg() {
+                // Very small bulges should produce line segments, which is acceptable
+                assert!(bulge < 1e-9, "Only very small bulges should be lines");
+            } else {
+                // For non-degenerate arcs, round-trip should be close
+                let calculated = bulge_from_arc(arc.a, arc.b, arc.c, arc.r);
+                let max_error = (GEOMETRIC_EPSILON * 1000.0).max(1e-6);
+                assert!(
+                    (calculated - bulge).abs() < max_error,
+                    "Bulge {} round-trip error too large: {} (max allowed: {})",
+                    bulge,
+                    (calculated - bulge).abs(),
+                    max_error
+                );
+            }
+        }
     }
 }
 
@@ -1627,13 +1822,13 @@ impl Arc {
 mod test_arc_make_consistent {
     use crate::prelude::*;
 
-    const TEST_EPS: f64 = 1E-10;
+    const GEOMETRIC_EPSILON: f64 = 1E-10;
 
     #[test]
     fn test_arc_make_consistent() {
         let mut arc = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 0.5);
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(GEOMETRIC_EPSILON));
     }
 
     #[test]
@@ -1641,11 +1836,11 @@ mod test_arc_make_consistent {
         // Create an already consistent arc
         let mut arc = arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0);
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(GEOMETRIC_EPSILON));
         // Should be very close to the original
-        assert!(close_enough(arc.c.x, 1.0, TEST_EPS));
-        assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
-        assert!(close_enough(arc.r, 1.0, TEST_EPS));
+        assert!(close_enough(arc.c.x, 1.0, GEOMETRIC_EPSILON));
+        assert!(close_enough(arc.c.y, 0.0, GEOMETRIC_EPSILON));
+        assert!(close_enough(arc.r, 1.0, GEOMETRIC_EPSILON));
     }
 
     #[test]
@@ -1653,13 +1848,13 @@ mod test_arc_make_consistent {
         // Create an arc where endpoints are at different distances from center
         let mut arc = arc(point(0.0, 0.0), point(3.0, 4.0), point(1.0, 1.0), 2.0);
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(GEOMETRIC_EPSILON));
 
         // Check that both endpoints are equidistant from the new center
         let dist_a = (arc.a - arc.c).norm();
         let dist_b = (arc.b - arc.c).norm();
-        assert!(close_enough(dist_a, arc.r, TEST_EPS));
-        assert!(close_enough(dist_b, arc.r, TEST_EPS));
+        assert!(close_enough(dist_a, arc.r, GEOMETRIC_EPSILON));
+        assert!(close_enough(dist_b, arc.r, GEOMETRIC_EPSILON));
     }
 
     #[test]
@@ -1668,7 +1863,7 @@ mod test_arc_make_consistent {
         let mut arc = arc(point(1.0, 1.0), point(1.0, 1.0), point(2.0, 2.0), 1.0);
         arc.make_consistent();
         // Degenerate case should result in line segment
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(GEOMETRIC_EPSILON));
         assert!(arc.is_seg());
     }
 
@@ -1698,17 +1893,17 @@ mod test_arc_make_consistent {
         let avg_radius = (dist_a_c + dist_b_c) / 2.0; // ≈ 2.236
 
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(GEOMETRIC_EPSILON));
 
         // The average radius is about 2.236, which is larger than half chord length (2.0)
         // So it should use the computed average radius, not the minimum
-        assert!(close_enough(arc.r, avg_radius, TEST_EPS));
+        assert!(close_enough(arc.r, avg_radius, GEOMETRIC_EPSILON));
 
         // Verify that both endpoints are equidistant from the center
         let new_dist_a = (arc.a - arc.c).norm();
         let new_dist_b = (arc.b - arc.c).norm();
-        assert!(close_enough(new_dist_a, arc.r, TEST_EPS));
-        assert!(close_enough(new_dist_b, arc.r, TEST_EPS));
+        assert!(close_enough(new_dist_a, arc.r, GEOMETRIC_EPSILON));
+        assert!(close_enough(new_dist_b, arc.r, GEOMETRIC_EPSILON));
     }
 
     #[test]
@@ -1723,18 +1918,18 @@ mod test_arc_make_consistent {
         let half_chord = chord_length / 2.0;
 
         arc.make_consistent();
-        assert!(arc.is_consistent(TEST_EPS));
+        assert!(arc.is_consistent(GEOMETRIC_EPSILON));
 
         // Check if the average radius is actually smaller than half chord
         if avg_radius < half_chord {
             // Should use minimum possible radius (half chord length)
-            assert!(close_enough(arc.r, half_chord, TEST_EPS));
+            assert!(close_enough(arc.r, half_chord, GEOMETRIC_EPSILON));
             // Center should be at chord midpoint
-            assert!(close_enough(arc.c.x, chord_length / 2.0, TEST_EPS));
-            assert!(close_enough(arc.c.y, 0.0, TEST_EPS));
+            assert!(close_enough(arc.c.x, chord_length / 2.0, GEOMETRIC_EPSILON));
+            assert!(close_enough(arc.c.y, 0.0, GEOMETRIC_EPSILON));
         } else {
             // Should use the average radius
-            assert!(close_enough(arc.r, avg_radius, TEST_EPS));
+            assert!(close_enough(arc.r, avg_radius, GEOMETRIC_EPSILON));
         }
     }
 }

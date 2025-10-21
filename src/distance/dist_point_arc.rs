@@ -138,7 +138,7 @@ mod test_dist_point_arc {
                 ));
                 assert_eq!(closest, point(0.0, 1.0));
             }
-            _ => assert!(false),
+            other => panic!("Expected OnePoint, got {:?}", other),
         }
     }
 

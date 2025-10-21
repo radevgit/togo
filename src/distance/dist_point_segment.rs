@@ -161,4 +161,15 @@ mod test_dist_point_segment {
         assert_eq!(dist, std::f64::consts::SQRT_2);
         assert_eq!(closest, point(1.0, 1.0));
     }
+
+    #[test]
+    fn test_degenerate_segment_zero_length() {
+        // Test when segment has zero length (a == b)
+        // This tests the uncovered branch at line 62-64 where sqr_length == 0
+        let p = point(1.0, 1.0);
+        let seg = segment(point(0.0, 0.0), point(0.0, 0.0));
+        let (dist, closest) = super::dist_point_segment(&p, &seg);
+        assert_eq!(dist, std::f64::consts::SQRT_2);
+        assert_eq!(closest, point(0.0, 0.0));
+    }
 }

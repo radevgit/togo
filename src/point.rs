@@ -323,9 +323,15 @@ impl Point {
             if max_abs_comp > ZERO {
                 v = v / max_abs_comp;
                 let mut norm = v.norm();
-                v = v / norm;
-                norm *= max_abs_comp;
-                (v, norm)
+                // Guard: prevent division by near-zero norm after scaling
+                if norm > ZERO {
+                    v = v / norm;
+                    norm *= max_abs_comp;
+                    (v, norm)
+                } else {
+                    // Scaled vector still has near-zero norm, return as-is
+                    (v, ZERO)
+                }
             } else {
                 (point(ZERO, ZERO), ZERO)
             }
@@ -334,7 +340,7 @@ impl Point {
             let normalized = if norm > 0f64 {
                 point(self.x / norm, self.y / norm)
             } else {
-                point(0.0, 0.0)
+                point(ZERO, ZERO)
             };
             (normalized, norm)
         }

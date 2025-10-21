@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::constants::DIVISION_EPSILON;
 use crate::prelude::*;
 
 /// Configuration for the distance between a segment and a circle.
@@ -53,7 +54,6 @@ pub fn dist_line_circle(line: &Line, circle: &Circle) -> DistLineCircleConfig {
     let dot_dir_del = direction.dot(delta);
     let dot_perp_dir_del = direction.perp(delta);
     let r_sqr = radius * radius;
-    // TODO: diff_of_prod
     let test = dot_perp_dir_del * dot_perp_dir_del - r_sqr * dot_dir_dir;
     if test >= ZERO {
         // When test = ZERO, the line is tangent to the circle.
@@ -61,7 +61,14 @@ pub fn dist_line_circle(line: &Line, circle: &Circle) -> DistLineCircleConfig {
 
         // Compute the line point closest to the circle.
         num_closest_pairs = 1;
-        parameter[0] = -dot_dir_del / dot_dir_dir;
+        
+        // Guard division: dot_dir_dir should be positive for valid line directions.
+        // If it's near zero, the line direction is degenerate. Use parameter 0.
+        if dot_dir_dir.abs() > DIVISION_EPSILON {
+            parameter[0] = -dot_dir_del / dot_dir_dir;
+        } else {
+            parameter[0] = 0.0;
+        }
         closest[0][0] = delta + direction * parameter[0];
         closest[0][1] = closest[0][0];
 
@@ -87,8 +94,17 @@ pub fn dist_line_circle(line: &Line, circle: &Circle) -> DistLineCircleConfig {
                 sqrt_discr
             };
         num_closest_pairs = 2;
-        parameter[0] = temp / dot_dir_dir;
-        parameter[1] = a0 / temp;
+        
+        // Guard divisions
+        if dot_dir_dir.abs() > DIVISION_EPSILON && temp.abs() > DIVISION_EPSILON {
+            parameter[0] = temp / dot_dir_dir;
+            parameter[1] = a0 / temp;
+        } else {
+            // Degenerate case: fall back to simpler calculation or zero parameters
+            parameter[0] = 0.0;
+            parameter[1] = 0.0;
+        }
+        
         if parameter[0] > parameter[1] {
             (parameter[1], parameter[0]) = (parameter[0], parameter[1]);
         }
@@ -238,5 +254,99 @@ mod test_dist_line_circle {
                 point(1.0, -1.7320508075688767),
             )
         );
+    }
+
+    #[test]
+    fn test_degenerate_line_zero_direction() {
+        // Line with zero direction vector - tests division guard for dot_dir_dir
+        let line = line(point(0.0, 0.0), point(0.0, 0.0));
+        let circle = circle(point(1.0, 1.0), 1.0);
+        let res = super::dist_line_circle(&line, &circle);
+        // Should handle gracefully without panicking or producing infinity
+        match res {
+            DistLineCircleConfig::OnePair(dist, param, p0, p1) => {
+                // Distance should be finite
+                assert!(dist.is_finite());
+                // Parameters should be zero (fallback value)
+                assert_eq!(param, 0.0);
+                // Points should be finite
+                assert!(p0.x.is_finite() && p0.y.is_finite());
+                assert!(p1.x.is_finite() && p1.y.is_finite());
+            }
+            _ => panic!("Expected OnePair for degenerate line"),
+        }
+    }
+
+    #[test]
+    fn test_degenerate_line_very_small_direction() {
+        // Line with very small direction vector - tests division guard boundary
+        let line = line(point(0.0, 0.0), point(1e-13, 1e-13));
+        let circle = circle(point(1.0, 1.0), 1.0);
+        let res = super::dist_line_circle(&line, &circle);
+        // Should handle gracefully without panic or infinity
+        match res {
+            DistLineCircleConfig::OnePair(dist, param, p0, p1) => {
+                // All results should be finite
+                assert!(dist.is_finite());
+                assert!(param.is_finite());
+                assert!(p0.x.is_finite() && p0.y.is_finite());
+                assert!(p1.x.is_finite() && p1.y.is_finite());
+            }
+            DistLineCircleConfig::TwoPairs(dist, p0, p1, _, _, _, _) => {
+                // Line intersects circle at two points
+                assert!(dist.is_finite());
+                assert!(p0.is_finite());
+                assert!(p1.is_finite());
+            }
+        }
+    }
+
+    #[test]
+    fn test_tangent_line_small_perpendicular_distance() {
+        // Tests the division guard for temp when line is nearly tangent to circle
+        let line = line(point(0.0, 0.0), point(1.0, 1e-13));
+        let circle = circle(point(0.5, 0.0), 0.5);
+        let res = super::dist_line_circle(&line, &circle);
+        // Should compute a valid distance without infinity
+        match res {
+            DistLineCircleConfig::OnePair(dist, _, p0, p1) => {
+                assert!(dist.is_finite());
+                assert!(dist >= 0.0); // Distance is non-negative
+                assert!(p0.x.is_finite() && p0.y.is_finite());
+                assert!(p1.x.is_finite() && p1.y.is_finite());
+            }
+            DistLineCircleConfig::TwoPairs(dist, p0, p1, _, _, _, _) => {
+                assert!(dist.is_finite());
+                assert!(p0.is_finite());
+                assert!(p1.is_finite());
+            }
+        }
+    }
+
+    #[test]
+    fn test_division_epsilon_guard_effectiveness() {
+        // Test that division guards actually prevent infinity results
+        const DIVISION_EPSILON: f64 = 1e-12;
+        
+        // Construct a line where dot_dir_dir will be below DIVISION_EPSILON
+        let small_dir_mag = 1e-13;
+        let line = line(point(0.0, 0.0), point(small_dir_mag, small_dir_mag));
+        let circle = circle(point(10.0, 10.0), 1.0);
+        
+        let res = super::dist_line_circle(&line, &circle);
+        
+        // Verify no infinity values in result
+        match res {
+            DistLineCircleConfig::OnePair(dist, param, p0, p1) => {
+                assert!(!dist.is_infinite(), "Distance should not be infinite");
+                assert!(!param.is_infinite(), "Parameter should not be infinite");
+                assert!(!p0.x.is_infinite() && !p0.y.is_infinite(), "p0 should be finite");
+                assert!(!p1.x.is_infinite() && !p1.y.is_infinite(), "p1 should be finite");
+            }
+            DistLineCircleConfig::TwoPairs(dist, p0, p1, _, _, _, _) => {
+                assert!(!dist.is_infinite());
+                assert!(!p0.is_infinite() && !p1.is_infinite());
+            }
+        }
     }
 }

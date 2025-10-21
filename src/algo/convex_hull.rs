@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::constants::COLLINEARITY_TOLERANCE;
 use crate::{arc::Arcline, prelude::*};
 
 /// Computes the convex hull of a set of points using the Gift Wrapping algorithm (Jarvis march).
@@ -58,9 +59,21 @@ use crate::{arc::Arcline, prelude::*};
 /// This function does not panic, but returns an empty vector for empty input.
 #[must_use]
 pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
+    // Filter out NaN and Infinity points - they cannot be part of a valid convex hull
+    let valid_points: Vec<Point> = points
+        .iter()
+        .copied()
+        .filter(|p| p.x.is_finite() && p.y.is_finite())
+        .collect();
+
+    // If no valid points remain, return empty hull
+    if valid_points.is_empty() {
+        return vec![];
+    }
+
     // Remove duplicate points first
     let mut unique_points = Vec::new();
-    for point in points {
+    for point in &valid_points {
         if !unique_points.contains(point) {
             unique_points.push(*point);
         }
@@ -81,10 +94,10 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
             match a.x.partial_cmp(&b.x) {
                 Some(std::cmp::Ordering::Equal) => match a.y.partial_cmp(&b.y) {
                     Some(ord) => ord,
-                    None => unreachable!("Point.y is NaN in convex hull computation"),
+                    None => std::cmp::Ordering::Greater,  // Treat NaN as greater (shouldn't happen after filtering)
                 },
                 Some(other) => other,
-                None => unreachable!("Point.x is NaN in convex hull computation"),
+                None => std::cmp::Ordering::Greater,  // Treat NaN as greater (shouldn't happen after filtering)
             }
         })
         .map_or(0, |(idx, _)| idx);
@@ -105,10 +118,10 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
                 .perp(unique_points[i] - unique_points[current]);
 
             // If cross < 0, point i is more counter-clockwise than next
-            // If cross == 0, points are collinear - choose the farther one
+            // If cross ≈ 0 (within tolerance), points are collinear - choose the farther one
             // If cross > 0, next is more counter-clockwise than i
             if cross < 0.0
-                || (cross == 0.0
+                || (cross.abs() < COLLINEARITY_TOLERANCE
                     && (unique_points[i] - unique_points[current]).norm()
                         > (unique_points[next] - unique_points[current]).norm())
             {

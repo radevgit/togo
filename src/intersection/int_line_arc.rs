@@ -69,7 +69,7 @@ pub fn int_line_arc(line: &Line, arc: &Arc) -> LineArcConfig {
 #[cfg(test)]
 mod test_int_line_arc {
     use crate::{
-        arc::{arc, arc_circle_parametrization},
+        arc::{arc, arc_from_bulge},
         line::line,
         point::point,
     };
@@ -81,7 +81,7 @@ mod test_int_line_arc {
         let sgrt_2_2 = std::f64::consts::SQRT_2 / 2.0;
         let l0 = line(point(0.0, 0.0), point(sgrt_2_2, sgrt_2_2));
         let arc0 =
-            arc_circle_parametrization(point(1.0, 0.0), point(2.0, 1.0), -1.0 + f64::EPSILON);
+            arc_from_bulge(point(1.0, 0.0), point(2.0, 1.0), -1.0 + f64::EPSILON);
         assert_eq!(int_line_arc(&l0, &arc0), LineArcConfig::NoIntersection());
     }
 

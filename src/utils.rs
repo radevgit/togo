@@ -93,6 +93,10 @@ pub fn almost_equal_as_int(a: f64, b: f64, ulps: u64) -> bool {
 /// ```
 #[must_use]
 pub fn close_enough(a: f64, b: f64, eps: f64) -> bool {
+    // Guard against NaN, Infinity, and invalid epsilon values
+    if !a.is_finite() || !b.is_finite() || !eps.is_finite() || eps < 0.0 {
+        return false;
+    }
     (a - b).abs() <= eps
 }
 
