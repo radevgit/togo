@@ -1222,8 +1222,8 @@ const ZERO: f64 = 0f64;
 /// let arc = arc_from_bulge(point(0.0, 0.0), point(2.0, 0.0), 1.0);
 /// assert!(arc.is_arc());
 ///
-/// // Create a line (very small bulge)
-/// let line = arc_from_bulge(point(0.0, 0.0), point(2.0, 0.0), 1e-10);
+/// // Create a line (very small bulge, below DIVISION_EPSILON threshold)
+/// let line = arc_from_bulge(point(0.0, 0.0), point(2.0, 0.0), 1e-13);
 /// assert!(line.is_seg());
 /// ```
 #[must_use]
@@ -1733,7 +1733,7 @@ mod test_arc_g_from_points {
 /// The orientation remains CCW for each arc.
 ///
 /// # Arguments
-/// * `arcs` - The arcline (Vec<Arc>) to reverse
+/// * `arcs` - The arcline (`Vec<Arc>`) to reverse
 ///
 /// # Returns
 /// A new arcline with reversed direction
