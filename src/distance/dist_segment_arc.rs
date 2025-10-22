@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::constants::GEOMETRIC_EPSILON;
 use crate::prelude::*;
 
 const ZERO: f64 = 0f64;
@@ -45,7 +46,7 @@ pub fn dist_segment_arc(seg: &Segment, arc: &Arc) -> f64 {
             let mut min_dist = dist0.min(dist1);
             
             // Early exit if we found a very close point
-            if min_dist < 1e-10 {
+            if min_dist < GEOMETRIC_EPSILON {
                 return min_dist;
             }
 
@@ -55,7 +56,7 @@ pub fn dist_segment_arc(seg: &Segment, arc: &Arc) -> f64 {
             min_dist = min_dist.min(dist2).min(dist3);
             
             // Early exit if we found a very close point
-            if min_dist < 1e-10 {
+            if min_dist < GEOMETRIC_EPSILON {
                 return min_dist;
             }
 
