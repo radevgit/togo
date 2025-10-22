@@ -1,15 +1,14 @@
 #![allow(dead_code)]
 
 use crate::{
+    constants::GEOMETRIC_EPSILON,
     distance::dist_point_segment::dist_point_segment,
     intersection::int_segment_segment::{SegmentSegmentConfig, int_segment_segment},
     segment::Segment,
-    utils::min_4,
 };
 
 // https://stackoverflow.com/questions/2824478/shortest-distance-between-two-line-segments
 const ZERO: f64 = 0.0;
-const ONE: f64 = 1.0;
 /// Computes the distance between two segments.
 ///
 /// This function calculates the shortest distance between two line segments.
@@ -47,11 +46,27 @@ pub fn dist_segment_segment(seg0: &Segment, seg1: &Segment) -> f64 {
     let inter = int_segment_segment(seg0, seg1);
     match inter {
         SegmentSegmentConfig::NoIntersection() => {
+            // Compute distances from seg0 endpoints to seg1 sequentially with early exits
             let a = dist_point_segment(&seg0.a, seg1).0;
+            if a < GEOMETRIC_EPSILON {
+                return a;
+            }
+            
             let b = dist_point_segment(&seg0.b, seg1).0;
+            let mut min_dist = a.min(b);
+            if min_dist < GEOMETRIC_EPSILON {
+                return min_dist;
+            }
+            
+            // Compute distances from seg1 endpoints to seg0
             let c = dist_point_segment(&seg1.a, seg0).0;
+            min_dist = min_dist.min(c);
+            if min_dist < GEOMETRIC_EPSILON {
+                return min_dist;
+            }
+            
             let d = dist_point_segment(&seg1.b, seg0).0;
-            min_4(a, b, c, d)
+            min_dist.min(d)
         }
         _ => ZERO,
     }
@@ -59,9 +74,12 @@ pub fn dist_segment_segment(seg0: &Segment, seg1: &Segment) -> f64 {
 
 #[cfg(test)]
 mod test_distance_segment_segment {
-    use crate::distance::dist_segment_segment::{ONE, ZERO, dist_segment_segment};
+    use crate::distance::dist_segment_segment::dist_segment_segment;
     use crate::point::point;
     use crate::segment::segment;
+
+    const ZERO: f64 = 0.0;
+    const ONE: f64 = 1.0;
 
     #[test]
     fn test_same_line_no_intersect() {

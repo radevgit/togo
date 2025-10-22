@@ -39,11 +39,27 @@ pub fn dist_segment_arc(seg: &Segment, arc: &Arc) -> f64 {
     let res = int_segment_arc(seg, arc);
     match res {
         SegmentArcConfig::NoIntersection() => {
-            let (dist0, _) = dist_point_segment(&arc.a, seg);
-            let (dist1, _) = dist_point_segment(&arc.b, seg);
-            let dist2 = dist_point_arc_dist(&seg.a, arc);
-            let dist3 = dist_point_arc_dist(&seg.b, arc);
+            // Compute distances from segment endpoints to arc
+            let dist0 = dist_point_arc_dist(&seg.a, arc);
+            let dist1 = dist_point_arc_dist(&seg.b, arc);
+            let mut min_dist = dist0.min(dist1);
+            
+            // Early exit if we found a very close point
+            if min_dist < 1e-10 {
+                return min_dist;
+            }
 
+            // Compute distances from arc endpoints to segment
+            let (dist2, _) = dist_point_segment(&arc.a, seg);
+            let (dist3, _) = dist_point_segment(&arc.b, seg);
+            min_dist = min_dist.min(dist2).min(dist3);
+            
+            // Early exit if we found a very close point
+            if min_dist < 1e-10 {
+                return min_dist;
+            }
+
+            // Only compute expensive line-circle distance if other distances aren't small
             let line = line(seg.a, seg.b - seg.a);
             let circle = circle(arc.c, arc.r);
             let res2 = dist_line_circle(&line, &circle);
@@ -55,10 +71,10 @@ pub fn dist_segment_arc(seg: &Segment, arc: &Arc) -> f64 {
                         f64::MAX
                     }
                 }
-                // not interested in this case
                 DistLineCircleConfig::TwoPairs(..) => f64::MAX,
             };
-            min_5(dist0, dist1, dist2, dist3, dist4)
+            
+            min_dist.min(dist4)
         }
         _ => {
             // The segment and arc intersect.

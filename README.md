@@ -11,7 +11,7 @@ It is used in my other projects and **may not implement** all possible geometric
 
 ```toml
 [dependencies]
-togo = "0.5.0"
+togo = "0.5"
 ```
 ![](https://raw.githubusercontent.com/radevgit/togo/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 

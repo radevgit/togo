@@ -4,6 +4,7 @@
 // https://math.stackexchange.com/questions/95009/how-can-one-calculate-the-minimum-and-maximum-distance-between-two-given-circula
 
 use crate::prelude::*;
+use crate::constants::GEOMETRIC_EPSILON;
 
 /// Computes the distance between two arcs.
 ///
@@ -39,7 +40,7 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
         }
     }
 
-    // 1) Endpoints of both arcs
+    // 1) Endpoints of both arcs - cheap computation
     // 2) An endpoint of one and an interior point of the other
     let dist0 = match dist_point_arc(&arc0.a, arc1) {
         DistPointArcConfig::OnePoint(dist, _) | DistPointArcConfig::Equidistant(dist, _) => dist,
@@ -55,14 +56,19 @@ pub fn dist_arc_arc(arc0: &Arc, arc1: &Arc) -> f64 {
     };
     let mut min_dist = min_4(dist0, dist1, dist2, dist3);
 
+    // Early exit if we found very close points
+    if min_dist < GEOMETRIC_EPSILON {
+        return min_dist;
+    }
+
     // The arcs are cocircular
-    if arc0.c.close_enough(arc1.c, 1E-10) {
-        // TODO: use a constant
+    if arc0.c.close_enough(arc1.c, GEOMETRIC_EPSILON) {
         return min_dist;
     }
 
     // 3) Interior points of both arcs, which are on the line through the centres of the two arcs.
     // The line through the centres of the two arcs
+    // Only compute expensive line-arc intersections if endpoints haven't found a close solution
     let line_aa = line(arc0.c, arc1.c - arc0.c);
     let res0 = int_line_arc(&line_aa, arc0);
     let res1 = int_line_arc(&line_aa, arc1);

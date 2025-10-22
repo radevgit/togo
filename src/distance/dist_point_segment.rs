@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use crate::prelude::*;
+use crate::constants::GEOMETRIC_EPSILON;
 
 const ZERO: f64 = 0f64;
 const ONE: f64 = 1f64;
@@ -41,30 +42,43 @@ const ONE: f64 = 1f64;
 /// ```
 pub fn dist_point_segment(point: &Point, segment: &Segment) -> (f64, Point) {
     // #00016
-    // The direction vector is not unit length. The normalization is
-    // deferred until it is needed.
-    let closest;
+    // The direction vector is not unit length. The normalization is deferred until needed.
+    //
+    // Algorithm:
+    // 1. Check if projection onto infinite line is beyond segment end B: return B
+    // 2. Check if projection onto infinite line is before segment end A: return A
+    // 3. Otherwise compute closest point on segment interior using parameter t
+    
     let direction = segment.b - segment.a;
+    let sqr_length = direction.dot(direction);
+    
+    // Handle degenerate segment (zero length)
+    if sqr_length < GEOMETRIC_EPSILON {
+        return ((point - segment.a).norm(), segment.a);
+    }
+    
+    // Project point onto infinite line: t = dot(point - A, direction) / sqr_length
+    // Test both parametric ranges
     let mut diff = point - segment.b;
     let mut t = direction.dot(diff);
+    
+    // If t >= 0, projection is beyond B, closest point is B
     if t >= ZERO {
-        closest = segment.b;
-    } else {
-        diff = point - segment.a;
-        t = direction.dot(diff);
-        if t <= ZERO {
-            closest = segment.a;
-        } else {
-            let sqr_length = direction.dot(direction);
-            if sqr_length > ZERO {
-                t /= sqr_length;
-                closest = segment.a + direction * t;
-            } else {
-                closest = segment.a;
-            }
-        }
+        return ((point - segment.b).norm(), segment.b);
     }
-
+    
+    // Check projection relative to A
+    diff = point - segment.a;
+    t = direction.dot(diff);
+    
+    // If t <= 0, projection is before A, closest point is A
+    if t <= ZERO {
+        return ((point - segment.a).norm(), segment.a);
+    }
+    
+    // Interior case: t is in (0, sqr_length), compute closest point on segment
+    let t_normalized = t / sqr_length;
+    let closest = segment.a + direction * t_normalized;
     ((point - closest).norm(), closest)
 }
 
@@ -165,7 +179,7 @@ mod test_dist_point_segment {
     #[test]
     fn test_degenerate_segment_zero_length() {
         // Test when segment has zero length (a == b)
-        // This tests the uncovered branch at line 62-64 where sqr_length == 0
+        // Degenerate case is handled explicitly at the start of the function
         let p = point(1.0, 1.0);
         let seg = segment(point(0.0, 0.0), point(0.0, 0.0));
         let (dist, closest) = super::dist_point_segment(&p, &seg);
