@@ -48,13 +48,13 @@ pub fn arcline1000() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1: Connect spiral 1 start to spiral 2 start (both at inner radius, opposite sides)
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
     let spiral2_start_angle = std::f64::consts::PI;  // 180 degrees
     let spiral2_start_radius = inner_radius;
     let connection1 = arc_from_bulge(
         Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
         ),
         Point::new(
             center_x + spiral2_start_radius * spiral2_start_angle.cos(),
@@ -96,15 +96,15 @@ pub fn arcline1000() -> Arcline {
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2: Connect spiral 1 end to spiral 2 end (both at outer radius)
+    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
     let connection2 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
+            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
         ),
         0.0,
     );
@@ -157,13 +157,13 @@ pub fn arcline500() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
     let spiral2_start_angle = std::f64::consts::PI;
     let spiral2_start_radius = inner_radius;
     let connection1 = arc_from_bulge(
         Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
         ),
         Point::new(
             center_x + spiral2_start_radius * spiral2_start_angle.cos(),
@@ -203,15 +203,15 @@ pub fn arcline500() -> Arcline {
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2
+    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
     let connection2 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
+            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
         ),
         0.0,
     );
@@ -264,13 +264,13 @@ pub fn arcline200() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
     let spiral2_start_angle = std::f64::consts::PI;
     let spiral2_start_radius = inner_radius;
     let connection1 = arc_from_bulge(
         Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
         ),
         Point::new(
             center_x + spiral2_start_radius * spiral2_start_angle.cos(),
@@ -310,15 +310,15 @@ pub fn arcline200() -> Arcline {
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2
+    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
     let connection2 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
+            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
         ),
         0.0,
     );
