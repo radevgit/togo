@@ -3,4 +3,4 @@
 
 pub mod data;
 
-pub use data::{poly1000, poly1000_circular, poly1000_grid};
+pub use data::{poly1000, arcline1000, poly1000_circular, poly1000_grid};
