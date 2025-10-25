@@ -113,6 +113,220 @@ pub fn arcline1000() -> Arcline {
     arcs
 }
 
+/// Generated ~500-arc double spiral polyline spiraling outward
+/// Same structure as arcline1000 but with 250 arcs per spiral
+/// Approximately 500-520 total arcs
+/// Scaled to reach same outer radius as arcline1000
+pub fn arcline500() -> Arcline {
+    let mut arcs = Vec::with_capacity(520);
+    
+    let num_arcs = 250;
+    let center_x: f64 = 400.0;
+    let center_y: f64 = 400.0;
+    let inner_radius: f64 = 10.0;
+    let spiral_increment: f64 = 1.16;  // 2x spiral_increment to reach same size in half the arcs
+    let angular_step: f64 = std::f64::consts::PI / 20.0;
+    
+    // SPIRAL 1
+    let mut angle1: f64 = 0.0;
+    let mut radius1: f64 = inner_radius;
+    let spiral1_start_angle = angle1;
+    let spiral1_start_radius = radius1;
+    
+    for i in 0..num_arcs {
+        let start_x = center_x + radius1 * angle1.cos();
+        let start_y = center_y + radius1 * angle1.sin();
+        
+        angle1 += angular_step;
+        radius1 += spiral_increment;
+        
+        let end_x = center_x + radius1 * angle1.cos();
+        let end_y = center_y + radius1 * angle1.sin();
+        
+        let bulge = if i % 2 == 0 { 0.3 } else { -0.3 };
+        
+        let arc = arc_from_bulge(
+            Point::new(start_x, start_y),
+            Point::new(end_x, end_y),
+            bulge,
+        );
+        
+        arcs.push(arc);
+    }
+    
+    let spiral1_end_angle = angle1;
+    let spiral1_end_radius = radius1;
+    
+    // CONNECTION 1
+    let spiral2_start_angle = std::f64::consts::PI;
+    let spiral2_start_radius = inner_radius;
+    let connection1 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
+            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
+            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection1);
+    
+    // SPIRAL 2
+    let mut angle2: f64 = spiral2_start_angle;
+    let mut radius2: f64 = spiral2_start_radius;
+    let extra_arcs = (std::f64::consts::PI / angular_step).ceil() as usize;
+    let num_arcs_spiral2 = num_arcs + extra_arcs;
+    
+    for i in 0..num_arcs_spiral2 {
+        let start_x = center_x + radius2 * angle2.cos();
+        let start_y = center_y + radius2 * angle2.sin();
+        
+        angle2 += angular_step;
+        radius2 += spiral_increment;
+        
+        let end_x = center_x + radius2 * angle2.cos();
+        let end_y = center_y + radius2 * angle2.sin();
+        
+        let bulge = if i % 2 == 0 { 0.3 } else { -0.3 };
+        
+        let arc = arc_from_bulge(
+            Point::new(start_x, start_y),
+            Point::new(end_x, end_y),
+            bulge,
+        );
+        
+        arcs.push(arc);
+    }
+    
+    let spiral2_end_angle = angle2;
+    let spiral2_end_radius = radius2;
+    
+    // CONNECTION 2
+    let connection2 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral2_end_radius * spiral2_end_angle.cos(),
+            center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection2);
+    
+    arcs
+}
+
+/// Generated ~200-arc double spiral polyline spiraling outward
+/// Same structure as arcline1000 but with 100 arcs per spiral
+/// Approximately 200-220 total arcs
+/// Scaled to reach same outer radius as arcline1000
+pub fn arcline200() -> Arcline {
+    let mut arcs = Vec::with_capacity(220);
+    
+    let num_arcs = 100;
+    let center_x: f64 = 400.0;
+    let center_y: f64 = 400.0;
+    let inner_radius: f64 = 10.0;
+    let spiral_increment: f64 = 2.9;  // 5x spiral_increment to reach same size in 1/5 the arcs
+    let angular_step: f64 = std::f64::consts::PI / 20.0;
+    
+    // SPIRAL 1
+    let mut angle1: f64 = 0.0;
+    let mut radius1: f64 = inner_radius;
+    let spiral1_start_angle = angle1;
+    let spiral1_start_radius = radius1;
+    
+    for i in 0..num_arcs {
+        let start_x = center_x + radius1 * angle1.cos();
+        let start_y = center_y + radius1 * angle1.sin();
+        
+        angle1 += angular_step;
+        radius1 += spiral_increment;
+        
+        let end_x = center_x + radius1 * angle1.cos();
+        let end_y = center_y + radius1 * angle1.sin();
+        
+        let bulge = if i % 2 == 0 { 0.3 } else { -0.3 };
+        
+        let arc = arc_from_bulge(
+            Point::new(start_x, start_y),
+            Point::new(end_x, end_y),
+            bulge,
+        );
+        
+        arcs.push(arc);
+    }
+    
+    let spiral1_end_angle = angle1;
+    let spiral1_end_radius = radius1;
+    
+    // CONNECTION 1
+    let spiral2_start_angle = std::f64::consts::PI;
+    let spiral2_start_radius = inner_radius;
+    let connection1 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
+            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
+            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection1);
+    
+    // SPIRAL 2
+    let mut angle2: f64 = spiral2_start_angle;
+    let mut radius2: f64 = spiral2_start_radius;
+    let extra_arcs = (std::f64::consts::PI / angular_step).ceil() as usize;
+    let num_arcs_spiral2 = num_arcs + extra_arcs;
+    
+    for i in 0..num_arcs_spiral2 {
+        let start_x = center_x + radius2 * angle2.cos();
+        let start_y = center_y + radius2 * angle2.sin();
+        
+        angle2 += angular_step;
+        radius2 += spiral_increment;
+        
+        let end_x = center_x + radius2 * angle2.cos();
+        let end_y = center_y + radius2 * angle2.sin();
+        
+        let bulge = if i % 2 == 0 { 0.3 } else { -0.3 };
+        
+        let arc = arc_from_bulge(
+            Point::new(start_x, start_y),
+            Point::new(end_x, end_y),
+            bulge,
+        );
+        
+        arcs.push(arc);
+    }
+    
+    let spiral2_end_angle = angle2;
+    let spiral2_end_radius = radius2;
+    
+    // CONNECTION 2
+    let connection2 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+        ),
+        Point::new(
+            center_x + spiral2_end_radius * spiral2_end_angle.cos(),
+            center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection2);
+    
+    arcs
+}
+
 /// Generated ~1000-arc closed double spiral polyline
 /// Two concentric spirals both starting from center, spiraling outward together
 /// Each arc has alternating bulge signs (positive/negative)
@@ -309,6 +523,20 @@ mod tests {
     }
     
     #[test]
+    fn test_arcline500_len() {
+        let arcline = arcline500();
+        // ~250 + (250 + 20 for half revolution) + 2 connections = ~522 arcs
+        assert!(arcline.len() >= 520 && arcline.len() <= 525, "Expected ~522 arcs, got {}", arcline.len());
+    }
+    
+    #[test]
+    fn test_arcline200_len() {
+        let arcline = arcline200();
+        // ~100 + (100 + 20 for half revolution) + 2 connections = ~222 arcs
+        assert!(arcline.len() >= 220 && arcline.len() <= 225, "Expected ~222 arcs, got {}", arcline.len());
+    }
+    
+    #[test]
     fn test_arcline1000_svg() {
         
         let arcline = arcline1000();
@@ -317,6 +545,28 @@ mod tests {
         svg.write_stroke_width(0.1);
         
         println!("SVG written for arcline1000 inspection");
+    }
+
+        #[test]
+    fn test_arcline500_svg() {
+        
+        let arcline = arcline500();
+        let mut svg = SVG::new(800.0, 800.0, Some("/tmp/arcline500.svg"));
+        svg.arcline(&arcline, "red");
+        svg.write_stroke_width(0.1);
+        
+        println!("SVG written for arcline500 inspection");
+    }
+
+        #[test]
+    fn test_arcline200_svg() {
+        
+        let arcline = arcline200();
+        let mut svg = SVG::new(800.0, 800.0, Some("/tmp/arcline200.svg"));
+        svg.arcline(&arcline, "red");
+        svg.write_stroke_width(0.1);
+        
+        println!("SVG written for arcline200 inspection");
     }
     
     #[test]
