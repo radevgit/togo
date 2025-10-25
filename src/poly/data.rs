@@ -48,27 +48,15 @@ pub fn arcline1000() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
+    // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
+    // Generate spiral2, then reverse it
+    let mut spiral2_arcs = Vec::new();
     let spiral2_start_angle = std::f64::consts::PI;  // 180 degrees
     let spiral2_start_radius = inner_radius;
-    let connection1 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
-            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
-        ),
-        0.0,
-    );
-    arcs.push(connection1);
     
-    // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
     let mut angle2: f64 = spiral2_start_angle;
     let mut radius2: f64 = spiral2_start_radius;
     
-    // Extra arcs for spiral 2 to complete half revolution (π radians) to reach 0°
     let extra_arcs = (std::f64::consts::PI / angular_step).ceil() as usize;
     let num_arcs_spiral2 = num_arcs + extra_arcs;
     
@@ -90,17 +78,37 @@ pub fn arcline1000() -> Arcline {
             bulge,
         );
         
-        arcs.push(arc);
+        spiral2_arcs.push(arc);
     }
     
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
-    let connection2 = arc_from_bulge(
+    // Reverse spiral2 so it traverses in opposite direction
+    let spiral2_reversed = arcline_reverse(&spiral2_arcs);
+    
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 start (which is the reversed end)
+    let connection1 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection1);
+    
+    // Add reversed spiral2
+    arcs.extend(spiral2_reversed);
+    
+    // CONNECTION 2: Connect spiral 2 end (which is now the reversed start) back to spiral 1 start to close the loop
+    let connection2 = arc_from_bulge(
+        Point::new(
+            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
+            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
         ),
         Point::new(
             center_x + spiral1_start_radius * spiral1_start_angle.cos(),
@@ -157,25 +165,16 @@ pub fn arcline500() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
-    let spiral2_start_angle = std::f64::consts::PI;
+    // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
+    // Generate spiral2 first, then reverse it
+    let mut spiral2_arcs = Vec::new();
+    let spiral2_start_angle = std::f64::consts::PI;  // 180 degrees
     let spiral2_start_radius = inner_radius;
-    let connection1 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
-            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
-        ),
-        0.0,
-    );
-    arcs.push(connection1);
     
-    // SPIRAL 2
     let mut angle2: f64 = spiral2_start_angle;
     let mut radius2: f64 = spiral2_start_radius;
+    
+    // Extra arcs for spiral 2 to complete half revolution (π radians) to reach 0°
     let extra_arcs = (std::f64::consts::PI / angular_step).ceil() as usize;
     let num_arcs_spiral2 = num_arcs + extra_arcs;
     
@@ -197,17 +196,37 @@ pub fn arcline500() -> Arcline {
             bulge,
         );
         
-        arcs.push(arc);
+        spiral2_arcs.push(arc);
     }
     
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
-    let connection2 = arc_from_bulge(
+    // Reverse spiral2 so it traverses in opposite direction
+    let spiral2_reversed = arcline_reverse(&spiral2_arcs);
+    
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 start (which is spiral2_end_angle after reversal)
+    let connection1 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection1);
+    
+    // Add reversed spiral2
+    arcs.extend(spiral2_reversed);
+    
+    // CONNECTION 2: Connect spiral 2 end (which is spiral2_start_angle after reversal) back to spiral 1 start to close the loop
+    let connection2 = arc_from_bulge(
+        Point::new(
+            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
+            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
         ),
         Point::new(
             center_x + spiral1_start_radius * spiral1_start_angle.cos(),
@@ -264,23 +283,11 @@ pub fn arcline200() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
+    // SPIRAL 2: Generate spiral2 first, then reverse it
+    let mut spiral2_arcs = Vec::new();
     let spiral2_start_angle = std::f64::consts::PI;
     let spiral2_start_radius = inner_radius;
-    let connection1 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
-            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
-        ),
-        0.0,
-    );
-    arcs.push(connection1);
     
-    // SPIRAL 2
     let mut angle2: f64 = spiral2_start_angle;
     let mut radius2: f64 = spiral2_start_radius;
     let extra_arcs = (std::f64::consts::PI / angular_step).ceil() as usize;
@@ -304,17 +311,37 @@ pub fn arcline200() -> Arcline {
             bulge,
         );
         
-        arcs.push(arc);
+        spiral2_arcs.push(arc);
     }
     
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
-    let connection2 = arc_from_bulge(
+    // Reverse spiral2 so it traverses in opposite direction
+    let spiral2_reversed = arcline_reverse(&spiral2_arcs);
+    
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 start (which is spiral2_end_angle after reversal)
+    let connection1 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
+        ),
+        0.0,
+    );
+    arcs.push(connection1);
+    
+    // Add reversed spiral2
+    arcs.extend(spiral2_reversed);
+    
+    // CONNECTION 2: Connect spiral 2 end (which is spiral2_start_angle after reversal) back to spiral 1 start to close the loop
+    let connection2 = arc_from_bulge(
+        Point::new(
+            center_x + spiral2_start_radius * spiral2_start_angle.cos(),
+            center_y + spiral2_start_radius * spiral2_start_angle.sin(),
         ),
         Point::new(
             center_x + spiral1_start_radius * spiral1_start_angle.cos(),
