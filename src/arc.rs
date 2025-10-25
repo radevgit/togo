@@ -323,11 +323,38 @@ pub fn arcseg(a: Point, b: Point) -> Arc {
     arc(a, b, point(f64::INFINITY, f64::INFINITY), f64::INFINITY)
 }
 
-/// Translates Arcline by a given translation vector.
-pub fn arcline_translate(arc: &mut Arcline, translation: Point) {
-    for segment in arc.iter_mut() {
-        segment.translate(translation);
+/// Translates an arcline by a given translation vector, returning a new arcline.
+#[must_use]
+pub fn arcline_translate(arcline: &Arcline, translation: Point) -> Arcline {
+    let mut result: Arcline = Vec::with_capacity(arcline.len());
+    for arc in arcline {
+        let mut translated_arc = *arc;
+        translated_arc.translate(translation);
+        result.push(translated_arc);
     }
+    result
+}
+
+/// Scales an arcline by a given scale factor, returning a new arcline.
+#[must_use]
+pub fn arcline_scale(arcline: &Arcline, scale: f64) -> Arcline {
+    let mut result: Arcline = Vec::with_capacity(arcline.len());
+    for arc in arcline {
+        if arc.is_seg() {
+            // For line segments, only scale endpoints
+            let scaled_arc = arcseg(arc.a * scale, arc.b * scale);
+            result.push(scaled_arc);
+        } else {
+            // For circular arcs, scale all components
+            let mut scaled_arc = *arc;
+            scaled_arc.a = scaled_arc.a * scale;
+            scaled_arc.b = scaled_arc.b * scale;
+            scaled_arc.c = scaled_arc.c * scale;
+            scaled_arc.r = scaled_arc.r * scale.abs();
+            result.push(scaled_arc);
+        }
+    }
+    result
 }
 
 #[cfg(test)]
@@ -461,30 +488,30 @@ mod test_arc {
     #[test]
     fn test_arcline_translate_empty() {
         // Test translating an empty arcline
-        let mut empty_arcline: Arcline = vec![];
+        let empty_arcline: Arcline = vec![];
         let translation = point(5.0, -3.0);
-        arcline_translate(&mut empty_arcline, translation);
-        assert_eq!(empty_arcline.len(), 0);
+        let result = arcline_translate(&empty_arcline, translation);
+        assert_eq!(result.len(), 0);
     }
 
     #[test]
     fn test_arcline_translate_single_arc() {
         // Test translating an arcline with a single arc
-        let mut arcline = vec![arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0)];
+        let arcline = vec![arc(point(0.0, 0.0), point(2.0, 0.0), point(1.0, 0.0), 1.0)];
         let translation = point(10.0, 5.0);
-        arcline_translate(&mut arcline, translation);
+        let result = arcline_translate(&arcline, translation);
 
-        assert_eq!(arcline.len(), 1);
-        assert_eq!(arcline[0].a, point(10.0, 5.0));
-        assert_eq!(arcline[0].b, point(12.0, 5.0));
-        assert_eq!(arcline[0].c, point(11.0, 5.0));
-        assert_eq!(arcline[0].r, 1.0); // Radius should remain unchanged
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].a, point(10.0, 5.0));
+        assert_eq!(result[0].b, point(12.0, 5.0));
+        assert_eq!(result[0].c, point(11.0, 5.0));
+        assert_eq!(result[0].r, 1.0); // Radius should remain unchanged
     }
 
     #[test]
     fn test_arcline_translate_multiple_arcs() {
         // Test translating an arcline with multiple arcs
-        let mut arcline = vec![
+        let arcline = vec![
             arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5),
             arcseg(point(1.0, 0.0), point(3.0, 2.0)), // Line segment
             arc(
@@ -495,9 +522,47 @@ mod test_arc {
             ),
         ];
         let translation = point(-2.0, 3.0);
-        arcline_translate(&mut arcline, translation);
+        let result = arcline_translate(&arcline, translation);
 
-        assert_eq!(arcline.len(), 3);
+        assert_eq!(result.len(), 3);
+    }
+
+    #[test]
+    fn test_arcline_scale_empty() {
+        // Test scaling an empty arcline
+        let empty_arcline: Arcline = vec![];
+        let result = arcline_scale(&empty_arcline, 2.0);
+        assert_eq!(result.len(), 0);
+    }
+
+    #[test]
+    fn test_arcline_scale_single_arc() {
+        // Test scaling an arcline with a single arc
+        let arcline = vec![arc(point(1.0, 1.0), point(2.0, 1.0), point(1.5, 1.0), 0.5)];
+        let result = arcline_scale(&arcline, 2.0);
+
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].a, point(2.0, 2.0));
+        assert_eq!(result[0].b, point(4.0, 2.0));
+        assert_eq!(result[0].c, point(3.0, 2.0));
+        assert_eq!(result[0].r, 1.0); // Radius scaled by 2
+    }
+
+    #[test]
+    fn test_arcline_scale_multiple_arcs() {
+        // Test scaling an arcline with multiple arcs
+        let arcline = vec![
+            arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.0), 0.5),
+            arcseg(point(1.0, 0.0), point(2.0, 1.0)),
+            arc(point(2.0, 1.0), point(2.0, 2.0), point(1.0, 1.5), 1.0),
+        ];
+        let result = arcline_scale(&arcline, 0.5);
+
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0].a, point(0.0, 0.0));
+        assert_eq!(result[0].b, point(0.5, 0.0));
+        assert_eq!(result[0].c, point(0.25, 0.0));
+        assert_eq!(result[0].r, 0.25);
     }
 }
 
