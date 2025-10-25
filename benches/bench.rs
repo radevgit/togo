@@ -6,7 +6,7 @@ fn main() {
     println!("Self-Intersection Check Benchmark");
     println!("========================================\n");
     
-    let poly = togo::poly::data::poly1000();
+    let poly = togo::poly::data::arcline1000();
     println!("Spiral polyline: {} arcs", poly.len());
     println!("Total arc pairs to check: {}", poly.len() * (poly.len() - 1) / 2);
     
