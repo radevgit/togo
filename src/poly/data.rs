@@ -1,26 +1,26 @@
 use crate::prelude::*;
 
-/// Generated ~1000-arc double spiral polyline spiraling inward
+/// Generated ~1000-arc double spiral polyline spiraling outward
 /// Two identical spirals rotated 180 degrees relative to each other
-/// Spiral 1: starts at angle 0°, spirals inward for 500 arcs
-/// Spiral 2: starts at angle 180°, spirals inward for 500 arcs
+/// Spiral 1: starts at angle 0°, radius 50, spirals outward
+/// Spiral 2: starts at angle 180°, radius 50, spirals outward, ends at angle 0° (half revolution extended)
 /// Both spirals have synchronized wave patterns (alternating bulges)
 /// Connected at start and end points
-/// Total approximately 1002 arcs (~500 per spiral + 2 connections)
+/// Total approximately 1020 arcs (~500 per spiral + ~20 extra for spiral 2 + 2 connections)
 /// For benchmarking and testing spatial algorithms
 pub fn arcline1000() -> Arcline {
-    let mut arcs = Vec::with_capacity(1002);
+    let mut arcs = Vec::with_capacity(1025);
     
     let num_arcs = 500;
-    let center_x: f64 = 300.0;
-    let center_y: f64 = 300.0;
-    let outer_radius: f64 = 290.0;    // Start from outer edge
-    let spiral_decrement: f64 = -0.58; // Decrease radius per arc (spiral inward)
+    let center_x: f64 = 400.0;
+    let center_y: f64 = 400.0;
+    let inner_radius: f64 = 10.0;     // Start from inner radius
+    let spiral_increment: f64 = 0.58;  // Increase radius per arc (spiral outward)
     let angular_step: f64 = std::f64::consts::PI / 20.0;
     
-    // SPIRAL 1: starts at angle 0°
+    // SPIRAL 1: starts at angle 0°, spirals outward
     let mut angle1: f64 = 0.0;
-    let mut radius1: f64 = outer_radius;
+    let mut radius1: f64 = inner_radius;
     let spiral1_start_angle = angle1;
     let spiral1_start_radius = radius1;
     
@@ -29,7 +29,7 @@ pub fn arcline1000() -> Arcline {
         let start_y = center_y + radius1 * angle1.sin();
         
         angle1 += angular_step;
-        radius1 += spiral_decrement;
+        radius1 += spiral_increment;
         
         let end_x = center_x + radius1 * angle1.cos();
         let end_y = center_y + radius1 * angle1.sin();
@@ -48,13 +48,13 @@ pub fn arcline1000() -> Arcline {
     let spiral1_end_angle = angle1;
     let spiral1_end_radius = radius1;
     
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start
+    // CONNECTION 1: Connect spiral 1 start to spiral 2 start (both at inner radius, opposite sides)
     let spiral2_start_angle = std::f64::consts::PI;  // 180 degrees
-    let spiral2_start_radius = outer_radius;
+    let spiral2_start_radius = inner_radius;
     let connection1 = arc_from_bulge(
         Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
+            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
         ),
         Point::new(
             center_x + spiral2_start_radius * spiral2_start_angle.cos(),
@@ -64,16 +64,20 @@ pub fn arcline1000() -> Arcline {
     );
     arcs.push(connection1);
     
-    // SPIRAL 2: starts at angle 180°
+    // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
     let mut angle2: f64 = spiral2_start_angle;
     let mut radius2: f64 = spiral2_start_radius;
     
-    for i in 0..num_arcs {
+    // Extra arcs for spiral 2 to complete half revolution (π radians) to reach 0°
+    let extra_arcs = (std::f64::consts::PI / angular_step).ceil() as usize;
+    let num_arcs_spiral2 = num_arcs + extra_arcs;
+    
+    for i in 0..num_arcs_spiral2 {
         let start_x = center_x + radius2 * angle2.cos();
         let start_y = center_y + radius2 * angle2.sin();
         
         angle2 += angular_step;
-        radius2 += spiral_decrement;
+        radius2 += spiral_increment;
         
         let end_x = center_x + radius2 * angle2.cos();
         let end_y = center_y + radius2 * angle2.sin();
@@ -92,15 +96,15 @@ pub fn arcline1000() -> Arcline {
     let spiral2_end_angle = angle2;
     let spiral2_end_radius = radius2;
     
-    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start
+    // CONNECTION 2: Connect spiral 1 end to spiral 2 end (both at outer radius)
     let connection2 = arc_from_bulge(
+        Point::new(
+            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
+            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
+        ),
         Point::new(
             center_x + spiral2_end_radius * spiral2_end_angle.cos(),
             center_y + spiral2_end_radius * spiral2_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
         ),
         0.0,
     );
@@ -300,15 +304,15 @@ mod tests {
     #[test]
     fn test_arcline1000_len() {
         let arcline = arcline1000();
-        // ~500 + 500 + 2 connections = ~1002 arcs
-        assert!(arcline.len() >= 1000 && arcline.len() <= 1005, "Expected ~1002 arcs, got {}", arcline.len());
+        // ~500 + (500 + 20 for half revolution) + 2 connections = ~1022 arcs
+        assert!(arcline.len() >= 1020 && arcline.len() <= 1025, "Expected ~1022 arcs, got {}", arcline.len());
     }
     
     #[test]
     fn test_arcline1000_svg() {
         
         let arcline = arcline1000();
-        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/arcline1000.svg"));
+        let mut svg = SVG::new(800.0, 800.0, Some("/tmp/arcline1000.svg"));
         svg.arcline(&arcline, "red");
         svg.write_stroke_width(0.1);
         
