@@ -2204,6 +2204,8 @@ pub enum ArclineValidation {
     ZeroDegreeAngle(Arc, Arc),
     /// Two elements in the arcline intersect each other.
     IntersectingArcs(Arc, Arc),
+    /// The arcline is not counter-clockwise (CCW) oriented. All arcs should be CCW.
+    NotCCW,
 }
 
 /// Validates an arcline (sequence of connected arcs and line segments).
@@ -2302,6 +2304,26 @@ pub fn arcline_is_valid(arcs: &Arcline) -> ArclineValidation {
             let arc1 = arcs[j];
             if is_really_intersecting(&arc0, &arc1) {
                 return ArclineValidation::IntersectingArcs(arc0.clone(), arc1.clone());
+            }
+        }
+    }
+
+    // Check CCW orientation using arcline_area
+    let area = crate::algo::arcline_area(arcs);
+    if area < -1e-10 {
+        return ArclineValidation::NotCCW;
+    }
+
+    // If arcline is CCW, check that all line segments are also CCW oriented
+    // A segment (a -> b) in a CCW path should have positive cross product with the path normal
+    for i in 0..size {
+        let arc = arcs[i];
+        if arc.is_seg() {
+            // For line segments in a CCW arcline, check orientation
+            // The segment should contribute positively to the area
+            let seg_contribution = arc.a.perp(arc.b);
+            if seg_contribution < -1e-10 {
+                return ArclineValidation::NotCCW;
             }
         }
     }
@@ -2783,5 +2805,71 @@ mod test_is_valid_arcline {
 
         let arcline = vec![arc1, arc2];
         assert_eq!(arcline_is_valid(&arcline), ArclineValidation::Valid);
+    }
+
+    #[test]
+    fn test_arcline200_validity_with_ccw_check() {
+        // Test arcline200 validation including CCW orientation check
+        use crate::poly::data::arcline200;
+        
+        let arcline = arcline200();
+        let result = arcline_is_valid(&arcline);
+        println!("arcline200 validation result: {:?}", result);
+        println!("arcline200 length: {}", arcline.len());
+        
+        // Print area to see if it's CCW (positive)
+        let area = crate::algo::arcline_area(&arcline);
+        println!("arcline200 area: {}", area);
+        
+        // Print connection arcs (should be at index 100, 200+, and 222)
+        println!("\nConnection and spiral info:");
+        println!("Arc 99: {} -> {}", arcline[99].a, arcline[99].b);
+        println!("Arc 100 (connection1): {} -> {} (is_seg: {})", arcline[100].a, arcline[100].b, arcline[100].is_seg());
+        println!("Arc 101 (spiral2_rev[0]): {} -> {} (is_seg: {})", arcline[101].a, arcline[101].b, arcline[101].is_seg());
+        
+        let spiral2_start_len = arcline.len() - 101 - 1; // Total - (spiral1 + connection1) - connection2
+        println!("Expected spiral2_reversed length: {}", spiral2_start_len);
+        
+        let last_spiral2_idx = 100 + spiral2_start_len;
+        if last_spiral2_idx < arcline.len() {
+            println!("Arc {} (spiral2_rev[last]): {} -> {} (is_seg: {})", 
+                last_spiral2_idx, arcline[last_spiral2_idx].a, arcline[last_spiral2_idx].b, arcline[last_spiral2_idx].is_seg());
+            println!("Arc {} (connection2): {} -> {} (is_seg: {})", 
+                last_spiral2_idx+1, arcline[last_spiral2_idx+1].a, arcline[last_spiral2_idx+1].b, arcline[last_spiral2_idx+1].is_seg());
+        }
+        
+        // Check which segments might be problematic
+        for i in 0..arcline.len() {
+            let arc = &arcline[i];
+            if arc.is_seg() {
+                let seg_contribution = arc.a.perp(arc.b);
+                if seg_contribution < -1e-10 {
+                    println!("REVERSED SEGMENT at index {}: {} -> {}, contribution: {}", 
+                        i, arc.a, arc.b, seg_contribution);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_arcline500_validity_with_ccw_check() {
+        // Test arcline500 validation including CCW orientation check
+        use crate::poly::data::arcline500;
+        
+        let arcline = arcline500();
+        let result = arcline_is_valid(&arcline);
+        println!("arcline500 validation result: {:?}", result);
+        println!("arcline500 area: {}", crate::algo::arcline_area(&arcline));
+    }
+
+    #[test]
+    fn test_arcline1000_validity_with_ccw_check() {
+        // Test arcline1000 validation including CCW orientation check
+        use crate::poly::data::arcline1000;
+        
+        let arcline = arcline1000();
+        let result = arcline_is_valid(&arcline);
+        println!("arcline1000 validation result: {:?}", result);
+        println!("arcline1000 area: {}", crate::algo::arcline_area(&arcline));
     }
 }
