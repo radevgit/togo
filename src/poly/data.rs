@@ -21,8 +21,6 @@ pub fn arcline1000() -> Arcline {
     // SPIRAL 1: starts at angle 0°, spirals outward
     let mut angle1: f64 = 0.0;
     let mut radius1: f64 = inner_radius;
-    let spiral1_start_angle = angle1;
-    let spiral1_start_radius = radius1;
 
     for i in 0..num_arcs {
         let start_x = center_x + radius1 * angle1.cos();
@@ -44,9 +42,6 @@ pub fn arcline1000() -> Arcline {
 
         arcs.push(arc);
     }
-
-    let spiral1_end_angle = angle1;
-    let spiral1_end_radius = radius1;
 
     // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
     // Generate spiral2, then reverse it
@@ -81,25 +76,19 @@ pub fn arcline1000() -> Arcline {
         spiral2_arcs.push(arc);
     }
 
-    let spiral2_end_angle = angle2;
-    let spiral2_end_radius = radius2;
-
     // Reverse spiral2 so it traverses in opposite direction
     let spiral2_reversed = arcline_reverse(&spiral2_arcs);
 
-    // Get the last arc of reversed spiral2
-    let last_reversed_arc = spiral2_reversed[spiral2_reversed.len() - 1];
+    // Get actual arc endpoints to ensure proper connectivity
+    let spiral1_first_arc = arcs[0];  // Get first arc before adding connections
+    let spiral1_last_arc = arcs[arcs.len() - 1];
+    let spiral2_reversed_last = spiral2_reversed[spiral2_reversed.len() - 1];
+    let spiral2_reversed_first = spiral2_reversed[0];
 
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start (which is spiral2_end_angle after reversal)
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
     let connection1 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral2_end_radius * spiral2_end_angle.cos(),
-            center_y + spiral2_end_radius * spiral2_end_angle.sin(),
-        ),
+        spiral1_last_arc.b,  // Where spiral1 actually ends
+        spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
         0.0,
     );
     arcs.push(connection1);
@@ -109,11 +98,8 @@ pub fn arcline1000() -> Arcline {
 
     // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
     let connection2 = arc_from_bulge(
-        last_reversed_arc.a,
-        Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
-        ),
+        spiral2_reversed_last.b,
+        spiral1_first_arc.a,  // Use actual first arc start point
         -0.3, // Use arc with negative bulge to bow inward
     );
     arcs.push(connection2);
@@ -138,8 +124,6 @@ pub fn arcline500() -> Arcline {
     // SPIRAL 1
     let mut angle1: f64 = 0.0;
     let mut radius1: f64 = inner_radius;
-    let spiral1_start_angle = angle1;
-    let spiral1_start_radius = radius1;
 
     for i in 0..num_arcs {
         let start_x = center_x + radius1 * angle1.cos();
@@ -161,9 +145,6 @@ pub fn arcline500() -> Arcline {
 
         arcs.push(arc);
     }
-
-    let spiral1_end_angle = angle1;
-    let spiral1_end_radius = radius1;
 
     // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
     // Generate spiral2 first, then reverse it
@@ -199,25 +180,19 @@ pub fn arcline500() -> Arcline {
         spiral2_arcs.push(arc);
     }
 
-    let spiral2_end_angle = angle2;
-    let spiral2_end_radius = radius2;
-
     // Reverse spiral2 so it traverses in opposite direction
     let spiral2_reversed = arcline_reverse(&spiral2_arcs);
 
-    // Get the last arc of reversed spiral2
-    let last_reversed_arc = spiral2_reversed[spiral2_reversed.len() - 1];
+    // Get actual arc endpoints to ensure proper connectivity
+    let spiral1_first_arc = arcs[0];  // Get first arc before adding connections
+    let spiral1_last_arc = arcs[arcs.len() - 1];
+    let spiral2_reversed_last = spiral2_reversed[spiral2_reversed.len() - 1];
+    let spiral2_reversed_first = spiral2_reversed[0];
 
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start (which is spiral2_end_angle after reversal)
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
     let connection1 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral2_end_radius * spiral2_end_angle.cos(),
-            center_y + spiral2_end_radius * spiral2_end_angle.sin(),
-        ),
+        spiral1_last_arc.b,  // Where spiral1 actually ends
+        spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
         0.0,
     );
     arcs.push(connection1);
@@ -225,14 +200,11 @@ pub fn arcline500() -> Arcline {
     // Add reversed spiral2
     arcs.extend(spiral2_reversed);
 
-    // CONNECTION 2: Connect spiral 2 end back to spiral 1 start to close the loop
+    // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
     let connection2 = arc_from_bulge(
-        last_reversed_arc.a,
-        Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
-        ),
-        -0.3, // Use arc with negative bulge to bow inward
+        spiral2_reversed_last.b,
+        spiral1_first_arc.a,  // Use actual first arc start point
+        -0.3,
     );
     arcs.push(connection2);
 
@@ -256,8 +228,6 @@ pub fn arcline200() -> Arcline {
     // SPIRAL 1
     let mut angle1: f64 = 0.0;
     let mut radius1: f64 = inner_radius;
-    let spiral1_start_angle = angle1;
-    let spiral1_start_radius = radius1;
 
     for i in 0..num_arcs {
         let start_x = center_x + radius1 * angle1.cos();
@@ -279,9 +249,6 @@ pub fn arcline200() -> Arcline {
 
         arcs.push(arc);
     }
-
-    let spiral1_end_angle = angle1;
-    let spiral1_end_radius = radius1;
 
     // SPIRAL 2: Generate spiral2 first, then reverse it
     let mut spiral2_arcs = Vec::new();
@@ -314,25 +281,19 @@ pub fn arcline200() -> Arcline {
         spiral2_arcs.push(arc);
     }
 
-    let spiral2_end_angle = angle2;
-    let spiral2_end_radius = radius2;
-
     // Reverse spiral2 so it traverses in opposite direction
     let spiral2_reversed = arcline_reverse(&spiral2_arcs);
 
-    // Get the last arc of spiral2_reversed - its .a endpoint is where spiral2_reversed ends
-    let last_reversed_arc = spiral2_reversed[spiral2_reversed.len() - 1];
+    // Get actual arc endpoints to ensure proper connectivity
+    let spiral1_first_arc = arcs[0];  // Get first arc before adding connections
+    let spiral1_last_arc = arcs[arcs.len() - 1];
+    let spiral2_reversed_last = spiral2_reversed[spiral2_reversed.len() - 1];
+    let spiral2_reversed_first = spiral2_reversed[0];
 
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 start (which is spiral2_end_angle after reversal)
+    // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
     let connection1 = arc_from_bulge(
-        Point::new(
-            center_x + spiral1_end_radius * spiral1_end_angle.cos(),
-            center_y + spiral1_end_radius * spiral1_end_angle.sin(),
-        ),
-        Point::new(
-            center_x + spiral2_end_radius * spiral2_end_angle.cos(),
-            center_y + spiral2_end_radius * spiral2_end_angle.sin(),
-        ),
+        spiral1_last_arc.b,  // Where spiral1 actually ends
+        spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
         0.0,
     );
     arcs.push(connection1);
@@ -341,14 +302,10 @@ pub fn arcline200() -> Arcline {
     arcs.extend(spiral2_reversed);
 
     // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
-    // spiral2_reversed ends at last_reversed_arc.a (start of the last arc in reversed sequence)
     let connection2 = arc_from_bulge(
-        last_reversed_arc.a,
-        Point::new(
-            center_x + spiral1_start_radius * spiral1_start_angle.cos(),
-            center_y + spiral1_start_radius * spiral1_start_angle.sin(),
-        ),
-        -0.3, // Use arc with negative bulge to bow inward
+        spiral2_reversed_last.b,
+        spiral1_first_arc.a,  // Use actual first arc start point
+        -0.3,
     );
     arcs.push(connection2);
 
