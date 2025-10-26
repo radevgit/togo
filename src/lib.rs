@@ -190,7 +190,6 @@ pub mod constants;
 
 // Geometric algorithms and utilities
 pub mod algo;
-pub mod spatial;
 pub mod poly;
 mod interval;
 mod utils;
@@ -215,7 +214,7 @@ pub mod prelude {
         arc_bounding_circle, arc_bounding_rect, arcline_has_self_intersection, 
         arcline_self_intersections, arcline_self_intersection_status, SelfIntersectionStatus
     };
-    pub use crate::spatial::HilbertRTree;
+    pub use aabb::HilbertRTree;
     pub use crate::arc::{
         Arc, Arcline, arc, bulge_from_arc, arc_from_bulge,
         arcline_translate, arcline_scale, arcline_reverse, arcline_is_valid, arcseg, is_really_intersecting,

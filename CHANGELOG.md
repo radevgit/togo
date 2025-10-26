@@ -1,6 +1,7 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [0.6.5] - 2025-10-26
+- Split spatial index to new crate **aabb** 
 
 ## [0.6.4] - 2025-10-26
 

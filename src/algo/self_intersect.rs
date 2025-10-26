@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::prelude::*;
-use crate::spatial::HilbertRTree;
+use aabb::HilbertRTree;
 
 /// Computes the bounding box for a circular arc using circle approximation
 ///
