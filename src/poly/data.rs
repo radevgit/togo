@@ -19,6 +19,7 @@ pub fn arcline1000() -> Arcline {
     let angular_step: f64 = std::f64::consts::PI / 20.0;
 
     // SPIRAL 1: starts at angle 0°, spirals outward
+    let mut spiral1_arcs = Vec::new();
     let mut angle1: f64 = 0.0;
     let mut radius1: f64 = inner_radius;
 
@@ -40,11 +41,10 @@ pub fn arcline1000() -> Arcline {
             bulge,
         );
 
-        arcs.push(arc);
+        spiral1_arcs.push(arc);
     }
 
     // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
-    // Generate spiral2, then reverse it
     let mut spiral2_arcs = Vec::new();
     let spiral2_start_angle = std::f64::consts::PI; // 180 degrees
     let spiral2_start_radius = inner_radius;
@@ -76,29 +76,32 @@ pub fn arcline1000() -> Arcline {
         spiral2_arcs.push(arc);
     }
 
-    // Reverse spiral2 so it traverses in opposite direction
-    let spiral2_reversed = arcline_reverse(&spiral2_arcs);
+    // Reverse spiral1 so it traverses in opposite direction
+    let spiral1_reversed = arcline_reverse(&spiral1_arcs);
 
     // Get actual arc endpoints to ensure proper connectivity
-    let spiral1_first_arc = arcs[0];  // Get first arc before adding connections
-    let spiral1_last_arc = arcs[arcs.len() - 1];
-    let spiral2_reversed_last = spiral2_reversed[spiral2_reversed.len() - 1];
-    let spiral2_reversed_first = spiral2_reversed[0];
+    let spiral2_first_arc = spiral2_arcs[0];
+    let spiral2_last_arc = spiral2_arcs[spiral2_arcs.len() - 1];
+    let spiral1_reversed_last = spiral1_reversed[spiral1_reversed.len() - 1];
+    let spiral1_reversed_first = spiral1_reversed[0];
 
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
+    // Start with SPIRAL 2
+    arcs.extend(spiral2_arcs);
+
+    // CONNECTION 1: Connect spiral 2 end to spiral 1 reversed start
     let connection1 = arcseg(
-        spiral1_last_arc.a,  // Where spiral1 actually ends
-        spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
+        spiral2_last_arc.a,  // Where spiral2 actually ends
+        spiral1_reversed_first.a,  // Where spiral1_reversed actually starts
     );
     arcs.push(connection1);
 
-    // Add reversed spiral2
-    arcs.extend(spiral2_reversed);
+    // Add reversed spiral1
+    arcs.extend(spiral1_reversed);
 
-    // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
+    // CONNECTION 2: Connect from where spiral1_reversed ends back to spiral 2 start to close the loop
     let connection2 = arcseg(
-        spiral2_reversed_last.a,  // Connect from the actual END of spiral2_reversed
-        spiral1_first_arc.a,  // Connect back to where spiral1 actually starts
+        spiral1_reversed_last.a,  // Connect from the actual END of spiral1_reversed
+        spiral2_first_arc.a,  // Connect back to where spiral2 actually starts
     );
     arcs.push(connection2);
 
@@ -120,6 +123,7 @@ pub fn arcline500() -> Arcline {
     let angular_step: f64 = std::f64::consts::PI / 20.0;
 
     // SPIRAL 1
+    let mut spiral1_arcs = Vec::new();
     let mut angle1: f64 = 0.0;
     let mut radius1: f64 = inner_radius;
 
@@ -141,11 +145,10 @@ pub fn arcline500() -> Arcline {
             bulge,
         );
 
-        arcs.push(arc);
+        spiral1_arcs.push(arc);
     }
 
     // SPIRAL 2: starts at angle 180°, spirals outward, extended to reach angle 0°
-    // Generate spiral2 first, then reverse it
     let mut spiral2_arcs = Vec::new();
     let spiral2_start_angle = std::f64::consts::PI; // 180 degrees
     let spiral2_start_radius = inner_radius;
@@ -178,29 +181,32 @@ pub fn arcline500() -> Arcline {
         spiral2_arcs.push(arc);
     }
 
-    // Reverse spiral2 so it traverses in opposite direction
-    let spiral2_reversed = arcline_reverse(&spiral2_arcs);
+    // Reverse spiral1 so it traverses in opposite direction
+    let spiral1_reversed = arcline_reverse(&spiral1_arcs);
 
     // Get actual arc endpoints to ensure proper connectivity
-    let spiral1_first_arc = arcs[0];  // Get first arc before adding connections
-    let spiral1_last_arc = arcs[arcs.len() - 1];
-    let spiral2_reversed_last = spiral2_reversed[spiral2_reversed.len() - 1];
-    let spiral2_reversed_first = spiral2_reversed[0];
+    let spiral2_first_arc = spiral2_arcs[0];
+    let spiral2_last_arc = spiral2_arcs[spiral2_arcs.len() - 1];
+    let spiral1_reversed_last = spiral1_reversed[spiral1_reversed.len() - 1];
+    let spiral1_reversed_first = spiral1_reversed[0];
 
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
+    // Start with SPIRAL 2
+    arcs.extend(spiral2_arcs);
+
+    // CONNECTION 1: Connect spiral 2 end to spiral 1 reversed start
     let connection1 = arcseg(
-        spiral1_last_arc.a,  // Where spiral1 actually ends
-        spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
+        spiral2_last_arc.a,  // Where spiral2 actually ends
+        spiral1_reversed_first.a,  // Where spiral1_reversed actually starts
     );
     arcs.push(connection1);
 
-    // Add reversed spiral2
-    arcs.extend(spiral2_reversed);
+    // Add reversed spiral1
+    arcs.extend(spiral1_reversed);
 
-    // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
+    // CONNECTION 2: Connect from where spiral1_reversed ends back to spiral 2 start to close the loop
     let connection2 = arcseg(
-        spiral2_reversed_last.a,  // Connect from the actual END of spiral2_reversed
-        spiral1_first_arc.a,  // Connect back to where spiral1 actually starts
+        spiral1_reversed_last.a,  // Connect from the actual END of spiral1_reversed
+        spiral2_first_arc.a,  // Connect back to where spiral2 actually starts
     );
     arcs.push(connection2);
 
@@ -222,6 +228,7 @@ pub fn arcline200() -> Arcline {
     let angular_step: f64 = std::f64::consts::PI / 20.0;
 
     // SPIRAL 1
+    let mut spiral1_arcs = Vec::new();
     let mut angle1: f64 = 0.0;
     let mut radius1: f64 = inner_radius;
 
@@ -243,10 +250,10 @@ pub fn arcline200() -> Arcline {
             bulge,
         );
 
-        arcs.push(arc);
+        spiral1_arcs.push(arc);
     }
 
-    // SPIRAL 2: Generate spiral2 first, then reverse it
+    // SPIRAL 2: Generate spiral2
     let mut spiral2_arcs = Vec::new();
     let spiral2_start_angle = std::f64::consts::PI;
     let spiral2_start_radius = inner_radius;
@@ -277,29 +284,32 @@ pub fn arcline200() -> Arcline {
         spiral2_arcs.push(arc);
     }
 
-    // Reverse spiral2 so it traverses in opposite direction
-    let spiral2_reversed = arcline_reverse(&spiral2_arcs);
+    // Reverse spiral1 so it traverses in opposite direction
+    let spiral1_reversed = arcline_reverse(&spiral1_arcs);
 
     // Get actual arc endpoints to ensure proper connectivity
-    let spiral1_first_arc = arcs[0];  // Get first arc before adding connections
-    let spiral1_last_arc = arcs[arcs.len() - 1];
-    let spiral2_reversed_last = spiral2_reversed[spiral2_reversed.len() - 1];
-    let spiral2_reversed_first = spiral2_reversed[0];
+    let spiral2_first_arc = spiral2_arcs[0];
+    let spiral2_last_arc = spiral2_arcs[spiral2_arcs.len() - 1];
+    let spiral1_reversed_last = spiral1_reversed[spiral1_reversed.len() - 1];
+    let spiral1_reversed_first = spiral1_reversed[0];
 
-    // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
+    // Start with SPIRAL 2
+    arcs.extend(spiral2_arcs);
+
+    // CONNECTION 1: Connect spiral 2 end to spiral 1 reversed start
     let connection1 = arcseg(
-        spiral1_last_arc.a,  // Where spiral1 actually ends
-        spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
+        spiral2_last_arc.a,  // Where spiral2 actually ends
+        spiral1_reversed_first.a,  // Where spiral1_reversed actually starts
     );
     arcs.push(connection1);
 
-    // Add reversed spiral2
-    arcs.extend(spiral2_reversed);
+    // Add reversed spiral1
+    arcs.extend(spiral1_reversed);
 
-    // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
+    // CONNECTION 2: Connect from where spiral1_reversed ends back to spiral 2 start to close the loop
     let connection2 = arcseg(
-        spiral2_reversed_last.a,  // Connect from the actual END of spiral2_reversed
-        spiral1_first_arc.a,  // Connect back to where spiral1 actually starts
+        spiral1_reversed_last.a,  // Connect from the actual END of spiral1_reversed
+        spiral2_first_arc.a,  // Connect back to where spiral2 actually starts
     );
     arcs.push(connection2);
 
