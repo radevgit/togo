@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2025-10-26
+
+- Fix for arcline_is_valid and fixed data examples arcline200, 500, 1000
+
 ## [0.6.0] - 2025-10-25
 
 - Add arcline_scale; unify transformation functions to return new collections

@@ -86,10 +86,9 @@ pub fn arcline1000() -> Arcline {
     let spiral2_reversed_first = spiral2_reversed[0];
 
     // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
-    let connection1 = arc_from_bulge(
-        spiral1_last_arc.b,  // Where spiral1 actually ends
+    let connection1 = arcseg(
+        spiral1_last_arc.a,  // Where spiral1 actually ends
         spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
-        0.0,
     );
     arcs.push(connection1);
 
@@ -97,10 +96,9 @@ pub fn arcline1000() -> Arcline {
     arcs.extend(spiral2_reversed);
 
     // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
-    let connection2 = arc_from_bulge(
-        spiral2_reversed_last.b,
-        spiral1_first_arc.a,  // Use actual first arc start point
-        -0.3, // Use arc with negative bulge to bow inward
+    let connection2 = arcseg(
+        spiral2_reversed_last.a,  // Connect from the actual END of spiral2_reversed
+        spiral1_first_arc.a,  // Connect back to where spiral1 actually starts
     );
     arcs.push(connection2);
 
@@ -190,10 +188,9 @@ pub fn arcline500() -> Arcline {
     let spiral2_reversed_first = spiral2_reversed[0];
 
     // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
-    let connection1 = arc_from_bulge(
-        spiral1_last_arc.b,  // Where spiral1 actually ends
+    let connection1 = arcseg(
+        spiral1_last_arc.a,  // Where spiral1 actually ends
         spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
-        0.0,
     );
     arcs.push(connection1);
 
@@ -201,10 +198,9 @@ pub fn arcline500() -> Arcline {
     arcs.extend(spiral2_reversed);
 
     // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
-    let connection2 = arc_from_bulge(
-        spiral2_reversed_last.b,
-        spiral1_first_arc.a,  // Use actual first arc start point
-        -0.3,
+    let connection2 = arcseg(
+        spiral2_reversed_last.a,  // Connect from the actual END of spiral2_reversed
+        spiral1_first_arc.a,  // Connect back to where spiral1 actually starts
     );
     arcs.push(connection2);
 
@@ -291,10 +287,9 @@ pub fn arcline200() -> Arcline {
     let spiral2_reversed_first = spiral2_reversed[0];
 
     // CONNECTION 1: Connect spiral 1 end to spiral 2 reversed start
-    let connection1 = arc_from_bulge(
-        spiral1_last_arc.b,  // Where spiral1 actually ends
+    let connection1 = arcseg(
+        spiral1_last_arc.a,  // Where spiral1 actually ends
         spiral2_reversed_first.a,  // Where spiral2_reversed actually starts
-        0.0,
     );
     arcs.push(connection1);
 
@@ -302,10 +297,9 @@ pub fn arcline200() -> Arcline {
     arcs.extend(spiral2_reversed);
 
     // CONNECTION 2: Connect from where spiral2_reversed ends back to spiral 1 start to close the loop
-    let connection2 = arc_from_bulge(
-        spiral2_reversed_last.b,
-        spiral1_first_arc.a,  // Use actual first arc start point
-        -0.3,
+    let connection2 = arcseg(
+        spiral2_reversed_last.a,  // Connect from the actual END of spiral2_reversed
+        spiral1_first_arc.a,  // Connect back to where spiral1 actually starts
     );
     arcs.push(connection2);
 

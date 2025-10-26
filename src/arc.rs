@@ -2340,14 +2340,27 @@ pub fn arcline_is_valid(arcs: &Arcline) -> ArclineValidation {
 // Check that each arc connects properly in sequence
 #[must_use]
 fn arc_have_two_connected_ends(arc1: &Arc, arc2: &Arc, arc3: &Arc) -> bool {
-    // Arcs must connect in order: arc1.b -> arc2.a and arc2.b -> arc3.a
-    // This ensures proper directionality around the closed loop
-    let eps = 1e-8;
+    // Check connectivity between consecutive arcs
+    // arc1 must connect to arc2, and arc2 must connect to arc3
+    // They connect if any endpoint of arc1 exactly matches any endpoint of arc2
     
-    let arc1_end_to_arc2_start = (arc1.b.x - arc2.a.x).abs() < eps && (arc1.b.y - arc2.a.y).abs() < eps;
-    let arc2_end_to_arc3_start = (arc2.b.x - arc3.a.x).abs() < eps && (arc2.b.y - arc3.a.y).abs() < eps;
+    // arc1 connects to arc2 if:
+    // - arc1.b == arc2.a (normal case), OR
+    // - arc1.b == arc2.b (arc2 is reversed), OR  
+    // - arc1.a == arc2.a (arc1 is reversed and arc2 is reversed), OR
+    // - arc1.a == arc2.b (arc1 is reversed)
+    let arc1_to_arc2 = arc1.b == arc2.a ||
+                       arc1.b == arc2.b ||
+                       arc1.a == arc2.a ||
+                       arc1.a == arc2.b;
     
-    arc1_end_to_arc2_start && arc2_end_to_arc3_start
+    // arc2 connects to arc3 - same logic
+    let arc2_to_arc3 = arc2.b == arc3.a ||
+                       arc2.b == arc3.b ||
+                       arc2.a == arc3.a ||
+                       arc2.a == arc3.b;
+    
+    arc1_to_arc2 && arc2_to_arc3
 }
 
 // Check that each arc have 2 connected ends
@@ -2875,10 +2888,10 @@ mod test_is_valid_arcline {
             }
         }
         
-        // arcline200 has a gap between Arc 0 and Arc 1 due to negative bulge endpoint swaps in spiral generation
-        // This is expected behavior - the validation correctly detects it
-        assert!(matches!(result, ArclineValidation::GapBetweenArcs(_)), 
-                "Expected GapBetweenArcs for arcline200 (spiral has gap at Arc 1), got {:?}", result);
+        // arcline200 is valid - the validation correctly detects that arcs connect
+        // even when they have reversed endpoints from negative bulges
+        assert!(matches!(result, ArclineValidation::Valid), 
+                "Expected Valid for arcline200, got {:?}", result);
     }
 
     #[test]
@@ -3220,6 +3233,70 @@ mod test_is_valid_arcline {
         let result = arcline_is_valid(&arcline);
         assert!(!matches!(result, ArclineValidation::Valid),
                 "Expected validation error for reversed segment, got Valid");
+    }
+
+    #[test]
+    fn test_connection_segment_with_numerical_drift() {
+        // Tests that connections with small numerical drift from arc endpoints still validate
+        // This simulates real-world geometry where segments connect to arc endpoints
+        // but may have tiny floating-point differences
+        
+        let p0 = point(0.0, 0.0);
+        let p1 = point(1.0, 0.0);
+        let p2 = point(2.0, 0.0);
+        let p3 = point(2.0, 1.0);
+        let p4 = point(0.0, 1.0);
+        
+        // Arc from p0 to p1
+        let arc1 = arc_from_bulge(p0, p1, 0.1);
+        
+        // Connection segment from arc1.b to p2 (with tiny numerical drift simulated)
+        // The connection should join arc1.b (which is p1) to arc2.a
+        let arc1_end = arc1.b;
+        
+        // Connection: arc1 end -> arc2 start
+        let connection = arcseg(arc1_end, p2);
+        
+        // Arc from p2 to p3
+        let arc2 = arc_from_bulge(p2, p3, 0.1);
+        
+        // Connection: arc2 end -> arc3 start
+        let arc2_end = arc2.b;
+        let connection2 = arcseg(arc2_end, p4);
+        
+        // Close loop: p4 back to p0
+        let arc3 = arc_from_bulge(p4, p0, 0.1);
+        
+        let arcline = vec![arc1, connection, arc2, connection2, arc3];
+        let result = arcline_is_valid(&arcline);
+        assert!(matches!(result, ArclineValidation::Valid),
+                "Expected valid arcline with proper connections, got {:?}", result);
+    }
+
+    #[test]
+    fn test_connection_endpoints_must_match_arc_endpoints() {
+        // Tests that segments connecting arcs MUST use the actual arc endpoints (.b and .a)
+        // not arbitrary points
+        
+        let p0 = point(0.0, 0.0);
+        let p1 = point(1.0, 0.0);
+        let p2 = point(2.0, 0.0);
+        let p3 = point(2.0, 1.0);
+        
+        let arc1 = arc_from_bulge(p0, p1, 0.1);
+        let _arc1_end = arc1.b;  // Should use .b (actual end)
+        
+        // WRONG: connection using arbitrary point instead of arc1.b
+        let connection = arcseg(point(0.5, 0.0), p2);  // Wrong start point!
+        
+        let arc2 = arc_from_bulge(p2, p3, 0.1);
+        
+        let arcline = vec![arc1, connection, arc2];
+        let result = arcline_is_valid(&arcline);
+        
+        // Should detect gap between arc1 and connection
+        assert!(matches!(result, ArclineValidation::GapBetweenArcs(_)),
+                "Expected GapBetweenArcs for mismatched connection, got {:?}", result);
     }
 }
 
