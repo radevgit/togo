@@ -23,7 +23,7 @@ fn arc_bounding_box(arc: &Arc) -> (f64, f64, f64, f64) {
     let min_y = arc.c.y - arc.r;
     let max_y = arc.c.y + arc.r;
 
-    (min_x, max_x, min_y, max_y)
+    (min_x, min_y, max_x, max_y)
 }
 
 /// Checks if an arcline (sequence of arcs) has any self-intersections.
@@ -79,8 +79,8 @@ pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
     // Preallocate with capacity to avoid reallocations
     let mut tree = HilbertRTree::with_capacity(n);
     for arc in arcline.iter() {
-        let (min_x, max_x, min_y, max_y) = arc_bounding_box(arc);
-        tree.add(min_x, max_x, min_y, max_y);
+        let (min_x, min_y, max_x, max_y) = arc_bounding_box(arc);
+        tree.add(min_x, min_y, max_x, max_y);
     }
     tree.build();
 
@@ -88,9 +88,9 @@ pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
     let mut candidates = Vec::new();
     for i in 0..n {
         let arc = &arcline[i];
-        let (min_x, max_x, min_y, max_y) = arc_bounding_box(arc);
+        let (min_x, min_y, max_x, max_y) = arc_bounding_box(arc);
         candidates.clear();
-        tree.query_intersecting(min_x, max_x, min_y, max_y, &mut candidates);
+        tree.query_intersecting(min_x, min_y, max_x, max_y, &mut candidates);
 
         // Check each candidate
         for &j in candidates.iter() {
@@ -153,8 +153,8 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize, Point
     // Preallocate with capacity to avoid reallocations
     let mut tree = HilbertRTree::with_capacity(n);
     for arc in arcline.iter() {
-        let (min_x, max_x, min_y, max_y) = arc_bounding_box(arc);
-        tree.add(min_x, max_x, min_y, max_y);
+        let (min_x, min_y, max_x, max_y) = arc_bounding_box(arc);
+        tree.add(min_x, min_y, max_x, max_y);
     }
     tree.build();
 
@@ -162,9 +162,9 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize, Point
     let mut candidates = Vec::new();
     for i in 0..n {
         let arc_i = &arcline[i];
-        let (min_x, max_x, min_y, max_y) = arc_bounding_box(arc_i);
+        let (min_x, min_y, max_x, max_y) = arc_bounding_box(arc_i);
         candidates.clear();
-        tree.query_intersecting(min_x, max_x, min_y, max_y, &mut candidates);
+        tree.query_intersecting(min_x, min_y, max_x, max_y, &mut candidates);
 
         for &j in candidates.iter() {
             // Skip same arc and duplicates

@@ -32,6 +32,10 @@ fn main() {
 cargo bench
 
 
+Spiral polyline: 1022 arcs
+Total arc pairs to check: 521731
+
+
 Time: 4.4790 ms (4479 µs) Base
 
 Time: 1.4383 ms (1438 µs) Hilbert
