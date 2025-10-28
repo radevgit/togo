@@ -40,4 +40,5 @@ Time: 4.4790 ms (4479 µs) Base
 
 Time: 1.4383 ms (1438 µs) Hilbert
 
+Time: 0.9664 ms (966 µs) AABB v0.5
 */

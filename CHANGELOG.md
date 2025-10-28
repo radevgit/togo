@@ -1,7 +1,11 @@
 # Changelog
 
+
+## [0.6.7] - 2025-10-28
+- Use new version of **aabb** 
+
 ## [0.6.6] - 2025-10-27
-- Split spatial index to new crate **aabb** 
+- Use new version of **aabb** 
 
 ## [0.6.5] - 2025-10-26
 - Split spatial index to new crate **aabb** 
