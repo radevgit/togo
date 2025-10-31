@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.6.8] - 2025-10-31
+- Fix arcline_has_self_intersection arcline_self_intersections
 
 ## [0.6.7] - 2025-10-28
 - Use new version of **aabb** 

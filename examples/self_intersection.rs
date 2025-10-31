@@ -43,8 +43,13 @@ fn main() {
 }
 
 /* 
-cargo build --release --example perf
-./target/release/examples/perf
-samply record cargo run --release --example perf
+cargo build --release --example self_intersection
+./target/release/examples/self_intersection
+samply record cargo run --release --example self_intersection
+
+Spiral polyline: 1022 arcs
+Total arc pairs to check: 521731
+Time: 0.8163 ms (816 µs)
+
 
 */

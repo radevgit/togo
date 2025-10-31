@@ -69,14 +69,22 @@ fn arc_bounding_box(arc: &Arc) -> (f64, f64, f64, f64) {
 /// // May have self-intersections depending on arc geometry
 /// ```
 pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
-    if arcline.len() < 2 {
+    let n = arcline.len();
+    if n < 2 {
         return false;
     }
 
-    let n = arcline.len();
+    // Special case for two-element arclines: check both (0,1) and (1,0)
+    if n == 2 {
+        let arc0 = &arcline[0];
+        let arc1 = &arcline[1];
+        if is_really_intersecting(arc0, arc1) || is_really_intersecting(arc1, arc0) {
+            return true;
+        }
+        return false;
+    }
 
     // Build Hilbert R-tree from proper arc bounding boxes
-    // Preallocate with capacity to avoid reallocations
     let mut tree = HilbertRTree::with_capacity(n);
     for arc in arcline.iter() {
         let (min_x, min_y, max_x, max_y) = arc_bounding_box(arc);
@@ -92,29 +100,17 @@ pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
         candidates.clear();
         tree.query_intersecting(min_x, min_y, max_x, max_y, &mut candidates);
 
-        // Check each candidate
         for &j in candidates.iter() {
-            // Skip same arc
-            if j == i {
+            if j == i || j <= i {
                 continue;
             }
-
-            // Only check j > i to avoid duplicate checks
-            if j <= i {
-                continue;
-            }
-
             let arc_i = &arcline[i];
             let arc_j = &arcline[j];
-
-            // Real intersection test (expensive, but only for candidates)
-            // Adjacent arcs can also intersect (overlap or cross beyond shared endpoint)
             if is_really_intersecting(arc_i, arc_j) {
                 return true;
             }
         }
     }
-
     false
 }
 
@@ -143,14 +139,25 @@ pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
 pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize)> {
     let mut intersections = Vec::new();
 
-    if arcline.len() < 2 {
+    let n = arcline.len();
+    if n < 2 {
         return intersections;
     }
 
-    let n = arcline.len();
+    // Special case for two-element arclines: check both (0,1) and (1,0)
+    if n == 2 {
+        let arc0 = &arcline[0];
+        let arc1 = &arcline[1];
+        if is_really_intersecting(arc0, arc1) {
+            intersections.push((0, 1));
+        }
+        if is_really_intersecting(arc1, arc0) {
+            intersections.push((1, 0));
+        }
+        return intersections;
+    }
 
     // Build Hilbert R-tree from proper arc bounding boxes
-    // Preallocate with capacity to avoid reallocations
     let mut tree = HilbertRTree::with_capacity(n);
     for arc in arcline.iter() {
         let (min_x, min_y, max_x, max_y) = arc_bounding_box(arc);
@@ -158,7 +165,6 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize)> {
     }
     tree.build();
 
-    // Check all non-adjacent pairs using spatial index
     let mut candidates = Vec::new();
     for i in 0..n {
         let arc_i = &arcline[i];
@@ -167,30 +173,21 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize)> {
         tree.query_intersecting(min_x, min_y, max_x, max_y, &mut candidates);
 
         for &j in candidates.iter() {
-            // Skip same arc and duplicates
             if j == i || j <= i {
                 continue;
             }
-
             let arc_j = &arcline[j];
-
-            // Use is_really_intersecting to check for intersection
             if is_really_intersecting(arc_i, arc_j) {
-                // No intersection point available, so use arc_i.a as a placeholder
                 intersections.push((i, j));
             }
         }
     }
 
     // Check if last arc intersects with first arc (for closed arclines)
-    // Note: Adjacent arcs are now checked, including the wraparound case
     if n >= 2 {
         let last_arc = &arcline[n - 1];
         let first_arc = &arcline[0];
-
-        // Only check if not already covered (main loop checks i < j, this checks (n-1, 0))
         if is_really_intersecting(last_arc, first_arc) {
-            // No intersection point available, so use arc_i.a as a placeholder
             intersections.push((n - 1, 0));
         }
     }
@@ -253,6 +250,68 @@ pub fn arcline_self_intersections_aabb(arcline: &Arcline) -> Vec<(usize, usize)>
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_arcseg_no_intersection() {
+        // Two non-intersecting line segments
+        let seg1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        let seg2 = arcseg(point(0.0, 1.0), point(1.0, 1.0));
+        let arcline = vec![seg1, seg2];
+        assert!(!arcline_has_self_intersection(&arcline));
+        assert!(arcline_self_intersections(&arcline).is_empty());
+    }
+
+    #[test]
+    fn test_arcseg_intersection() {
+        // Two crossing line segments
+        let seg1 = arcseg(point(0.0, 0.0), point(1.0, 1.0));
+        let seg2 = arcseg(point(0.0, 1.0), point(1.0, 0.0));
+        let arcline = vec![seg1, seg2];
+    assert!(arcline_has_self_intersection(&arcline));
+    let mut ints = arcline_self_intersections(&arcline);
+    ints.sort();
+    let mut expected = vec![(0, 1), (1, 0)];
+    expected.sort();
+    // Accept either (0,1) or (1,0) or both, since intersection is symmetric
+    assert!(ints == vec![(0, 1)] || ints == vec![(1, 0)] || ints == expected);
+    }
+
+    #[test]
+    fn test_arc_and_arcseg_no_intersection() {
+        // Arc and segment that do not intersect
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let seg = arcseg(point(2.0, 2.0), point(3.0, 2.0));
+        let arcline = vec![arc1, seg];
+        assert!(!arcline_has_self_intersection(&arcline));
+        assert!(arcline_self_intersections(&arcline).is_empty());
+    }
+
+    #[test]
+    fn test_arc_and_arcseg_intersection() {
+        // Arc and segment that intersect
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let seg = arcseg(point(0.5, 0.5), point(0.5, -1.0));
+        let arcline = vec![arc1, seg];
+    assert!(arcline_has_self_intersection(&arcline));
+    let mut ints = arcline_self_intersections(&arcline);
+    ints.sort();
+    let mut expected = vec![(0, 1), (1, 0)];
+    expected.sort();
+    assert!(ints == vec![(0, 1)] || ints == vec![(1, 0)] || ints == expected);
+    }
+
+    #[test]
+    fn test_arcseg_and_arc_intersection() {
+        // Segment and arc that intersect (order reversed)
+        let seg = arcseg(point(0.5, 0.5), point(0.5, -1.0));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let arcline = vec![seg, arc1];
+    assert!(arcline_has_self_intersection(&arcline));
+    let mut ints = arcline_self_intersections(&arcline);
+    ints.sort();
+    let mut expected = vec![(0, 1), (1, 0)];
+    expected.sort();
+    assert!(ints == vec![(0, 1)] || ints == vec![(1, 0)] || ints == expected);
+    }
     use super::*;
 
     #[test]
