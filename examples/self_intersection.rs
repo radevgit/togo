@@ -1,9 +1,20 @@
+//! Self-Intersection Detection Example
+//!
+//! This example demonstrates how to check for self-intersections in complex
+//! polylines using the `arcline_has_self_intersection` function. It showcases
+//! the performance of the spatial indexing optimization for large polylines.
+//!
+//! Run with:
+//! ```
+//! cargo run --example self_intersection
+//! ```
+
 use std::time::Instant;
 use togo::prelude::*;
 
 fn main() {
     println!("\n========================================");
-    println!("Self-Intersection Check Benchmark");
+    println!("Self-Intersection Check Example");
     println!("========================================\n");
     
     let poly = togo::poly::data::arcline1000();
@@ -15,7 +26,10 @@ fn main() {
     
     // Actual benchmark
     let start = Instant::now();
-    let has_intersection = arcline_has_self_intersection(&poly);
+    let mut has_intersection = true;
+    for _ in 0..1000 {
+        has_intersection = arcline_has_self_intersection(&poly);
+    }
     let elapsed = start.elapsed();
     
     // ASSERT: poly1000 should have no self-intersections
@@ -23,22 +37,14 @@ fn main() {
     
     println!("\nResult: {} (no self-intersections verified)", if has_intersection { "INTERSECTS" } else { "CLEAN" });
     println!("Time: {:.4} ms ({:.0} µs)\n", 
-             elapsed.as_secs_f64() * 1000.0,
-             elapsed.as_secs_f64() * 1_000_000.0);
+             elapsed.as_secs_f64() * 1000.0 / 1000.0,
+             elapsed.as_secs_f64() * 1_000_000.0 / 1000.0);
     println!("========================================");
 }
 
-/*
-cargo bench
+/* 
+cargo build --release --example perf
+./target/release/examples/perf
+samply record cargo run --release --example perf
 
-
-Spiral polyline: 1022 arcs
-Total arc pairs to check: 521731
-
-
-Time: 4.4790 ms (4479 µs) Base
-
-Time: 1.4383 ms (1438 µs) Hilbert
-
-Time: 0.9664 ms (966 µs) AABB v0.5
 */

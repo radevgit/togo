@@ -15,7 +15,7 @@ readme = "README.md"
 
 
 [dependencies]
-aabb = "0.5"
+aabb = "0.6"
 robust = "1.2"
 
 [lib]
@@ -25,7 +25,7 @@ crate-type = ["lib"]
 rand = "0.9"
 
 [[bench]]
-name = "bench"
+name = "bench_self_intersection"
 harness = false
 
 [workspace.lints]

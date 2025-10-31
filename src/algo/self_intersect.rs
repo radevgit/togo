@@ -55,13 +55,13 @@ fn arc_bounding_box(arc: &Arc) -> (f64, f64, f64, f64) {
 /// ```
 /// use togo::prelude::*;
 /// use togo::algo::arcline_has_self_intersection;
-/// 
+///
 /// // Non-intersecting arcline (simple path)
 /// let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
 /// let arc2 = arc(point(1.0, 0.0), point(2.0, 0.0), point(1.5, 0.5), 1.0);
 /// let arcline = vec![arc1, arc2];
 /// assert!(!arcline_has_self_intersection(&arcline));
-/// 
+///
 /// // Two overlapping arcs
 /// let arc1 = arc(point(0.0, 0.0), point(2.0, 2.0), point(1.0, 1.0), 1.0);
 /// let arc2 = arc(point(2.0, 0.0), point(0.0, 2.0), point(1.0, 1.0), 1.0);
@@ -109,7 +109,7 @@ pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
 
             // Real intersection test (expensive, but only for candidates)
             // Adjacent arcs can also intersect (overlap or cross beyond shared endpoint)
-            if if_really_intersecting_arc_arc(arc_i, arc_j) {
+            if is_really_intersecting(arc_i, arc_j) {
                 return true;
             }
         }
@@ -133,14 +133,14 @@ pub fn arcline_has_self_intersection(arcline: &Arcline) -> bool {
 /// ```
 /// use togo::prelude::*;
 /// use togo::algo::arcline_self_intersections;
-/// 
+///
 /// let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
 /// let arc2 = arc(point(1.0, 0.0), point(2.0, 0.0), point(1.5, 0.5), 1.0);
 /// let arcline = vec![arc1, arc2];
 /// let intersections = arcline_self_intersections(&arcline);
 /// assert!(intersections.is_empty());
 /// ```
-pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize, Point)> {
+pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize)> {
     let mut intersections = Vec::new();
 
     if arcline.len() < 2 {
@@ -174,15 +174,10 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize, Point
 
             let arc_j = &arcline[j];
 
-            match int_arc_arc(arc_i, arc_j) {
-                ArcArcConfig::NonCocircularOnePoint(p) => {
-                    intersections.push((i, j, p));
-                }
-                ArcArcConfig::NonCocircularTwoPoints(p0, p1) => {
-                    intersections.push((i, j, p0));
-                    intersections.push((i, j, p1));
-                }
-                _ => {}
+            // Use is_really_intersecting to check for intersection
+            if is_really_intersecting(arc_i, arc_j) {
+                // No intersection point available, so use arc_i.a as a placeholder
+                intersections.push((i, j));
             }
         }
     }
@@ -194,15 +189,9 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize, Point
         let first_arc = &arcline[0];
 
         // Only check if not already covered (main loop checks i < j, this checks (n-1, 0))
-        match int_arc_arc(last_arc, first_arc) {
-            ArcArcConfig::NonCocircularOnePoint(p) => {
-                intersections.push((n - 1, 0, p));
-            }
-            ArcArcConfig::NonCocircularTwoPoints(p0, p1) => {
-                intersections.push((n - 1, 0, p0));
-                intersections.push((n - 1, 0, p1));
-            }
-            _ => {}
+        if is_really_intersecting(last_arc, first_arc) {
+            // No intersection point available, so use arc_i.a as a placeholder
+            intersections.push((n - 1, 0));
         }
     }
 
@@ -220,8 +209,8 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize, Point
 pub enum SelfIntersectionStatus {
     /// No self-intersections found
     Clean,
-    /// Self-intersections found with list of intersection info: (arc_i, arc_j, point)
-    HasIntersections(Vec<(usize, usize, Point)>),
+    /// Self-intersections found with list of intersection info: (arc_i, arc_j)
+    HasIntersections(Vec<(usize, usize)>),
 }
 
 pub fn arcline_self_intersection_status(arcline: &Arcline) -> SelfIntersectionStatus {
@@ -257,8 +246,8 @@ pub fn arcline_has_self_intersection_aabb(arcline: &Arcline) -> bool {
 /// * `arcline` - A sequence of connected arcs forming a polyline
 ///
 /// # Returns
-/// A vector of tuples `(arc_i_index, arc_j_index, intersection_point)`
-pub fn arcline_self_intersections_aabb(arcline: &Arcline) -> Vec<(usize, usize, Point)> {
+/// A vector of tuples `(arc_i_index, arc_j_index)`
+pub fn arcline_self_intersections_aabb(arcline: &Arcline) -> Vec<(usize, usize)> {
     arcline_self_intersections(arcline)
 }
 
@@ -330,12 +319,12 @@ mod tests {
         // Arc on circle centered at (0.5, 0) with radius 1: from (0,0) to (1,0)
         // Arc on circle centered at (0.5, 1) with radius 1: from (0,1) to (1,1)
         // But positioned such that arcs 0 and 2 might intersect
-        
+
         // Create a configuration where arc 0 and arc 2 might intersect
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
         let arc2 = arc(point(1.0, 0.0), point(2.0, 0.0), point(1.5, 0.5), 1.0);
         let arc3 = arc(point(0.5, -1.0), point(1.5, -1.0), point(1.0, -0.5), 1.0);
-        
+
         let arcline = vec![arc1, arc2, arc3];
         let intersections = arcline_self_intersections(&arcline);
         // This depends on the exact geometry, may or may not intersect
