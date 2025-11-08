@@ -124,3 +124,7 @@ let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
 let bounding = arc_bounding_circle(&quarter_arc);
 assert_eq!(bounding.r, 0.7071067811865476); // sqrt(2)/2
 ```
+
+## Related Projects
+
+Togo is part of the open-sourced [Nest2D](https://nest2d.com) projects collection.

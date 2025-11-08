@@ -14,20 +14,29 @@ fn main() {
     let _ = arcline_has_self_intersection(&poly);
     
     // Actual benchmark
-    let start = Instant::now();
-    let mut has_intersection = true;
+    let start1000 = Instant::now();
+    let mut has_intersection1000 = true;
     for _ in 0..1000 {
-        has_intersection = arcline_has_self_intersection(&poly);
+        has_intersection1000 = arcline_has_self_intersection(&poly);
     }
-    let elapsed = start.elapsed();
+    let elapsed1000 = start1000.elapsed();
+
+    let start200 = Instant::now();
+    let mut has_intersection200 = true;
+    for _ in 0..10000 {
+        has_intersection200 = arcline_has_self_intersection(&poly);
+    }
+    let elapsed200 = start200.elapsed();
     
     // ASSERT: poly1000 should have no self-intersections
-    assert!(!has_intersection, "poly1000 must have no self-intersections");
+    assert!(!has_intersection1000 && !has_intersection200, "poly1000 must have no self-intersections");
     
-    println!("\nResult: {} (no self-intersections verified)", if has_intersection { "INTERSECTS" } else { "CLEAN" });
-    println!("Time: {:.4} ms ({:.0} µs)\n", 
-             elapsed.as_secs_f64() * 1000.0 / 1000.0,
-             elapsed.as_secs_f64() * 1_000_000.0 / 1000.0);
+    println!("Time for arcline1000 (1_000 it): {:.4} ms ({:.0} µs)", 
+             elapsed1000.as_secs_f64() * 1000.0 / 1000.0,
+             elapsed1000.as_secs_f64() * 1_000_000.0 / 1000.0);
+    println!("Time for arcline200 (10_000 it): {:.4} ms ({:.0} µs)\n", 
+             elapsed200.as_secs_f64() * 1000.0 / 1000.0,
+             elapsed200.as_secs_f64() * 1_000_000.0 / 10000.0);
     println!("========================================");
 }
 

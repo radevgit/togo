@@ -144,15 +144,12 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize)> {
         return intersections;
     }
 
-    // Special case for two-element arclines: check both (0,1) and (1,0)
+    // Special case for two-element arclines: check (0,1) only (undirected)
     if n == 2 {
         let arc0 = &arcline[0];
         let arc1 = &arcline[1];
         if is_really_intersecting(arc0, arc1) {
             intersections.push((0, 1));
-        }
-        if is_really_intersecting(arc1, arc0) {
-            intersections.push((1, 0));
         }
         return intersections;
     }
@@ -184,11 +181,12 @@ pub fn arcline_self_intersections(arcline: &Arcline) -> Vec<(usize, usize)> {
     }
 
     // Check if last arc intersects with first arc (for closed arclines)
+    // Only add if (n-1, 0) ordering (since we want i < j for undirected pairs)
     if n >= 2 {
         let last_arc = &arcline[n - 1];
         let first_arc = &arcline[0];
         if is_really_intersecting(last_arc, first_arc) {
-            intersections.push((n - 1, 0));
+            intersections.push((0, n - 1));
         }
     }
 
@@ -266,13 +264,10 @@ mod tests {
         let seg1 = arcseg(point(0.0, 0.0), point(1.0, 1.0));
         let seg2 = arcseg(point(0.0, 1.0), point(1.0, 0.0));
         let arcline = vec![seg1, seg2];
-    assert!(arcline_has_self_intersection(&arcline));
-    let mut ints = arcline_self_intersections(&arcline);
-    ints.sort();
-    let mut expected = vec![(0, 1), (1, 0)];
-    expected.sort();
-    // Accept either (0,1) or (1,0) or both, since intersection is symmetric
-    assert!(ints == vec![(0, 1)] || ints == vec![(1, 0)] || ints == expected);
+        assert!(arcline_has_self_intersection(&arcline));
+        let ints = arcline_self_intersections(&arcline);
+        // Should have exactly one undirected pair (0, 1)
+        assert_eq!(ints, vec![(0, 1)]);
     }
 
     #[test]
@@ -291,12 +286,10 @@ mod tests {
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
         let seg = arcseg(point(0.5, 0.5), point(0.5, -1.0));
         let arcline = vec![arc1, seg];
-    assert!(arcline_has_self_intersection(&arcline));
-    let mut ints = arcline_self_intersections(&arcline);
-    ints.sort();
-    let mut expected = vec![(0, 1), (1, 0)];
-    expected.sort();
-    assert!(ints == vec![(0, 1)] || ints == vec![(1, 0)] || ints == expected);
+        assert!(arcline_has_self_intersection(&arcline));
+        let ints = arcline_self_intersections(&arcline);
+        // Should have exactly one undirected pair (0, 1)
+        assert_eq!(ints, vec![(0, 1)]);
     }
 
     #[test]
@@ -305,12 +298,10 @@ mod tests {
         let seg = arcseg(point(0.5, 0.5), point(0.5, -1.0));
         let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
         let arcline = vec![seg, arc1];
-    assert!(arcline_has_self_intersection(&arcline));
-    let mut ints = arcline_self_intersections(&arcline);
-    ints.sort();
-    let mut expected = vec![(0, 1), (1, 0)];
-    expected.sort();
-    assert!(ints == vec![(0, 1)] || ints == vec![(1, 0)] || ints == expected);
+        assert!(arcline_has_self_intersection(&arcline));
+        let ints = arcline_self_intersections(&arcline);
+        // Should have exactly one undirected pair (0, 1)
+        assert_eq!(ints, vec![(0, 1)]);
     }
     use super::*;
 
@@ -388,5 +379,32 @@ mod tests {
         let intersections = arcline_self_intersections(&arcline);
         // This depends on the exact geometry, may or may not intersect
         let _ = intersections; // Just verify the function works
+    }
+
+    #[test]
+    fn test_arcseg_arc_asymmetry() {
+        let seg = arcseg(point(0.5, 0.5), point(0.5, -1.0));
+        let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.5, 0.5), 1.0);
+        let ab = is_really_intersecting(&arc1, &seg);
+        let ba = is_really_intersecting(&seg, &arc1);
+        assert_eq!(ab, ba, "is_really_intersecting not symmetric for arc/seg");
+    }
+
+    #[test]
+    fn test_arc_arc_asymmetry() {
+        let arc1 = arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 1.0), 1.0);
+        let arc2 = arc(point(0.0, -1.0), point(0.0, 1.0), point(1.0, 0.0), 1.0);
+        let ab = is_really_intersecting(&arc1, &arc2);
+        let ba = is_really_intersecting(&arc2, &arc1);
+        assert_eq!(ab, ba, "is_really_intersecting not symmetric for arc/arc");
+    }
+
+    #[test]
+    fn test_arcseg_arcseg_asymmetry() {
+        let seg1 = arcseg(point(0.0, 0.0), point(1.0, 1.0));
+        let seg2 = arcseg(point(0.0, 1.0), point(1.0, 0.0));
+        let ab = is_really_intersecting(&seg1, &seg2);
+        let ba = is_really_intersecting(&seg2, &seg1);
+        assert_eq!(ab, ba, "is_really_intersecting not symmetric for seg/seg");
     }
 }

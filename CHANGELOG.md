@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.6.9] - 2025-11-01
+- Fix arcline_has_self_intersection arcline_self_intersections
+
 ## [0.6.8] - 2025-10-31
 - Fix arcline_has_self_intersection arcline_self_intersections
 

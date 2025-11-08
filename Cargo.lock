@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "aabb"
-version = "0.6.7"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28f91ce8235ba3ed64c8685cf02665ea766edd7c0a17213727426c76638b67fd"
+checksum = "6092facb99f060fcd8c6d772fceb3f6c55d4d252ef341fb8397da8eca6cdccda"
 
 [[package]]
 name = "cfg-if"
