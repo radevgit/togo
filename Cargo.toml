@@ -27,7 +27,7 @@ codegen-units = 1
 panic = "abort"
 opt-level = 3
 # for samply
-#debug = 1
+debug = 1
 
 
 [dev-dependencies]
