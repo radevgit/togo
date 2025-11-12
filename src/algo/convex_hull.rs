@@ -84,12 +84,9 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
         .enumerate()
         .min_by(|(_, a), (_, b)| {
             match a.x.partial_cmp(&b.x) {
-                Some(std::cmp::Ordering::Equal) => match a.y.partial_cmp(&b.y) {
-                    Some(ord) => ord,
-                    None => std::cmp::Ordering::Greater,  // Treat NaN as greater (shouldn't happen after filtering)
-                },
+                Some(std::cmp::Ordering::Equal) => a.y.partial_cmp(&b.y).unwrap_or(std::cmp::Ordering::Equal),
                 Some(other) => other,
-                None => std::cmp::Ordering::Greater,  // Treat NaN as greater (shouldn't happen after filtering)
+                None => unreachable!(), // No NaN after filtering
             }
         })
         .map_or(0, |(idx, _)| idx);
@@ -106,8 +103,16 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
             }
 
             // Use cross product to determine orientation
-            let cross = (valid_points[next] - valid_points[current])
-                .perp(valid_points[i] - valid_points[current]);
+            // Explicit inline calculation using mul_add for better performance:
+            let dx_next = valid_points[next].x - valid_points[current].x;
+            let dy_next = valid_points[next].y - valid_points[current].y;
+            let dx_i = valid_points[i].x - valid_points[current].x;
+            let dy_i = valid_points[i].y - valid_points[current].y;
+            let cross = dx_next.mul_add(dy_i, -(dy_next * dx_i));
+
+            // Alternative using Vector.perp() method (for performance comparison):
+            // let cross = (valid_points[next] - valid_points[current])
+            //     .perp(valid_points[i] - valid_points[current]);
 
             // If cross < 0, point i is more counter-clockwise than next
             // If cross ≈ 0 (within tolerance), points are collinear - choose the farther one

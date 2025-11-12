@@ -1,5 +1,9 @@
 # Changelog
 
+
+## [0.6.11] - 2025-11-12
+- Performance optimization for Convex Hull (~45%)
+
 ## [0.6.10] - 2025-11-12
 - fixed the Convex Hull performance with unnecessary deduplication.
 

@@ -63,6 +63,16 @@ Convex Hull Benchmark
 
 === 1,000,000 points ===
 100k points: 50 iterations, total: 8.532761668s, avg: 170655.22µs, hull size: 33
+________________________________________________________________________________
+Perp optimization.
+=== 10,000 points ===
+10k points: 5000 iterations, total: 2.713066241s, avg: 542.61µs, hull size: 23
 
+=== 100,000 points ===
+100k points: 500 iterations, total: 3.52370469s, avg: 7047.41µs, hull size: 31
+
+=== 1,000,000 points ===
+100k points: 50 iterations, total: 4.128193554s, avg: 82563.86µs, hull size: 33
+________________________________________________________________________________
 
 */
