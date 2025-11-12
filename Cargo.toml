@@ -1,7 +1,7 @@
 [package]
 name = "togo"
 description = "A library for 2D geometry, providing geometric algorithms for intersection/distance between circular arcs/line segments."
-version = "0.6.9"
+version = "0.6.10"
 rust-version = "1.88"
 edition = "2024"
 categories = ["algorithms", "data-structures", "graphics", "mathematics"]
@@ -27,7 +27,7 @@ codegen-units = 1
 panic = "abort"
 opt-level = 3
 # for samply
-debug = 1
+#debug = 1
 
 
 [dev-dependencies]
@@ -35,6 +35,10 @@ rand = "0.9"
 
 [[bench]]
 name = "bench_self_intersection"
+harness = false
+
+[[bench]]
+name = "hull_bench"
 harness = false
 
 [workspace.lints]

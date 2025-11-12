@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.6.10] - 2025-11-12
+- fixed the Convex Hull performance with unnecessary deduplication.
+
 ## [0.6.9] - 2025-11-01
 - Fix arcline_has_self_intersection arcline_self_intersections
 
