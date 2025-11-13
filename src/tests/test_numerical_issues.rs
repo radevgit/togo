@@ -253,7 +253,7 @@ mod test_convex_hull_nan {
         ];
         
         // Should either filter NaN or return valid hull, not panic
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         
         // All points in hull should be finite
         for p in &hull {
@@ -280,7 +280,7 @@ mod test_convex_hull_nan {
             point(f64::INFINITY, 0.5),  // Infinite point
         ];
         
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         
         for p in &hull {
             assert!(
@@ -299,7 +299,7 @@ mod test_convex_hull_nan {
             point(1.0, f64::NAN),
         ];
         
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         
         // Should return empty hull or handle gracefully
         assert!(
@@ -343,7 +343,7 @@ mod test_exact_zero_comparisons {
             point(4.0, 4.0),
         ];
         
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         
         // Should recognize collinearity and return only endpoints
         // (or at most 3 points if tolerance isn't applied)

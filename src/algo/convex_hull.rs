@@ -176,7 +176,7 @@ fn is_strictly_inside_quadrilateral(point: &Point, quad: &[Point]) -> bool {
 ///     point(0.0, 1.0),
 ///     point(0.5, 0.5), // Interior point
 /// ];
-/// let hull = pointline_convex_hull(&points);
+/// let hull = points_convex_hull(&points);
 /// assert_eq!(hull.len(), 4); // Square has 4 vertices
 ///
 /// // Triangle
@@ -185,7 +185,7 @@ fn is_strictly_inside_quadrilateral(point: &Point, quad: &[Point]) -> bool {
 ///     point(2.0, 0.0),
 ///     point(1.0, 2.0),
 /// ];
-/// let hull = pointline_convex_hull(&triangle);
+/// let hull = points_convex_hull(&triangle);
 /// assert_eq!(hull.len(), 3); // All points are on the hull
 /// ```
 ///
@@ -201,7 +201,7 @@ fn is_strictly_inside_quadrilateral(point: &Point, quad: &[Point]) -> bool {
 ///
 /// This function does not panic, but returns an empty vector for empty input.
 #[must_use]
-pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
+pub fn points_convex_hull(points: &Pointline) -> Pointline {
     // Filter out NaN and Infinity points - they cannot be part of a valid convex hull
     let mut valid_points = Vec::with_capacity(points.len());
     for p in points.iter() {
@@ -500,37 +500,37 @@ mod test_akl_toussaint_filter {
 }
 
 #[cfg(test)]
-mod test_pointline_convex_hull {
+mod test_points_convex_hull {
     use super::*;
 
     #[test]
-    fn test_pointline_convex_hull_empty() {
+    fn test_points_convex_hull_empty() {
         let points: Pointline = vec![];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert!(hull.is_empty());
     }
 
     #[test]
-    fn test_pointline_convex_hull_single_point() {
+    fn test_points_convex_hull_single_point() {
         let points = vec![point(1.0, 2.0)];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 1);
         assert_eq!(hull[0], point(1.0, 2.0));
     }
 
     #[test]
-    fn test_pointline_convex_hull_two_points() {
+    fn test_points_convex_hull_two_points() {
         let points = vec![point(0.0, 0.0), point(1.0, 1.0)];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 2);
         assert!(hull.contains(&point(0.0, 0.0)));
         assert!(hull.contains(&point(1.0, 1.0)));
     }
 
     #[test]
-    fn test_pointline_convex_hull_triangle() {
+    fn test_points_convex_hull_triangle() {
         let points = vec![point(0.0, 0.0), point(2.0, 0.0), point(1.0, 2.0)];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 3);
         // All points should be on the hull for a triangle
         assert!(hull.contains(&point(0.0, 0.0)));
@@ -539,14 +539,14 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_square() {
+    fn test_points_convex_hull_square() {
         let points = vec![
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(1.0, 1.0),
             point(0.0, 1.0),
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
         // All corners should be on the hull
         assert!(hull.contains(&point(0.0, 0.0)));
@@ -556,7 +556,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_square_with_interior_point() {
+    fn test_points_convex_hull_square_with_interior_point() {
         let points = vec![
             point(0.0, 0.0),
             point(1.0, 0.0),
@@ -564,7 +564,7 @@ mod test_pointline_convex_hull {
             point(0.0, 1.0),
             point(0.5, 0.5), // Interior point
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
         // Interior point should not be on the hull
         assert!(!hull.contains(&point(0.5, 0.5)));
@@ -576,14 +576,14 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_collinear_points() {
+    fn test_points_convex_hull_collinear_points() {
         let points = vec![
             point(0.0, 0.0),
             point(1.0, 0.0),
             point(2.0, 0.0),
             point(3.0, 0.0),
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         // For collinear points, the algorithm should still work, though it may
         // include all points since they're technically on the "hull"
         assert!(hull.len() >= 2);
@@ -593,7 +593,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_pentagon() {
+    fn test_points_convex_hull_pentagon() {
         let points = vec![
             point(0.0, 1.0),
             point(1.0, 0.0),
@@ -601,7 +601,7 @@ mod test_pointline_convex_hull {
             point(1.5, 2.5),
             point(0.5, 2.5),
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 5);
         // All points should be on the hull for a convex pentagon
         for point in &points {
@@ -610,7 +610,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_random_points() {
+    fn test_points_convex_hull_random_points() {
         let points = vec![
             point(0.0, 0.0),
             point(4.0, 0.0),
@@ -620,7 +620,7 @@ mod test_pointline_convex_hull {
             point(2.0, 1.5), // Interior
             point(3.0, 2.0), // Interior
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
         // Only the corner points should be on the hull
         assert!(hull.contains(&point(0.0, 0.0)));
@@ -634,7 +634,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_duplicate_points() {
+    fn test_points_convex_hull_duplicate_points() {
         let points = vec![
             point(0.0, 0.0),
             point(1.0, 0.0),
@@ -643,7 +643,7 @@ mod test_pointline_convex_hull {
             point(0.0, 0.0), // Duplicate
             point(1.0, 1.0), // Duplicate
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         // Hull should contain at least the 4 corners. Duplicates may be included
         // in the walk but are typically skipped in the Gift Wrapping algorithm
         // when they share the same position. We just verify corners are present.
@@ -654,7 +654,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_negative_coordinates() {
+    fn test_points_convex_hull_negative_coordinates() {
         let points = vec![
             point(-2.0, -2.0),
             point(2.0, -2.0),
@@ -662,7 +662,7 @@ mod test_pointline_convex_hull {
             point(-2.0, 2.0),
             point(0.0, 0.0), // Interior
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
         assert!(hull.contains(&point(-2.0, -2.0)));
         assert!(hull.contains(&point(2.0, -2.0)));
@@ -672,7 +672,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_star_shape() {
+    fn test_points_convex_hull_star_shape() {
         // Points forming a star - only outer points should be on hull
         let points = vec![
             point(0.0, 3.0),   // Top
@@ -684,7 +684,7 @@ mod test_pointline_convex_hull {
             point(-3.0, 0.0),  // Left
             point(-1.0, 1.0),  // Inner
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
         // Only the extreme points should be on the hull
         assert!(hull.contains(&point(0.0, 3.0)));
@@ -694,7 +694,7 @@ mod test_pointline_convex_hull {
     }
 
     #[test]
-    fn test_pointline_convex_hull_large_coordinates() {
+    fn test_points_convex_hull_large_coordinates() {
         let points = vec![
             point(1e6, 1e6),
             point(1e6 + 100.0, 1e6),
@@ -702,20 +702,20 @@ mod test_pointline_convex_hull {
             point(1e6, 1e6 + 100.0),
             point(1e6 + 50.0, 1e6 + 50.0), // Interior
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
         assert!(!hull.contains(&point(1e6 + 50.0, 1e6 + 50.0)));
     }
 
     #[test]
-    fn test_pointline_convex_hull_counter_clockwise_order() {
+    fn test_points_convex_hull_counter_clockwise_order() {
         let points = vec![
             point(0.0, 0.0),
             point(2.0, 0.0),
             point(2.0, 2.0),
             point(0.0, 2.0),
         ];
-        let hull = pointline_convex_hull(&points);
+        let hull = points_convex_hull(&points);
         assert_eq!(hull.len(), 4);
 
         // Verify counter-clockwise order by checking that each consecutive
@@ -974,7 +974,6 @@ mod test_arcline_convex_hull {
     // }
 }
 
-#[doc(hidden)]
 /// Computes the convex hull of a set of arcs and line segments.
 ///
 /// This function computes the convex hull of an arcline (collection of arcs and line segments).
@@ -1021,64 +1020,3 @@ pub fn arcline_convex_hull(_arcs: &Arcline) -> Arcline {
     res
 }
 
-// /// Given two consecutive Arc segments with common point (seg0.b == seg1.a) in a Arcline.
-// /// Compute new arcs, to make a CCW convex hull of initial arcs.
-// pub fn arc_to_arc_hull(seg0: &Arc, seg1: &Arc) -> Vec<Arc> {
-//     if seg0.is_line() && seg1.is_line() {
-//         seg_to_seg_hull(seg0, seg1)
-//     }
-// }
-
-// fn seg_to_seg_hull(seg0: &Arc, seg1: &Arc) -> Vec<Arc> {
-//     let perp0 = seg0.b - seg0.a;
-//     let perp0 = point(perp0.y, -perp0.x);
-//     let perp1 = seg1.b - seg1.a;
-//     let perp1 = point(perp1.y, -perp1.x);
-
-//     // Check if the line segmens form a CCW convex
-//     let a = Coord {
-//         x: perp0.x,
-//         y: perp0.y,
-//     };
-//     let b = Coord {
-//         x: perp1.x,
-//         y: perp1.y,
-//     };
-//     let c = Coord {
-//         x: seg0.b.x,
-//         y: seg0.b.y,
-//     };
-//     convex = orient2d(a, b, c) <= ZERO;
-//     if convex {
-//         return vec![seg0.clone(), seg1.clone()];
-//     } else {
-//         return vec![arcseg(seg0.a, seg0.b)];
-//     }
-// }
-
-// fn seg_to_seg_hull(seg0: &Arc, seg1: &Arc) -> Vec<Arc> {
-//     let perp0 = seg0.b - seg0.a;
-//     let perp0 = point(perp0.y, -perp0.x);
-//     let perp1 = seg1.b - seg1.a;
-//     let perp1 = point(perp1.y, -perp1.x);
-
-//     // Check if the line segmens form a CCW convex
-//     let a = Coord {
-//         x: perp0.x,
-//         y: perp0.y,
-//     };
-//     let b = Coord {
-//         x: perp1.x,
-//         y: perp1.y,
-//     };
-//     let c = Coord {
-//         x: seg0.b.x,
-//         y: seg0.b.y,
-//     };
-//     convex = orient2d(a, b, c) <= ZERO;
-//     if convex {
-//         return vec![seg0.clone(), seg1.clone()];
-//     } else {
-//         return vec![arcseg(seg0.a, seg0.b)];
-//     }
-// }

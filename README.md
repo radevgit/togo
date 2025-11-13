@@ -11,7 +11,7 @@ It is used in my other projects and **may not implement** all possible geometric
 
 ```toml
 [dependencies]
-togo = "0.6"
+togo = "0.7"
 ```
 ![](https://raw.githubusercontent.com/radevgit/togo/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
@@ -100,7 +100,6 @@ match int_arc_arc(&a1, &a2) {
 ### Algorithms: Area, Convex Hull, Bounding
 ```rust
 use togo::prelude::*;
-use togo::algo::{pointline_area, pointline_convex_hull, arc_bounding_circle};
 
 // Calculate area of a polygon
 let triangle = vec![point(0.0, 0.0), point(4.0, 0.0), point(2.0, 3.0), point(0.0, 0.0)];
@@ -116,7 +115,7 @@ let points = vec![
     point(2.0, 3.0),
     point(0.0, 2.0),
 ];
-let hull = pointline_convex_hull(&points);
+let hull = points_convex_hull(&points);
 assert_eq!(hull.len(), 4);  // 4 points on convex hull
 
 // Bounding circle for an arc

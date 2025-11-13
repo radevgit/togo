@@ -19,7 +19,7 @@ fn main() {
     // Compute convex hull
     let mut hull = Vec::new();
     for _ in 0..500 {
-        hull = pointline_convex_hull(&points);
+        hull = points_convex_hull(&points);
     }
 
     // Use the result to prevent optimization

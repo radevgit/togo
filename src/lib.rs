@@ -66,7 +66,7 @@
 //!
 //! ```
 //! use togo::prelude::*;
-//! use togo::algo::{pointline_area, pointline_convex_hull, arc_bounding_circle};
+//! use togo::algo::{pointline_area, points_convex_hull, arc_bounding_circle};
 //!
 //! // Polygon area
 //! let triangle = vec![
@@ -83,7 +83,7 @@
 //!     point(0.0, 0.0), point(2.0, 1.0), point(1.0, 2.0),
 //!     point(3.0, 0.0), point(2.0, 3.0), point(0.0, 2.0),
 //! ];
-//! let hull = pointline_convex_hull(&points);
+//! let hull = points_convex_hull(&points);
 //! assert_eq!(hull.len(), 4); // 4 points on convex hull
 //!
 //! // Bounding shape for an arc
@@ -210,7 +210,7 @@ mod svg;
 pub mod prelude {
     // Re-export core types and functions
     pub use crate::algo::{
-        is_convex_pointline, pointline_area, arcline_area, pointline_convex_hull, 
+        is_convex_pointline, pointline_area, arcline_area, points_convex_hull, 
         arc_bounding_circle, arc_bounding_rect, arcline_has_self_intersection, 
         arcline_self_intersections, arcline_self_intersection_status, SelfIntersectionStatus
     };
