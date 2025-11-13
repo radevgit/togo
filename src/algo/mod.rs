@@ -20,7 +20,7 @@ pub mod self_intersect;
 // Re-export all public types and functions for easy access
 pub use area::{arcline_area, pointline_area};
 pub use bounding::{arc_bounding_circle, arc_bounding_rect};
-pub use convex_hull::{arcline_convex_hull, points_convex_hull};
+pub use convex_hull::{arcline_convex_hull, points_convex_hull, pointline_convex_hull};
 pub use self_intersect::{
     arcline_has_self_intersection, arcline_self_intersections, arcline_self_intersection_status,
     arcline_has_self_intersection_aabb, arcline_self_intersections_aabb,

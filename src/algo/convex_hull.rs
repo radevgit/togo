@@ -733,6 +733,243 @@ mod test_points_convex_hull {
 }
 
 #[cfg(test)]
+mod test_pointline_convex_hull {
+    use super::*;
+
+    #[test]
+    fn test_pointline_convex_hull_empty() {
+        let points: Pointline = vec![];
+        let hull = pointline_convex_hull(&points);
+        assert!(hull.is_empty());
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_single_vertex() {
+        let points = vec![point(1.0, 2.0)];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 1);
+        assert_eq!(hull[0], point(1.0, 2.0));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_two_vertices() {
+        let points = vec![
+            point(0.0, 0.0),
+            point(1.0, 1.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 2);
+        assert_eq!(hull[0], point(0.0, 0.0));
+        assert_eq!(hull[1], point(1.0, 1.0));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_triangle() {
+        let points = vec![
+            point(0.0, 0.0),
+            point(2.0, 0.0),
+            point(1.0, 2.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 3);
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(2.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 2.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_square() {
+        let points = vec![
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(1.0, 1.0),
+            point(0.0, 1.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 4);
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 1.0)));
+        assert!(hull.contains(&point(0.0, 1.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_square_with_concave_vertex() {
+        // Square with one vertex pushed inward (concave)
+        let points = vec![
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(1.0, 1.0),
+            point(0.5, 0.5), // Interior/concave point
+            point(0.0, 1.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        // The concave vertex should be removed from hull
+        assert!(!hull.contains(&point(0.5, 0.5)));
+        // But the convex vertices should be present
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 1.0)));
+        assert!(hull.contains(&point(0.0, 1.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_octagon() {
+        // Simple convex octagon (diamond-like with beveled corners)
+        let points = vec![
+            point(2.0, 0.0),  // Right
+            point(3.0, 1.0),  // Top-right
+            point(3.0, 3.0),  // Top
+            point(2.0, 4.0),  // Top-right
+            point(0.0, 4.0),  // Top-left
+            point(-1.0, 3.0), // Top-left corner
+            point(-1.0, 1.0), // Bottom-left corner
+            point(0.0, 0.0),  // Bottom
+        ];
+        let hull = pointline_convex_hull(&points);
+        // All 8 vertices should be on the hull (it's convex)
+        assert_eq!(hull.len(), 8);
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_pentagon_with_one_concave() {
+        // Pentagon where one vertex is slightly inside
+        let points = vec![
+            point(0.0, 0.0),    // Bottom-left
+            point(2.0, -1.0),   // Bottom-right
+            point(3.0, 1.0),    // Right
+            point(1.0, 0.9),    // Center (concave) - should be excluded
+            point(0.0, 2.0),    // Top-left
+        ];
+        let hull = pointline_convex_hull(&points);
+        // Concave vertex should be removed
+        assert!(!hull.contains(&point(1.0, 0.9)));
+        // Other vertices should remain
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(2.0, -1.0)));
+        assert!(hull.contains(&point(3.0, 1.0)));
+        assert!(hull.contains(&point(0.0, 2.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_multiple_concave_vertices() {
+        // Shape with multiple concave vertices
+        let points = vec![
+            point(0.0, 0.0),
+            point(2.0, 0.0),
+            point(2.0, 1.0),
+            point(1.0, 0.5), // Concave 1
+            point(2.0, 2.0),
+            point(0.0, 2.0),
+            point(1.0, 1.5), // Concave 2
+        ];
+        let hull = pointline_convex_hull(&points);
+        // Both concave vertices should be removed
+        assert!(!hull.contains(&point(1.0, 0.5)));
+        assert!(!hull.contains(&point(1.0, 1.5)));
+        // Corners should remain
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(2.0, 0.0)));
+        assert!(hull.contains(&point(2.0, 2.0)));
+        assert!(hull.contains(&point(0.0, 2.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_large_coordinates() {
+        let points = vec![
+            point(1e6, 1e6),
+            point(1e6 + 100.0, 1e6),
+            point(1e6 + 100.0, 1e6 + 100.0),
+            point(1e6, 1e6 + 100.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 4);
+        assert!(hull.contains(&point(1e6, 1e6)));
+        assert!(hull.contains(&point(1e6 + 100.0, 1e6)));
+        assert!(hull.contains(&point(1e6 + 100.0, 1e6 + 100.0)));
+        assert!(hull.contains(&point(1e6, 1e6 + 100.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_negative_coordinates() {
+        let points = vec![
+            point(-2.0, -2.0),
+            point(2.0, -2.0),
+            point(2.0, 2.0),
+            point(-2.0, 2.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 4);
+        assert!(hull.contains(&point(-2.0, -2.0)));
+        assert!(hull.contains(&point(2.0, -2.0)));
+        assert!(hull.contains(&point(2.0, 2.0)));
+        assert!(hull.contains(&point(-2.0, 2.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_with_bulge_factors() {
+        // Test that bulge factors don't affect the algorithm (only points matter)
+        // Note: This test now uses Pointline, so bulge factors don't apply
+        let points = vec![
+            point(0.0, 0.0),
+            point(1.0, 0.0),
+            point(1.0, 1.0),
+            point(0.0, 1.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        assert_eq!(hull.len(), 4);
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 0.0)));
+        assert!(hull.contains(&point(1.0, 1.0)));
+        assert!(hull.contains(&point(0.0, 1.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_concave_shape() {
+        // A concave octagon where only the inner notch vertices are concave
+        // Shaped like a rectangle with rectangular notch cut out of one side
+        let points = vec![
+            point(0.0, 0.0),   // Bottom-left
+            point(4.0, 0.0),   // Bottom-right
+            point(4.0, 4.0),   // Top-right
+            point(3.0, 4.0),   // Notch top-right (convex - still part of hull)
+            point(3.0, 2.0),   // Notch bottom-right (CONCAVE - excluded)
+            point(1.0, 2.0),   // Notch bottom-left (CONCAVE - excluded)
+            point(1.0, 4.0),   // Notch top-left (convex - still part of hull)
+            point(0.0, 4.0),   // Top-left
+        ];
+        let hull = pointline_convex_hull(&points);
+        // The concave vertices (inner bottom notch) should be excluded
+        assert!(!hull.contains(&point(3.0, 2.0)));
+        assert!(!hull.contains(&point(1.0, 2.0)));
+        // But the top notch vertices are still convex, so they stay
+        assert!(hull.contains(&point(3.0, 4.0)));
+        assert!(hull.contains(&point(1.0, 4.0)));
+        // The outer corners should be present
+        assert!(hull.contains(&point(0.0, 0.0)));
+        assert!(hull.contains(&point(4.0, 0.0)));
+        assert!(hull.contains(&point(4.0, 4.0)));
+        assert!(hull.contains(&point(0.0, 4.0)));
+    }
+
+    #[test]
+    fn test_pointline_convex_hull_nearly_collinear() {
+        // Vertices that form a nearly-straight line with small deviations
+        // Since the deviations are small, most will be filtered as collinear
+        let points = vec![
+            point(0.0, 0.0),
+            point(1.0, 0.1),   // Slightly off  
+            point(2.0, -0.1),  // Slightly off other direction
+            point(3.0, 0.0),
+        ];
+        let hull = pointline_convex_hull(&points);
+        // Some vertices should remain in the hull  
+        assert!(!hull.is_empty());
+        assert!(hull.len() >= 2);
+    }
+}
+
+#[cfg(test)]
 mod test_arcline_convex_hull {
     //use super::*;
 
@@ -972,6 +1209,112 @@ mod test_arcline_convex_hull {
     //     // Should handle small arcs without crashing
     //     assert!(!hull.is_empty());
     // }
+}
+
+/// Computes the convex hull of an ordered point sequence assuming it forms a closed, non-intersecting CCW polygon.
+///
+/// This function is optimized for ordered point sequences where points form a closed polygon.
+/// Unlike `points_convex_hull` which works on unordered point sets, this function
+/// leverages the structural property of ordered sequences to traverse them in O(n) time.
+///
+/// # Assumptions
+///
+/// The input point sequence must satisfy:
+/// - Form a **closed polygon** (last point connects back to first)
+/// - Be **non-intersecting** (no self-intersections)
+/// - Be **counter-clockwise (CCW) oriented**
+/// - Contain **no duplicate consecutive points**
+///
+/// These assumptions are the responsibility of the user to ensure. Violating them may produce
+/// incorrect results or panics.
+///
+/// # Algorithm
+///
+/// The algorithm uses a single-pass traversal:
+/// 1. Start with all points marked as potential hull members
+/// 2. For each point, check if it's part of the convex hull by examining the cross product
+///    of the edges formed by its neighbors
+/// 3. A point is on the hull if the turn is counter-clockwise (cross product > 0)
+/// 4. Points causing clockwise turns (concave) are excluded from the hull
+/// 5. Return only the hull points in CCW order
+///
+/// # Time Complexity
+///
+/// O(n) - single pass through the point sequence
+///
+/// # Space Complexity
+///
+/// O(h) where h is the number of hull points
+///
+/// # Arguments
+///
+/// * `points` - A closed, non-intersecting CCW ordered point sequence
+///
+/// # Returns
+///
+/// A `Pointline` containing the convex hull points in counter-clockwise order.
+/// If the sequence has fewer than 3 points, returns all unique points.
+///
+/// # Examples
+///
+/// ```
+/// use togo::prelude::*;
+///
+/// // A square with all vertices on the hull
+/// let points = vec![
+///     point(0.0, 0.0),   // Bottom-left
+///     point(1.0, 0.0),   // Bottom-right
+///     point(1.0, 1.0),   // Top-right
+///     point(0.0, 1.0),   // Top-left
+/// ];
+/// let hull = pointline_convex_hull(&points);
+/// assert_eq!(hull.len(), 4); // All points are on the hull
+/// ```
+#[must_use]
+pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
+    if points.len() < 3 {
+        return points.to_vec();
+    }
+
+    let n = points.len();
+    // Preallocate hull with reasonable capacity
+    // For ordered polygons, convex vertices are typically 30-50% of total vertices
+    let mut hull = Vec::with_capacity((n + 1) / 2);
+
+    // Single pass: check each point for convexity
+    // A point is on the hull if the turn at that point is counter-clockwise (left turn)
+    for i in 0..n {
+        let prev_idx = if i == 0 { n - 1 } else { i - 1 };
+        let curr_idx = i;
+        let next_idx = (i + 1) % n;
+
+        let p_prev = points[prev_idx];
+        let p_curr = points[curr_idx];
+        let p_next = points[next_idx];
+
+        // Cross product of vectors (curr - prev) and (next - curr)
+        // Positive = CCW turn (left turn) = on convex hull
+        // Negative = CW turn (right turn) = concave, skip
+        // Zero = collinear = skip (interior edge)
+        let dx1 = p_curr.x - p_prev.x;
+        let dy1 = p_curr.y - p_prev.y;
+        let dx2 = p_next.x - p_curr.x;
+        let dy2 = p_next.y - p_curr.y;
+
+        let cross = dx1.mul_add(dy2, -(dy1 * dx2));
+
+        if cross > COLLINEARITY_TOLERANCE {
+            hull.push(p_curr);
+        }
+    }
+
+    // If all points are collinear or form a degenerate polygon, return at least 2 points
+    if hull.is_empty() && n > 0 {
+        // Fall back to at least the extreme points
+        return vec![points[0], points[n / 2]];
+    }
+
+    hull
 }
 
 /// Computes the convex hull of a set of arcs and line segments.

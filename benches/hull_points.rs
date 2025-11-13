@@ -28,13 +28,13 @@ fn benchmark_convex_hull(name: &str, points: &Pointline, iterations: usize) {
 }
 
 fn main() {
-    println!("Convex Hull Benchmark\n");
+    println!("Convex Hull Points Benchmark\n");
 
 
     // Benchmark with 1,000 points
     println!("=== 1,000 points ===");
-    let points_10k = generate_points(42, 1_000);
-    benchmark_convex_hull("10k points", &points_10k, 50000);
+    let points_1000 = generate_points(42, 1_000);
+    benchmark_convex_hull("10k points", &points_1000, 50000);
 
     println!();
 
@@ -55,11 +55,11 @@ fn main() {
     // Benchmark with 1,000,000 points
     println!("=== 1,000,000 points ===");
     let points_1m = generate_points(42, 1_000_000);
-    benchmark_convex_hull("100k points", &points_1m, 50);
+    benchmark_convex_hull("1m points", &points_1m, 50);
 }
 
 /*
-cargo bench --bench hull_bench
+cargo bench --bench hull_points
 
 Convex Hull Benchmark
 

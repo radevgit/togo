@@ -26,6 +26,6 @@ fn main() {
     println!("Hull size: {}", hull.len());
 }
 /* 
-samply record cargo run --release --example convex_hull
+samply record cargo run --release --example convex_hull_points
 
 */

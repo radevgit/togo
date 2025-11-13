@@ -38,7 +38,11 @@ name = "bench_self_intersection"
 harness = false
 
 [[bench]]
-name = "hull_bench"
+name = "hull_points"
+harness = false
+
+[[bench]]
+name = "hull_pointline"
 harness = false
 
 [workspace.lints]
