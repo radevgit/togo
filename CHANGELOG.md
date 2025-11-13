@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.6.12] - 2025-11-13
+- Added Akl-Toussaint heuristic to Convex Hull (~%31)
 
 ## [0.6.11] - 2025-11-12
 - Performance optimization for Convex Hull (~45%)

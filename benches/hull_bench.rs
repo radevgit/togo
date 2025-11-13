@@ -74,5 +74,16 @@ Perp optimization.
 === 1,000,000 points ===
 100k points: 50 iterations, total: 4.128193554s, avg: 82563.86µs, hull size: 33
 ________________________________________________________________________________
+Added Akl-Toussaint heuristic
+
+=== 10,000 points ===
+10k points: 5000 iterations, total: 2.023180413s, avg: 404.64µs, hull size: 23
+
+=== 100,000 points ===
+100k points: 500 iterations, total: 2.654697155s, avg: 5309.39µs, hull size: 31
+
+=== 1,000,000 points ===
+100k points: 50 iterations, total: 2.828952904s, avg: 56579.04µs, hull size: 33
+________________________________________________________________________________
 
 */
