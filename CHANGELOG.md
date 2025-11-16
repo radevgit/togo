@@ -1,6 +1,9 @@
 # Changelog
 
 ## [0.7.0] - 2025-11-13
+- With aabb 0.7
+
+## [0.7.0] - 2025-11-13
 - Breaking changes. points_convex_hull(), pointline_convex_hull()
 
 ## [0.6.12] - 2025-11-13

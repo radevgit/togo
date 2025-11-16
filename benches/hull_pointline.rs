@@ -75,5 +75,17 @@ Convex Hull Pointline
 === 1,000,000 points ===
 100k points: 500 iterations, total: 3.331625309s, avg: 6663.25µs, hull size: 499295
 ___________________________________________________________________________________
+aabb 0.7
+=== 1,000 points ===
+1,000 points: 500000 iterations, total: 1.280710224s, avg: 2.56µs, hull size: 496
 
+=== 10,000 points ===
+10k points: 50000 iterations, total: 2.834417684s, avg: 56.69µs, hull size: 4981
+
+=== 100,000 points ===
+100k points: 5000 iterations, total: 3.221744718s, avg: 644.35µs, hull size: 50176
+
+=== 1,000,000 points ===
+1m points: 500 iterations, total: 3.219434311s, avg: 6438.87µs, hull size: 499295
+____________________________________________________________________________________
 */

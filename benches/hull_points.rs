@@ -93,5 +93,18 @@ Added Akl-Toussaint heuristic
 === 1,000,000 points ===
 100k points: 50 iterations, total: 2.828952904s, avg: 56579.04µs, hull size: 33
 ________________________________________________________________________________
+aabb 0.7
+=== 1,000 points ===
+10k points: 50000 iterations, total: 1.379999856s, avg: 27.60µs, hull size: 14
+
+=== 10,000 points ===
+10k points: 5000 iterations, total: 2.134895068s, avg: 426.98µs, hull size: 23
+
+=== 100,000 points ===
+100k points: 500 iterations, total: 2.861035212s, avg: 5722.07µs, hull size: 31
+
+=== 1,000,000 points ===
+1m points: 50 iterations, total: 3.11474202s, avg: 62294.84µs, hull size: 33
+_________________________________________________________________________________
 
 */
