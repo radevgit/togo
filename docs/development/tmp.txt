@@ -1,0 +1,15 @@
+Ok, lets me discuss my ideas of algorithm for the Finding Tangent Support Points:
+
+We generally have these cases:
+1) Start is a point end is a point (arcseg -> arcseg, concave arc -> concave arc)
+
+2) Start is a pont end is a convex arc. (arcseg -> convex arc, concave arc -> convex arc)
+- Is is easy to compute tangent from point to circle (outward tangent because there are two)
+- Next, we have tangent point on circle, togo have `contains` method to check the point is on the arc. 
+If it is not the point is on one of the arc's ends.
+Similar in reverse, when the start is convex arc and the end is arc.
+
+3) Start is on convex arc end is on convex arc (convex arc -> convex arc)
+- Compute outward tangent to two circles
+- Check end end is on the arcs using the `contains` method. If some/both ends are not on arcs, 
+use arcs endpoints and check from all combinations what support points create most outward line.

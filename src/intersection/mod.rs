@@ -15,6 +15,7 @@ pub mod int_line_line;
 pub mod int_segment_arc;
 pub mod int_segment_circle;
 pub mod int_segment_segment;
+pub mod tangent;
 
 // Re-export all public types and functions for easy access
 pub use int_arc_arc::{ArcArcConfig, if_really_intersecting_arc_arc, int_arc_arc};
@@ -28,3 +29,4 @@ pub use int_segment_circle::{SegmentCircleConfig, int_segment_circle};
 pub use int_segment_segment::{
     SegmentSegmentConfig, if_really_intersecting_segment_segment, int_segment_segment,
 };
+pub use tangent::{external_tangents_between_circles, tangent_point_to_circle};

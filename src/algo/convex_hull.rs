@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::constants::COLLINEARITY_TOLERANCE;
-use crate::{arc::Arcline, prelude::*};
+use crate::prelude::*;
 
 /// Applies the Akl-Toussaint heuristic to filter out points that cannot be on the convex hull.
 ///
@@ -1317,49 +1317,4 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
     hull
 }
 
-/// Computes the convex hull of a set of arcs and line segments.
-///
-/// This function computes the convex hull of an arcline (collection of arcs and line segments).
-/// The result is a new arcline that represents the boundary of the smallest convex shape
-/// that contains all input segments.
-///
-/// # Arguments
-///
-/// * `arcs` - A slice of arcs/line segments for which to compute the convex hull
-///
-/// # Returns
-///
-/// An `Arcline` representing the convex hull. The result may contain:
-/// - Original arcs that are on the convex boundary
-/// - New line segments connecting discontinuous parts
-/// - Modified arcs where only convex portions are included
-///
-/// # Algorithm Complexity
-///
-/// This algorithm is significantly more complex than point-based convex hull because:
-/// - Arcs can be partially on the hull boundary
-/// - New connecting segments may need to be created
-/// - Non-convex portions of arcs must be replaced with line segments
-///
-/// # Examples
-///
-/// ```ignore
-/// use togo::prelude::*;
-///
-/// // Simple case: square made of line segments
-/// let arcs = vec![
-///     arcseg(point(0.0, 0.0), point(1.0, 0.0)),
-///     arcseg(point(1.0, 0.0), point(1.0, 1.0)),
-///     arcseg(point(1.0, 1.0), point(0.0, 1.0)),
-///     arcseg(point(0.0, 1.0), point(0.0, 0.0)),
-/// ];
-/// let hull = arcline_convex_hull(&arcs);
-/// assert_eq!(hull.len(), 4); // All segments are on the hull
-/// ```
-#[must_use]
-pub fn arcline_convex_hull(_arcs: &Arcline) -> Arcline {
-    let res = Arcline::new();
-    // not implemented
-    res
-}
 
