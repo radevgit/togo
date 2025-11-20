@@ -1,5 +1,9 @@
 # Changelog
 
+
+## [0.7.2] - 2025-11-20
+- Initial implementation of convex hull for arcline.
+
 ## [0.7.0] - 2025-11-13
 - With aabb 0.7
 
