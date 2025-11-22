@@ -211,7 +211,7 @@ pub mod prelude {
     // Re-export core types and functions
     pub use crate::algo::{
         is_convex_pointline, pointline_area, arcline_area, points_convex_hull, pointline_convex_hull,
-        arc_bounding_circle, arc_bounding_rect, arcline_has_self_intersection, 
+        arcline_convex_hull, arc_bounding_circle, arc_bounding_rect, arcline_has_self_intersection, 
         arcline_self_intersections, arcline_self_intersection_status, SelfIntersectionStatus
     };
     pub use aabb::HilbertRTree;

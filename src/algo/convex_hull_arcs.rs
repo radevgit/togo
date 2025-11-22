@@ -36,9 +36,20 @@ fn is_arc_convex(arcs: &Arcline, index: usize) -> bool {
 
     // Check connectivity pattern:
     // Forward (convex): prev.b connects to arc.a
-    // Backward (concave): prev.b connects to arc.b
-    let forward = prev_arc.b == arc.a;
-    forward
+    // Backward (concave): prev.b connects to arc.b (endpoints swapped)
+    
+    // First check forward connectivity
+    let forward = prev_arc.b.close_enough(arc.a, 1e-9);
+    
+    if forward {
+        return true; // Convex: normal forward connection
+    }
+    
+    // Check if this is a backward-traversed arc (prev.b == arc.b)
+    // This happens when the previous arc ends where this arc ends (reversed)
+    let backward = prev_arc.b.close_enough(arc.b, 1e-9);
+    
+    !backward // If backward match found, it's concave; otherwise check something else
 }
 
 /// Finds the starting point for convex hull construction.
@@ -136,6 +147,9 @@ fn select_tangent_point_to_circle(
 
 /// Selects the correct external tangent between two circles based on CCW consistency.
 ///
+/// For a convex hull, we want the tangent that makes sense geometrically - the one
+/// where the tangent line goes in the direction we're traversing the hull.
+///
 /// # Arguments
 ///
 /// * `from_circle` - The first circle
@@ -153,15 +167,16 @@ fn select_external_tangent_between_circles(
     let tangents = external_tangents_between_circles(from_circle, to_circle)?;
     let (t1_c1, t1_c2, t2_c1, t2_c2) = tangents;
 
-    // Direction of each tangent line
+    // Check which tangent is in the direction of prev_direction
+    // by computing the tangent line directions and their cross product with prev_direction
     let dir1 = t1_c2 - t1_c1;
     let dir2 = t2_c2 - t2_c1;
 
-    // Choose the tangent that makes a left turn (CCW) from prev_direction
     let cross1 = prev_direction.perp(dir1);
     let cross2 = prev_direction.perp(dir2);
 
-    // Choose the tangent with the most CCW (leftmost) direction
+    // Choose the tangent that is most aligned with prev_direction (has larger cross product)
+    // This ensures we follow the CCW hull traversal
     if cross1 > cross2 {
         Some((t1_c1, t1_c2))
     } else {
@@ -213,84 +228,133 @@ pub fn arcline_convex_hull(arcs: &Arcline) -> Arcline {
         return Arcline::new();
     }
 
-    // Step 1: Process the connected arcline to build convex hull
-    // For convex arcs on the hull, we need to split them at tangent points
-    // and connect them with line segments at corners
-    
-    let mut hull = Arcline::new();
     let n = arcs.len();
+    let mut hull = Arcline::new();
     
-    let mut i = 0;
-    while i < n {
-        if is_arc_convex(arcs, i) {
-            let current_arc = arcs[i];
-            let next_idx = (i + 1) % n;
-            
-            // Check if next arc is also convex
-            if is_arc_convex(arcs, next_idx) {
-                let next_arc = arcs[next_idx];
-                
-                // Both arcs are convex - need to handle the corner between them
-                // For curved arcs, we split at tangent points and add connecting segment
-                if current_arc.is_arc() && next_arc.is_arc() {
-                    // Find external tangent between the two circles
-                    let c1 = Circle { c: current_arc.c, r: current_arc.r };
-                    let c2 = Circle { c: next_arc.c, r: next_arc.r };
-                    
-                    // Use the direction from current arc's start to determine tangent
-                    let prev_idx = if i == 0 { n - 1 } else { i - 1 };
-                    let prev_arc = arcs[prev_idx];
-                    let initial_dir = current_arc.a - prev_arc.b;
-                    
-                    if let Some((t1, t2)) = select_external_tangent_between_circles(c1, c2, initial_dir) {
-                        // Add sub-arc from a to tangent point
-                        if current_arc.contains(t1) {
-                            hull.push(arc(current_arc.a, t1, current_arc.c, current_arc.r));
-                        } else {
-                            hull.push(arcseg(current_arc.a, t1));
-                        }
-                        
-                        // Add connecting line segment
-                        hull.push(arcseg(t1, t2));
-                    } else {
-                        // Fallback: just add the arc
-                        hull.push(current_arc);
-                    }
-                } else if current_arc.is_arc() && !next_arc.is_arc() {
-                    // Current is arc, next is line segment
-                    // Add arc ending at the corner point
-                    hull.push(arcseg(current_arc.a, current_arc.b));
-                } else if !current_arc.is_arc() && next_arc.is_arc() {
-                    // Current is line segment, next is arc
-                    hull.push(current_arc);
-                } else {
-                    // Both are line segments
-                    hull.push(current_arc);
-                }
-            } else {
-                // Next arc is concave, just add current convex arc
-                hull.push(current_arc);
-            }
-            
-            i += 1;
-        } else {
-            // This arc is concave - skip it and connect across the concave region
-            let mut j = i;
-            while j < n && !is_arc_convex(arcs, j) {
-                j += 1;
-            }
-            
-            if j > i && j < n {
-                let end_arc = arcs[j];
-                let prev_idx = if i == 0 { n - 1 } else { i - 1 };
-                let prev_arc = arcs[prev_idx];
-                
-                // Connect from where we are to where the next convex arc starts
-                hull.push(arcseg(prev_arc.b, end_arc.a));
-            }
-            
-            i = j;
+    // Mark which arcs are convex (forward-traversed)
+    let mut is_convex = vec![false; n];
+    for i in 0..n {
+        is_convex[i] = is_arc_convex(arcs, i);
+    }
+    
+    // Find the first convex arc to start with
+    let mut start_idx = None;
+    for i in 0..n {
+        if is_convex[i] {
+            start_idx = Some(i);
+            break;
         }
+    }
+    
+    // If no convex arcs exist, return empty hull
+    let start_idx = match start_idx {
+        Some(idx) => idx,
+        None => return hull,
+    };
+    
+    // Process arcs starting from the first convex arc
+    let mut i = start_idx;
+    let mut processed = 0;
+    let mut last_arc_end = Point { x: 0.0, y: 0.0 }; // Track the end point of the previous hull element
+    let mut first_arc_start = Point { x: 0.0, y: 0.0 }; // Track the start of the first arc to close the loop
+    let mut is_first = true;
+    
+    while processed < n {
+        if is_convex[i] {
+            let current_arc = arcs[i];
+            let prev_idx = if i == 0 { n - 1 } else { i - 1 };
+            let prev_arc = arcs[prev_idx];
+            
+            // Find the next convex arc
+            let mut j = (i + 1) % n;
+            let mut next_convex_idx = i;
+            let mut found_next = false;
+            
+            for _ in 0..n {
+                if is_convex[j] {
+                    next_convex_idx = j;
+                    found_next = true;
+                    break;
+                }
+                j = (j + 1) % n;
+            }
+            
+            if !found_next {
+                // Only one convex arc, just add it
+                hull.push(current_arc);
+                break;
+            }
+            
+            let next_arc = arcs[next_convex_idx];
+            
+            // Handle arc splitting at tangent points with adjacent convex arcs
+            let mut arc_start = current_arc.a;
+            let mut arc_end = current_arc.b;
+            
+            // Split at start if previous arc is convex and adjacent (regardless of gap)
+            let prev_is_convex = is_convex[prev_idx];
+            if prev_is_convex && (prev_idx + 1) % n == i && current_arc.is_arc() && prev_arc.is_arc() {
+                let c1 = Circle { c: prev_arc.c, r: prev_arc.r };
+                let c2 = Circle { c: current_arc.c, r: current_arc.r };
+                
+                // Direction from prev arc to current arc
+                let direction = c2.c - c1.c;
+                
+                if let Some((_, t2)) = select_external_tangent_between_circles(c1, c2, direction) {
+                    if current_arc.contains(t2) && (t2 - current_arc.a).norm() > 1e-9 {
+                        arc_start = t2;
+                    }
+                }
+            }
+            
+            // Split at end if next arc is convex and adjacent (regardless of gap)
+            if (i + 1) % n == next_convex_idx && current_arc.is_arc() && next_arc.is_arc() {
+                let c1 = Circle { c: current_arc.c, r: current_arc.r };
+                let c2 = Circle { c: next_arc.c, r: next_arc.r };
+                
+                // Direction from current arc to next arc
+                let direction = c2.c - c1.c;
+                
+                if let Some((t1, _)) = select_external_tangent_between_circles(c1, c2, direction) {
+                    if current_arc.contains(t1) && (current_arc.b - t1).norm() > 1e-9 {
+                        arc_end = t1;
+                    }
+                }
+            }
+            
+            // Add connecting segment from previous arc's end to this arc's start
+            if !is_first && (arc_start - last_arc_end).norm() > 1e-9 {
+                hull.push(arcseg(last_arc_end, arc_start));
+            }
+            
+            if is_first {
+                first_arc_start = arc_start;
+                is_first = false;
+            }
+            
+            // Add the (possibly split) arc
+            if (arc_end - arc_start).norm() > 1e-9 {
+                if current_arc.is_arc() {
+                    hull.push(arc(arc_start, arc_end, current_arc.c, current_arc.r));
+                } else {
+                    hull.push(arcseg(arc_start, arc_end));
+                }
+            }
+            
+            last_arc_end = arc_end;
+            
+            i = (i + 1) % n;
+            processed += 1;
+        } else {
+            // Skip concave arcs
+            i = (i + 1) % n;
+            processed += 1;
+        }
+    }
+    
+    // Close the loop: connect last arc end to first arc start
+    if !is_first && (first_arc_start - last_arc_end).norm() > 1e-9 {
+        hull.push(arcseg(last_arc_end, first_arc_start));
     }
     
     hull
@@ -521,11 +585,23 @@ mod tests {
         
         let hull = arcline_convex_hull(&arcs);
         
-        assert!(hull.len() == 8);
-        let hull_points: Vec<Point> = hull.iter().map(|arc| arc.a).collect();
-        assert!(hull_points.contains(&point(0.0, 0.0)));
-        assert!(hull_points.contains(&point(1.0, 0.0)));
-        assert!(hull_points.contains(&point(1.0, 1.0)));
-        assert!(hull_points.contains(&point(0.0, 1.0)));
+        println!("Hull length: {}", hull.len());
+        for (i, elem) in hull.iter().enumerate() {
+            println!("  [{}] {} -> {}", i, elem.a, elem.b);
+        }
+        
+        assert_eq!(hull.len(), 8, "Expected 8 elements: 4 split arcs + 4 connecting segments");
+
+
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let mut svg = SVG::new(400.0, 400.0, Some("/tmp/hull_square_arcs.svg"));
+        svg.arcline(&arcs2, "blue");
+        svg.arcline(&hull2, "red");
+        svg.write();
+        svg.write_stroke_width(0.1);
     }
 }

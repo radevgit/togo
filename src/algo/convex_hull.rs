@@ -932,20 +932,21 @@ mod test_pointline_convex_hull {
             point(0.0, 0.0),   // Bottom-left
             point(4.0, 0.0),   // Bottom-right
             point(4.0, 4.0),   // Top-right
-            point(3.0, 4.0),   // Notch top-right (convex - still part of hull)
+            point(3.0, 4.0),   // Notch top-right (collinear with top edge - excluded)
             point(3.0, 2.0),   // Notch bottom-right (CONCAVE - excluded)
             point(1.0, 2.0),   // Notch bottom-left (CONCAVE - excluded)
-            point(1.0, 4.0),   // Notch top-left (convex - still part of hull)
+            point(1.0, 4.0),   // Notch top-left (collinear with top edge - excluded)
             point(0.0, 4.0),   // Top-left
         ];
         let hull = pointline_convex_hull(&points);
-        // The concave vertices (inner bottom notch) should be excluded
+        // The concave vertices (inner notch) should be excluded
         assert!(!hull.contains(&point(3.0, 2.0)));
         assert!(!hull.contains(&point(1.0, 2.0)));
-        // But the top notch vertices are still convex, so they stay
-        assert!(hull.contains(&point(3.0, 4.0)));
-        assert!(hull.contains(&point(1.0, 4.0)));
-        // The outer corners should be present
+        // The top notch vertices are collinear with the top edge, so excluded too
+        assert!(!hull.contains(&point(3.0, 4.0)));
+        assert!(!hull.contains(&point(1.0, 4.0)));
+        // Only the outer 4 corners should be present (convex hull is a rectangle)
+        assert_eq!(hull.len(), 4);
         assert!(hull.contains(&point(0.0, 0.0)));
         assert!(hull.contains(&point(4.0, 0.0)));
         assert!(hull.contains(&point(4.0, 4.0)));
@@ -1215,7 +1216,7 @@ mod test_arcline_convex_hull {
 ///
 /// This function is optimized for ordered point sequences where points form a closed polygon.
 /// Unlike `points_convex_hull` which works on unordered point sets, this function
-/// leverages the structural property of ordered sequences to traverse them in O(n) time.
+/// leverages the sequential structure to efficiently process the polygon vertices.
 ///
 /// # Assumptions
 ///
@@ -1225,22 +1226,21 @@ mod test_arcline_convex_hull {
 /// - Be **counter-clockwise (CCW) oriented**
 /// - Contain **no duplicate consecutive points**
 ///
-/// These assumptions are the responsibility of the user to ensure. Violating them may produce
-/// incorrect results or panics.
-///
 /// # Algorithm
 ///
-/// The algorithm uses a single-pass traversal:
-/// 1. Start with all points marked as potential hull members
-/// 2. For each point, check if it's part of the convex hull by examining the cross product
-///    of the edges formed by its neighbors
-/// 3. A point is on the hull if the turn is counter-clockwise (cross product > 0)
-/// 4. Points causing clockwise turns (concave) are excluded from the hull
-/// 5. Return only the hull points in CCW order
+/// Uses a stack-based approach adapted from Graham scan for closed polygons:
+/// 1. Start with the first point as the base
+/// 2. Process each subsequent point in order
+/// 3. For each new point, remove previous points that would create right turns (concave vertices)
+/// 4. Only keep points that maintain left turns (convex vertices)
+/// 5. Handle wraparound to ensure closure
+///
+/// A vertex is on the convex hull if it cannot be "seen" from the line connecting its
+/// neighbors - i.e., it makes a left turn in the CCW polygon.
 ///
 /// # Time Complexity
 ///
-/// O(n) - single pass through the point sequence
+/// O(n) - single pass with amortized constant-time stack operations
 ///
 /// # Space Complexity
 ///
@@ -1277,41 +1277,64 @@ pub fn pointline_convex_hull(points: &Pointline) -> Pointline {
     }
 
     let n = points.len();
-    // Preallocate hull with reasonable capacity
-    // For ordered polygons, convex vertices are typically 30-50% of total vertices
-    let mut hull = Vec::with_capacity((n + 1) / 2);
+    let mut hull: Vec<Point> = Vec::with_capacity(n);
 
-    // Single pass: check each point for convexity
-    // A point is on the hull if the turn at that point is counter-clockwise (left turn)
-    for i in 0..n {
-        let prev_idx = if i == 0 { n - 1 } else { i - 1 };
-        let curr_idx = i;
-        let next_idx = (i + 1) % n;
+    // Helper function to compute cross product for three points
+    // Returns positive for CCW (left turn), negative for CW (right turn)
+    let cross_product = |p1: Point, p2: Point, p3: Point| -> f64 {
+        let dx1 = p2.x - p1.x;
+        let dy1 = p2.y - p1.y;
+        let dx2 = p3.x - p2.x;
+        let dy2 = p3.y - p2.y;
+        dx1.mul_add(dy2, -(dy1 * dx2))
+    };
 
-        let p_prev = points[prev_idx];
-        let p_curr = points[curr_idx];
-        let p_next = points[next_idx];
-
-        // Cross product of vectors (curr - prev) and (next - curr)
-        // Positive = CCW turn (left turn) = on convex hull
-        // Negative = CW turn (right turn) = concave, skip
-        // Zero = collinear = skip (interior edge)
-        let dx1 = p_curr.x - p_prev.x;
-        let dy1 = p_curr.y - p_prev.y;
-        let dx2 = p_next.x - p_curr.x;
-        let dy2 = p_next.y - p_curr.y;
-
-        let cross = dx1.mul_add(dy2, -(dy1 * dx2));
-
-        if cross > COLLINEARITY_TOLERANCE {
-            hull.push(p_curr);
+    // Build the hull using a stack-based approach
+    // Process all points in order
+    for &p in points.iter() {
+        // Remove points from hull that would create right turns (concave points)
+        // Keep removing while we have at least 2 points and the turn is right or collinear
+        while hull.len() >= 2 {
+            let cross = cross_product(hull[hull.len() - 2], hull[hull.len() - 1], p);
+            if cross <= COLLINEARITY_TOLERANCE {
+                // Right turn or collinear - pop the last point
+                hull.pop();
+            } else {
+                // Left turn - keep it
+                break;
+            }
         }
+        hull.push(p);
     }
 
-    // If all points are collinear or form a degenerate polygon, return at least 2 points
-    if hull.is_empty() && n > 0 {
-        // Fall back to at least the extreme points
-        return vec![points[0], points[n / 2]];
+    // Now we need to handle the wraparound - check if points at the end
+    // need to be removed when considering the wraparound to the beginning
+    let hull_size = hull.len();
+    if hull_size > 2 {
+        // Check the wraparound: last -> first -> second point
+        // Remove points from the end if they create right turns with the beginning
+        let mut i = hull_size;
+        while i > 2 {
+            let cross = cross_product(hull[i - 2], hull[i - 1], hull[0]);
+            if cross <= COLLINEARITY_TOLERANCE {
+                hull.pop();
+                i -= 1;
+            } else {
+                break;
+            }
+        }
+
+        // Check if we need to remove points from the beginning
+        // considering the wraparound from the end
+        while hull.len() > 2 {
+            let last_idx = hull.len() - 1;
+            let cross = cross_product(hull[last_idx], hull[0], hull[1]);
+            if cross <= COLLINEARITY_TOLERANCE {
+                hull.remove(0);
+            } else {
+                break;
+            }
+        }
     }
 
     hull

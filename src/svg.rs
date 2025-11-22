@@ -296,6 +296,16 @@ impl SVG {
         }
     }
 
+    pub fn pointline(&mut self, pline: &Pointline, color: &str) {
+        if pline.len() < 2 {
+            return; // Nothing to draw
+        }
+        for i in 0..pline.len() {
+            let seg = segment(pline[i], pline[(i + 1) % pline.len()]);
+            self.segment(&seg, color);
+        }
+    }
+
     // pub fn polysegment(&mut self, off: &Arc, color: &str) {
     //     if off.is_line() {
     //         // line segment
