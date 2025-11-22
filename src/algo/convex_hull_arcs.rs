@@ -394,6 +394,17 @@ mod tests {
         ];
         let hull = arcline_convex_hull(&arcs);
         assert_eq!(hull.len(), 4); // All segments should be on hull
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(50.0, 50.0));
+        let hull3 = arcline_translate(&hull2, point(50.0, 50.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
     }
 
     #[test]
@@ -423,6 +434,7 @@ mod tests {
         let (_, start) = result.unwrap();
         // Should find the bottommost point
         assert_eq!(start.y, 0.0);
+        assert_eq!(start.x, 0.0);
     }
 
     #[test]
@@ -447,6 +459,17 @@ mod tests {
         assert!(hull_points.contains(&point(0.0, 1.0)));   // Top
         assert!(hull_points.contains(&point(-1.0, 0.0)));  // Left
         assert!(hull_points.contains(&point(0.0, -1.0))); // Bottom
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(50.0, 50.0));
+        let hull3 = arcline_translate(&hull2, point(50.0, 50.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
     }
 
     #[test]
@@ -468,6 +491,17 @@ mod tests {
         assert!(hull_points.contains(&point(1.0, 0.0)));
         assert!(hull_points.contains(&point(0.0, 1.0)));
         assert!(hull_points.contains(&point(-1.0, 0.0)));
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(50.0, 50.0));
+        let hull3 = arcline_translate(&hull2, point(50.0, 50.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
     }
 
     #[test]
@@ -515,6 +549,17 @@ mod tests {
         assert!((min_x - 0.0).abs() < 1e-6);
         assert!((max_y - 2.0).abs() < 1e-6);
         assert!((min_y - 0.0).abs() < 1e-6);
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(50.0, 50.0));
+        let hull3 = arcline_translate(&hull2, point(50.0, 50.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
     }
 
     #[test]
@@ -526,7 +571,7 @@ mod tests {
             arcseg(point(2.0, 0.0), point(2.0, 2.0)),                      // Right
             arcseg(point(2.0, 2.0), point(0.0, 2.0)),                      // Top
             // Left side with concave arc (backward traversal = concave)
-            arc(point(0.0, 2.0), point(0.0, 0.0), point(0.0, 1.0), 0.5),   // Concave indent
+            arc(point(0.0, 0.0), point(0.0, 2.0), point(0.0, 1.0), 0.5),   // Concave indent
         ];
         
         let hull = arcline_convex_hull(&arcs);
@@ -540,6 +585,17 @@ mod tests {
         assert!(hull_points.contains(&point(2.0, 0.0)));
         assert!(hull_points.contains(&point(2.0, 2.0)));
         assert!(hull_points.contains(&point(0.0, 2.0)));
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(50.0, 50.0));
+        let hull3 = arcline_translate(&hull2, point(50.0, 50.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
     }
 
     #[test]
@@ -592,16 +648,134 @@ mod tests {
         
         assert_eq!(hull.len(), 8, "Expected 8 elements: 4 split arcs + 4 connecting segments");
 
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(150.0, 150.0));
+        let hull3 = arcline_translate(&hull2, point(150.0, 150.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
+    }
 
+    #[test]
+    fn test_arcline_convex_hull_mixed_convex_concave_arcs() {
+        let arcs = vec![
+            arc(point(2.0, 0.0), point(2.0, 2.0), point(2.0, 1.0), 1.0),    // Convex arc
+            arc(point(2.0, 2.0), point(0.0, 2.0), point(1.0, 2.0), 1.0),    // Convex arc
+            arc(point(0.0, 2.0), point(0.0, 0.0), point(0.0, 1.0), 0.5),    // Concave arc (inward)
+            arcseg(point(0.0, 0.0), point(2.0, 0.0)),                       // Line segment
+        ];
+        
+        let hull = arcline_convex_hull(&arcs);
+        assert!(hull.len() >= 3);
         
         // Write SVG for visualization
         use crate::svg::SVG;
         let arcs2 = arcline_scale(&arcs, 100.0);
         let hull2 = arcline_scale(&hull, 100.0);
-        let mut svg = SVG::new(400.0, 400.0, Some("/tmp/hull_square_arcs.svg"));
-        svg.arcline(&arcs2, "blue");
-        svg.arcline(&hull2, "red");
-        svg.write();
+        let arcs3 = arcline_translate(&arcs2, point(150.0, 150.0));
+        let hull3 = arcline_translate(&hull2, point(150.0, 150.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
+    }
+
+    #[test]
+    fn test_arcline_convex_hull_alternating_convex_concave() {
+        let arcs = vec![
+            arc(point(0.0, 1.0), point(1.0, 0.0), point(1.0, 1.0), 1.0),
+            arc(point(0.0, 1.0), point(-1.0, 0.0), point(-0.5, 0.5), 1.0),
+            arc(point(0.0, -1.0), point(-1.0, 0.0), point(-1.0, -1.0), 1.0),
+            arc(point(0.0, -1.0), point(1.0, 0.0), point(0.5, -0.5), 1.0),
+        ];
+        
+        let hull = arcline_convex_hull(&arcs);
+        assert!(hull.len() >= 2);
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(150.0, 150.0));
+        let hull3 = arcline_translate(&hull2, point(150.0, 150.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
+    }
+
+    #[test]
+    fn test_arcline_convex_hull_with_line_segments() {
+        let arcs = vec![
+            arcseg(point(0.0, 0.0), point(2.0, 0.0)),                       // Bottom edge
+            arc(point(2.0, 0.0), point(2.0, 2.0), point(2.0, 1.0), 1.0),    // Right convex arc
+            arcseg(point(2.0, 2.0), point(0.0, 2.0)),                       // Top edge
+            arc(point(0.0, 2.0), point(0.0, 0.0), point(0.0, 1.0), 1.0),    // Left convex arc
+        ];
+        
+        let hull = arcline_convex_hull(&arcs);
+        assert_eq!(hull.len(), 4);
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(150.0, 150.0));
+        let hull3 = arcline_translate(&hull2, point(150.0, 150.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
+    }
+
+    #[test]
+    fn test_arcline_convex_hull_three_convex_arcs() {
+        let arcs = vec![
+            arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0),    // Convex
+            arc(point(0.0, 1.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0),   // Convex
+            arc(point(-1.0, 0.0), point(1.0, 0.0), point(0.0, 0.0), 1.0),  // Convex (bottom)
+        ];
+        
+        let hull = arcline_convex_hull(&arcs);
+        assert!(hull.len() >= 3);
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(150.0, 150.0));
+        let hull3 = arcline_translate(&hull2, point(150.0, 150.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
+        svg.write_stroke_width(0.1);
+    }
+
+    #[test]
+    fn test_arcline_convex_hull_segment_dominated() {
+        let arcs = vec![
+            arcseg(point(0.0, 0.0), point(3.0, 0.0)),                       // Long bottom
+            arc(point(3.0, 0.0), point(3.0, 1.0), point(3.0, 0.5), 0.5),    // Small convex
+            arcseg(point(3.0, 1.0), point(0.0, 1.0)),                       // Long top
+            arc(point(0.0, 1.0), point(0.0, 0.0), point(0.0, 0.5), 0.5),    // Small convex
+        ];
+        
+        let hull = arcline_convex_hull(&arcs);
+        assert_eq!(hull.len(), 4);
+        
+        // Write SVG for visualization
+        use crate::svg::SVG;
+        let arcs2 = arcline_scale(&arcs, 100.0);
+        let hull2 = arcline_scale(&hull, 100.0);
+        let arcs3 = arcline_translate(&arcs2, point(150.0, 150.0));
+        let hull3 = arcline_translate(&hull2, point(150.0, 150.0));
+        let mut svg = SVG::new(600.0, 600.0, Some("/tmp/test.svg"));
+        svg.arcline(&arcs3, "blue");
+        svg.arcline(&hull3, "red");
         svg.write_stroke_width(0.1);
     }
 }
