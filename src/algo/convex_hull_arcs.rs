@@ -103,7 +103,7 @@ fn new_convex_hull(arcs: &Arcline) -> Arcline {
     hull
 }
 
-fn hull_seg_seg(seg1: Arc, seg2: Arc) -> (Point, Point) {
+fn hull_seg_seg(seg1: Arc, seg2: Arc) -> Arc {
     // Four possible connections between segment endpoints:
     // 1. seg1.a -> seg2.a
     // 2. seg1.a -> seg2.b
@@ -166,7 +166,8 @@ fn hull_seg_seg(seg1: Arc, seg2: Arc) -> (Point, Point) {
     }
     
     // Return the best connection, or default to seg1.b -> seg2.a if none found
-    best_connection.unwrap_or((seg1.b, seg2.a))
+    let (p1, p2) = best_connection.unwrap_or((seg1.b, seg2.a));
+    arcseg(p1, p2)
 }
 
 fn hull_arc_arc(arc1: Arc, arc2: Arc) -> Vec<Arc> {
@@ -356,6 +357,93 @@ fn hull_arc_arc(arc1: Arc, arc2: Arc) -> Vec<Arc> {
     
     result
 }
+
+fn hull_seg_arc(seg1: Arc, arc2: Arc) -> Vec<Arc> {
+    let mut result = Vec::new();
+    
+    // Get the circle that arc2 belongs to
+    let c2 = Circle { c: arc2.c, r: arc2.r };
+    
+    // Try to find tangent from each endpoint of seg1 to the circle of arc2
+    let tangent_from_a = find_tangent_point_to_circle(seg1.a, c2);
+    let tangent_from_b = find_tangent_point_to_circle(seg1.b, c2);
+    
+    // Check tangent from seg1.b first (as it's the natural continuation point)
+    if let Some(t_b) = tangent_from_b {
+        // Check if tangent point is on arc2
+        if arc2.contains(t_b) {
+            // Valid tangent: seg1.b -> t_b (tangent line), then arc from t_b to arc2.b
+            if !seg1.b.close_enough(t_b, 1e-9) {
+                result.push(arcseg(seg1.b, t_b));
+            }
+            
+            // Add remaining portion of arc2 from tangent point to end
+            if !t_b.close_enough(arc2.b, 1e-9) {
+                result.push(arc(t_b, arc2.b, arc2.c, arc2.r));
+            }
+            
+            return result;
+        }
+    }
+    
+    // Check tangent from seg1.a 
+    if let Some(t_a) = tangent_from_a {
+        // Check if tangent point is on arc2
+        if arc2.contains(t_a) {
+            // Valid tangent: seg1.a -> t_a (tangent line), then arc from t_a to arc2.b
+            if !seg1.a.close_enough(t_a, 1e-9) {
+                result.push(arcseg(seg1.a, t_a));
+            }
+            
+            // Add remaining portion of arc2 from tangent point to end
+            if !t_a.close_enough(arc2.b, 1e-9) {
+                result.push(arc(t_a, arc2.b, arc2.c, arc2.r));
+            }
+            
+            return result;
+        }
+    }
+    
+    // No tangent point on the arc, try direct connections to arc endpoints
+    let candidates = [
+        (seg1.b, arc2.a),
+        (seg1.a, arc2.a),
+        (seg1.b, arc2.b),
+        (seg1.a, arc2.b),
+    ];
+    
+    for &(p1, p2) in &candidates {
+        let connection_dir = p2 - p1;
+        if connection_dir.norm() < 1e-9 {
+            continue;
+        }
+        
+        let other_seg = if p1 == seg1.a { seg1.b } else { seg1.a };
+        let to_other = other_seg - p1;
+        let cross = connection_dir.perp(to_other);
+        
+        if cross <= 1e-9 {
+            // Valid connection
+            result.push(arcseg(p1, p2));
+            
+            // If connected to arc2.a, include the full arc
+            if p2 == arc2.a {
+                result.push(arc2);
+            }
+            
+            return result;
+        }
+    }
+    
+    // Fallback: direct connection from seg1.b to arc2.a
+    if !seg1.b.close_enough(arc2.a, 1e-9) {
+        result.push(arcseg(seg1.b, arc2.a));
+    }
+    result.push(arc2);
+    
+    result
+}
+
 
 /// Computes the convex hull of an arcline (arc-based polygon).
 ///
@@ -1614,11 +1702,11 @@ mod tests {
         // Two horizontal segments, one above the other
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 0.0));
         let seg2 = arcseg(point(3.0, 2.0), point(5.0, 2.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // The function chooses based on angle, so it picks seg1.a to seg2.a
-        assert_eq!(p1, point(0.0, 0.0)); // seg1.a
-        assert_eq!(p2, point(3.0, 2.0)); // seg2.a
+        assert_eq!(result.a, point(0.0, 0.0)); // seg1.a
+        assert_eq!(result.b, point(3.0, 2.0)); // seg2.a
     }
 
     #[test]
@@ -1626,11 +1714,11 @@ mod tests {
         // Two vertical segments side by side
         let seg1 = arcseg(point(0.0, 0.0), point(0.0, 2.0));
         let seg2 = arcseg(point(3.0, 0.0), point(3.0, 2.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // Should connect top of seg1 to top of seg2  
-        assert_eq!(p1, point(0.0, 2.0)); // seg1.b
-        assert_eq!(p2, point(3.0, 2.0)); // seg2.b
+        assert_eq!(result.a, point(0.0, 2.0)); // seg1.b
+        assert_eq!(result.b, point(3.0, 2.0)); // seg2.b
     }
 
     #[test]
@@ -1638,11 +1726,11 @@ mod tests {
         // Two diagonal segments
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 1.0));
         let seg2 = arcseg(point(4.0, 0.0), point(6.0, 1.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // Should connect based on angle criterion
-        assert_eq!(p1, point(2.0, 1.0)); // seg1.b
-        assert_eq!(p2, point(6.0, 1.0)); // seg2.b
+        assert_eq!(result.a, point(2.0, 1.0)); // seg1.b
+        assert_eq!(result.b, point(6.0, 1.0)); // seg2.b
     }
 
     #[test]
@@ -1650,11 +1738,11 @@ mod tests {
         // Two parallel segments
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 0.0));
         let seg2 = arcseg(point(3.0, 1.0), point(5.0, 1.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // For parallel segments
-        assert_eq!(p1, point(0.0, 0.0)); // seg1.a
-        assert_eq!(p2, point(3.0, 1.0)); // seg2.a
+        assert_eq!(result.a, point(0.0, 0.0)); // seg1.a
+        assert_eq!(result.b, point(3.0, 1.0)); // seg2.a
     }
 
     #[test]
@@ -1662,11 +1750,11 @@ mod tests {
         // Segments with opposite orientations
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 0.0));
         let seg2 = arcseg(point(5.0, 1.0), point(3.0, 1.0)); // Reversed
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // Should connect based on angle
-        assert_eq!(p1, point(0.0, 0.0)); // seg1.a
-        assert_eq!(p2, point(3.0, 1.0)); // seg2.b
+        assert_eq!(result.a, point(0.0, 0.0)); // seg1.a
+        assert_eq!(result.b, point(3.0, 1.0)); // seg2.b
     }
 
     #[test]
@@ -1674,11 +1762,11 @@ mod tests {
         // Segments that share an endpoint
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 0.0));
         let seg2 = arcseg(point(2.0, 0.0), point(3.0, 1.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // Should handle touching segments correctly
-        assert!(p1 == seg1.a || p1 == seg1.b);
-        assert!(p2 == seg2.a || p2 == seg2.b);
+        assert!(result.a == seg1.a || result.a == seg1.b);
+        assert!(result.b == seg2.a || result.b == seg2.b);
     }
 
     #[test]
@@ -1686,16 +1774,16 @@ mod tests {
         // Two segments forming a square corner
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 0.0)); // Bottom edge
         let seg2 = arcseg(point(2.0, 0.0), point(2.0, 2.0)); // Right edge
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // For a square, should connect appropriately
-        let connection_dir = p2 - p1;
+        let connection_dir = result.b - result.a;
         if connection_dir.norm() > 1e-9 {
-            let other1 = if p1 == seg1.a { seg1.b } else { seg1.a };
-            let other2 = if p2 == seg2.a { seg2.b } else { seg2.a };
+            let other1 = if result.a == seg1.a { seg1.b } else { seg1.a };
+            let other2 = if result.b == seg2.a { seg2.b } else { seg2.a };
             
-            assert!(connection_dir.perp(other1 - p1) <= 1e-9);
-            assert!(connection_dir.perp(other2 - p1) <= 1e-9);
+            assert!(connection_dir.perp(other1 - result.a) <= 1e-9);
+            assert!(connection_dir.perp(other2 - result.a) <= 1e-9);
         }
     }
 
@@ -1704,11 +1792,11 @@ mod tests {
         // Segments far apart
         let seg1 = arcseg(point(0.0, 0.0), point(1.0, 0.0));
         let seg2 = arcseg(point(10.0, 5.0), point(11.0, 5.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // Should connect based on angle
-        assert_eq!(p1, point(0.0, 0.0)); // seg1.a
-        assert_eq!(p2, point(10.0, 5.0)); // seg2.a
+        assert_eq!(result.a, point(0.0, 0.0)); // seg1.a
+        assert_eq!(result.b, point(10.0, 5.0)); // seg2.a
     }
 
     #[test]
@@ -1716,11 +1804,11 @@ mod tests {
         // Segments with negative coordinates
         let seg1 = arcseg(point(-2.0, -1.0), point(-1.0, -1.0));
         let seg2 = arcseg(point(1.0, 1.0), point(2.0, 1.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // Should connect based on angle
-        assert_eq!(p1, point(-2.0, -1.0)); // seg1.a
-        assert_eq!(p2, point(1.0, 1.0)); // seg2.a
+        assert_eq!(result.a, point(-2.0, -1.0)); // seg1.a
+        assert_eq!(result.b, point(1.0, 1.0)); // seg2.a
     }
 
     #[test]
@@ -1728,11 +1816,11 @@ mod tests {
         // Two collinear segments
         let seg1 = arcseg(point(0.0, 0.0), point(2.0, 0.0));
         let seg2 = arcseg(point(3.0, 0.0), point(5.0, 0.0));
-        let (p1, p2) = hull_seg_seg(seg1, seg2);
+        let result = hull_seg_seg(seg1, seg2);
         
         // For collinear segments, angle criterion selects seg1.a to seg2.a
-        assert_eq!(p1, point(0.0, 0.0)); // seg1.a
-        assert_eq!(p2, point(3.0, 0.0)); // seg2.a
+        assert_eq!(result.a, point(0.0, 0.0)); // seg1.a
+        assert_eq!(result.b, point(3.0, 0.0)); // seg2.a
     }
 
     #[test]
