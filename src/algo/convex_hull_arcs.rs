@@ -652,4 +652,234 @@ mod tests {
         svg.arcline(&hull, "red");
         svg.write_stroke_width(0.1);
     }
+
+    #[test]
+    fn test_left_point_horizontal_line_segment() {
+        // Horizontal line segment: left point is the minimum x
+        let seg = arcseg(point(3.0, 5.0), point(1.0, 5.0));
+        assert_eq!(left_point(seg), 1.0);
+
+        let seg2 = arcseg(point(0.0, 0.0), point(10.0, 0.0));
+        assert_eq!(left_point(seg2), 0.0);
+    }
+
+    #[test]
+    fn test_left_point_vertical_line_segment() {
+        // Vertical line segment: left point is the x-coordinate (both endpoints have same x)
+        let seg = arcseg(point(2.0, 0.0), point(2.0, 5.0));
+        assert_eq!(left_point(seg), 2.0);
+
+        let seg2 = arcseg(point(7.5, 3.0), point(7.5, 8.0));
+        assert_eq!(left_point(seg2), 7.5);
+    }
+
+    #[test]
+    fn test_left_point_diagonal_line_segment() {
+        // Diagonal line segment: left point is the minimum x
+        let seg = arcseg(point(5.0, 0.0), point(2.0, 8.0));
+        assert_eq!(left_point(seg), 2.0);
+
+        let seg2 = arcseg(point(1.0, 10.0), point(9.0, 2.0));
+        assert_eq!(left_point(seg2), 1.0);
+    }
+
+    #[test]
+    fn test_left_point_full_circle_leftmost_on_arc() {
+        // Full circle centered at origin with radius 1.0
+        // Leftmost point should be at (-1.0, 0.0)
+        let circle_arc = arc(point(1.0, 0.0), point(1.0, 0.0), point(0.0, 0.0), 1.0);
+        let result = left_point(circle_arc);
+        assert!((result - (-1.0)).abs() < 1e-9, "Expected -1.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_circle_quarter_arc() {
+        // Quarter circle arc from (1, 0) to (0, 1), center at (0, 0), radius 1.0
+        let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+        let result = left_point(quarter_arc);
+        // The leftmost point of this arc is at (0, 0) which is an endpoint
+        assert_eq!(result, 0.0);
+    }
+
+    #[test]
+    fn test_left_point_circle_semicircle() {
+        // Top half circle: from (1, 0) to (-1, 0), center at (0, 0), radius 1.0
+        let semi_arc = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
+        let result = left_point(semi_arc);
+        // The leftmost point is at (-1.0, 0.0) which is an endpoint
+        assert_eq!(result, -1.0);
+    }
+
+    #[test]
+    fn test_left_point_circle_offset_center() {
+        // Circle centered at (5.0, 3.0) with radius 2.0
+        // Leftmost point is at (3.0, 3.0)
+        let offset_arc = arc(point(7.0, 3.0), point(7.0, 3.0), point(5.0, 3.0), 2.0);
+        let result = left_point(offset_arc);
+        assert!((result - 3.0).abs() < 1e-9, "Expected 3.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_leftmost_point_off_arc() {
+        // Arc that doesn't include its leftmost circle point
+        // Quarter arc from (1, 0) to (0, 1), center at (0, 0), radius 1.0
+        // Leftmost circle point would be at (-1, 0) which is NOT on this small arc
+        let quarter_arc = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
+        let result = left_point(quarter_arc);
+        // Should return min of endpoints: min(1.0, 0.0) = 0.0
+        assert_eq!(result, 0.0);
+    }
+
+    #[test]
+    fn test_left_point_small_radius_circle() {
+        // Small circle centered at (10.0, 5.0) with radius 0.5
+        // Leftmost point is at (9.5, 5.0)
+        let small_arc = arc(point(10.5, 5.0), point(10.5, 5.0), point(10.0, 5.0), 0.5);
+        let result = left_point(small_arc);
+        assert!((result - 9.5).abs() < 1e-9, "Expected 9.5, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_large_radius_circle() {
+        // Large circle centered at origin with radius 100.0
+        // Leftmost point is at (-100.0, 0.0)
+        let large_arc = arc(point(100.0, 0.0), point(100.0, 0.0), point(0.0, 0.0), 100.0);
+        let result = left_point(large_arc);
+        assert!((result - (-100.0)).abs() < 1e-9, "Expected -100.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_partially_wraps_leftmost() {
+        // Arc from (0, 1) to (0, -1), center at (1, 0), radius 1.0
+        // This arc wraps around and includes the leftmost point (0, 0)
+        let partial_arc = arc(point(0.0, 1.0), point(0.0, -1.0), point(1.0, 0.0), 1.0);
+        let result = left_point(partial_arc);
+        assert_eq!(result, 0.0);
+    }
+
+    #[test]
+    fn test_left_point_negative_coordinates() {
+        // Line segment with negative coordinates
+        let seg = arcseg(point(-5.0, -3.0), point(-1.0, -7.0));
+        assert_eq!(left_point(seg), -5.0);
+
+        // Arc centered at negative coordinates
+        let arc_neg = arc(point(-2.0, 0.0), point(-2.0, 0.0), point(-3.0, 0.0), 1.0);
+        let result = left_point(arc_neg);
+        assert!((result - (-4.0)).abs() < 1e-9, "Expected -4.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_small_arc_both_sides_of_leftmost() {
+        // Arc that spans across the leftmost point but includes it
+        // Center at (5, 0), radius 3, arc from (2, 2) to (2, -2)
+        // Leftmost point of circle is at (2, 0)
+        let small_arc = arc(point(2.0, 2.0), point(2.0, -2.0), point(5.0, 0.0), 3.0);
+        let result = left_point(small_arc);
+        assert!((result - 2.0).abs() < 1e-9, "Expected 2.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_doesnt_reach_leftmost() {
+        // Arc that doesn't reach the leftmost circle point
+        // Center at (3, 0), radius 2, arc from (5, 0) to (3, 2)
+        // Leftmost point of circle is at (1, 0), but arc goes from (5,0) to (3,2)
+        let arc_right = arc(point(5.0, 0.0), point(3.0, 2.0), point(3.0, 0.0), 2.0);
+        let result = left_point(arc_right);
+        // Should return min of endpoints: min(5.0, 3.0) = 3.0
+        assert_eq!(result, 3.0);
+    }
+
+    #[test]
+    fn test_left_point_tall_arc() {
+        // Tall arc from bottom to top, centered offset to the right
+        // Center at (10, 5), radius 3, arc from (10, 2) to (10, 8)
+        // Leftmost point of circle is at (7, 5)
+        let tall_arc = arc(point(10.0, 2.0), point(10.0, 8.0), point(10.0, 5.0), 3.0);
+        let result = left_point(tall_arc);
+        // This is a vertical arc, doesn't include leftmost point
+        assert_eq!(result, 10.0);
+    }
+
+    #[test]
+    fn test_left_point_wide_arc() {
+        // Wide arc from left to right, centered above
+        // Center at (0, 2), radius 2, arc from (-2, 2) to (2, 2)
+        // Leftmost point of circle is at (-2, 2)
+        let wide_arc = arc(point(-2.0, 2.0), point(2.0, 2.0), point(0.0, 2.0), 2.0);
+        let result = left_point(wide_arc);
+        assert_eq!(result, -2.0);
+    }
+
+    #[test]
+    fn test_left_point_arc_tight_curve() {
+        // Tight arc with small radius
+        // Center at (5, 0), radius 0.1, arc from (5.1, 0) to (5.05, 0.087)
+        let tight_arc = arc(point(5.1, 0.0), point(5.05, 0.087), point(5.0, 0.0), 0.1);
+        let result = left_point(tight_arc);
+        // Leftmost point would be at (4.9, 0) but arc starts at (5.1, 0)
+        // So should return min of endpoints
+        assert!((result - 5.05).abs() < 1e-9, "Expected ~5.05, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_broad_curve() {
+        // Broad shallow arc spanning wide range
+        // Center at (0, 10), radius 5, arc from (-5, 10) to (5, 10)
+        // This is the widest part of the circle
+        let broad_arc = arc(point(-5.0, 10.0), point(5.0, 10.0), point(0.0, 10.0), 5.0);
+        let result = left_point(broad_arc);
+        assert_eq!(result, -5.0);
+    }
+
+    #[test]
+    fn test_left_point_arc_three_quarters() {
+        // Three-quarters of a circle
+        // Center at (0, 0), radius 1, from (1, 0) going CCW to (0, -1)
+        // This covers right, top, left quadrants - includes leftmost point
+        let three_quarter_arc = arc(point(1.0, 0.0), point(0.0, -1.0), point(0.0, 0.0), 1.0);
+        let result = left_point(three_quarter_arc);
+        assert!((result - (-1.0)).abs() < 1e-9, "Expected -1.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_just_before_leftmost() {
+        // Arc that comes close to leftmost but doesn't include it
+        // Center at (0, 0), radius 1, from (0.9, 0.436) to (0.436, 0.9)
+        // Leftmost point is at (-1, 0), which is NOT on this arc
+        let close_arc = arc(point(0.9, 0.436), point(0.436, 0.9), point(0.0, 0.0), 1.0);
+        let result = left_point(close_arc);
+        // Should return min of endpoints: min(0.9, 0.436) = 0.436
+        assert!((result - 0.436).abs() < 0.001, "Expected ~0.436, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_just_after_leftmost() {
+        // Arc that includes leftmost point and goes a bit further
+        // Center at (0, 0), radius 1, from (-0.9, 0.436) to (-0.436, 0.9)
+        // Leftmost point is at (-1, 0), which IS on this arc
+        let after_arc = arc(point(-0.9, 0.436), point(-0.436, 0.9), point(0.0, 0.0), 1.0);
+        let result = left_point(after_arc);
+        assert!((result - (-1.0)).abs() < 1e-9, "Expected -1.0, got {}", result);
+    }
+
+    #[test]
+    fn test_left_point_arc_bottom_half() {
+        // Bottom half of a circle
+        // Center at (0, 0), radius 1, from (1, 0) to (-1, 0) going through bottom
+        let bottom_half = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
+        let result = left_point(bottom_half);
+        assert_eq!(result, -1.0);
+    }
+
+    #[test]
+    fn test_left_point_arc_right_half() {
+        // Right half of a circle - actually goes through all points on right side
+        // Center at (0, 0), radius 1, from (0, 1) to (0, -1) going through right
+        // This traverses from top, through right (1,0), to bottom - includes the leftmost (-1,0)
+        let right_half = arc(point(0.0, 1.0), point(0.0, -1.0), point(0.0, 0.0), 1.0);
+        let result = left_point(right_half);
+        // This arc actually includes the leftmost point
+        assert!((result - (-1.0)).abs() < 1e-9, "Expected -1.0, got {}", result);
+    }
 }
