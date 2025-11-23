@@ -59,17 +59,79 @@ fn find_tangent_circle_to_circle(c1: Circle, c2: Circle) -> Option<(Point, Point
     }
 }
 
+/// Compare two connections and return true if conn1 is "better" (more to the right) than conn2
+/// 
+/// For convex hull, the rightmost connection is determined by:
+/// 1. Connection that starts closer to current_arc.a (beginning of current arc)
+/// 2. Among those, the one that ends further along the target arc (closer to its end)
+/// 
+/// This ensures we wrap tightly around the polygon for the convex hull.
+fn is_better_connection(conn1: &[Arc], conn2: &[Arc], current_arc: Arc) -> bool {
+    if conn1.is_empty() {
+        return false;
+    }
+    if conn2.is_empty() {
+        return true;
+    }
+    
+    // For gift-wrapping, we want the connection that turns most to the right
+    // from the current arc's direction. This means the smallest left turn.
+    
+    // Get the direction vector of current_arc
+    let current_dir = current_arc.b - current_arc.a;
+    
+    // Get the direction vector of each connection's first segment
+    // This represents the direction we'd be heading after leaving current_arc
+    let conn1_dir = conn1[0].b - conn1[0].a;
+    let conn2_dir = conn2[0].b - conn2[0].a;
+    
+    let epsilon = 1e-9;
+    
+    if current_dir.norm() < epsilon || conn1_dir.norm() < epsilon || conn2_dir.norm() < epsilon {
+        // Degenerate case
+        return conn1_dir.norm() > conn2_dir.norm();
+    }
+    
+    // Cross product: current_dir × conn_dir
+    // Negative cross means clockwise turn (right turn), positive means CCW turn (left turn)
+    // We want the MOST NEGATIVE (most right turn) or LEAST POSITIVE (least left turn)
+    let cross1 = current_dir.perp(conn1_dir);
+    let cross2 = current_dir.perp(conn2_dir);
+    
+    // Prefer the connection with smaller cross product (more right / less left)
+    cross1 < cross2
+}
+
+/// Returns true if dir1 is more to the right (more clockwise) than dir2
+/// when both directions start from the same point.
+/// 
+/// Uses cross product to determine relative orientation:
+/// - cross < 0: dir1 is clockwise from dir2 (dir1 is to the right)
+/// - cross > 0: dir1 is counter-clockwise from dir2 (dir1 is to the left)
+fn is_better_direction(dir1: Point, dir2: Point) -> bool {
+    let cross = dir1.perp(dir2);
+    
+    if cross.abs() < 1e-9 {
+        // Directions are collinear, prefer the one that reaches further
+        return dir1.norm() > dir2.norm();
+    }
+    
+    // dir1 is better if it's more clockwise (to the right), i.e., cross < 0
+    cross < 0.0
+}
+
 #[must_use]
 fn new_convex_hull(arcs: &Arcline) -> Arcline {
     let mut segs = arcs.clone();
-    let hull = Arcline::new();
     
     if arcs.is_empty() {
-        return hull;
+        return Arcline::new();
     }
 
     let n = arcs.len();
     let mut convex = Vec::with_capacity(n);
+    convex.resize(n, false);
+    
     // Convert concave to properly oriented arcseg
     for i in 0..n {
         if arcs[i].is_seg() {
@@ -83,30 +145,91 @@ fn new_convex_hull(arcs: &Arcline) -> Arcline {
             convex[i] = false;
         }
     }
-    let start = find_starting_arc(&segs);
-    let mut best_connection: Option<(Point, Point)> = None;
     
-    for i in start..(n + start) {
-        let idx1 = i % n;
-        let arc1 = segs[idx1];
+    let start_idx = find_starting_arc(&segs);
+    let mut hull = Arcline::new();
+    let mut current_idx = start_idx;
+    let mut iterations = 0;
+    
+    // Gift wrapping: from current arc, find best connection to any other arc
+    loop {
+        let current_arc = segs[current_idx];
         
-        for j in (i + 1)..(n + start) {
-            let idx2 = j % n;
-            let arc2 = segs[idx2];
+        let mut best_connection: Option<Vec<Arc>> = None;
+        let mut best_next_idx: Option<usize> = None;
+        
+        // Try connecting to all other arcs (including wrapping back to start)
+        for i in 1..n {
+            let next_idx = (current_idx + i) % n;
             
-            // From segment
-            if !convex[idx1] {
-                if !convex[idx2] {
-
-                }
+            let next_arc = segs[next_idx];
             
+            // Compute hull connection based on types
+            let connection = if current_arc.is_seg() && next_arc.is_seg() {
+                vec![hull_seg_seg(current_arc, next_arc)]
+            } else if current_arc.is_seg() && !next_arc.is_seg() {
+                hull_seg_arc(current_arc, next_arc)
+            } else if !current_arc.is_seg() && next_arc.is_seg() {
+                hull_arc_seg(current_arc, next_arc)
+            } else {
+                hull_arc_arc(current_arc, next_arc)
+            };
+            
+            // Compare with current best
+            if best_connection.is_none() || is_better_connection(&connection, best_connection.as_ref().unwrap(), current_arc) {
+                best_connection = Some(connection);
+                best_next_idx = Some(next_idx);
             }
         }
+        
+        // Also check connection back to self (for wrapping, e.g., large arc containing everything)
+        let self_connection = if current_arc.is_seg() {
+            vec![hull_seg_seg(current_arc, current_arc)]
+        } else {
+            hull_arc_arc(current_arc, current_arc)
+        };
+        
+        if best_connection.is_none() || is_better_connection(&self_connection, best_connection.as_ref().unwrap(), current_arc) {
+            best_connection = Some(self_connection);
+            best_next_idx = Some(current_idx);
+        }
+        
+        // Add the best connection to hull
+        if let Some(connection) = best_connection {
+            for arc in connection {
+                hull.push(arc);
+            }
+        }
+        
+        // Move to next arc
+        if let Some(next_idx) = best_next_idx {
+            current_idx = next_idx;
+            iterations += 1;
+            
+            // Check if we've completed the loop back to start
+            if current_idx == start_idx && iterations > 1 {
+                // We've wrapped back to start after processing at least one arc
+                break;
+            }
+            
+            // Safety check to prevent infinite loops
+            if iterations > n {
+                break;
+            }
+        } else {
+            break; // No valid connection found
+        }
     }
+    
     hull
 }
 
 fn hull_seg_seg(seg1: Arc, seg2: Arc) -> Arc {
+    // If segments are already connected (seg1.b == seg2.a), return seg1
+    if seg1.b == seg2.a {
+        return seg1;
+    }
+    
     // Four possible connections between segment endpoints:
     // 1. seg1.a -> seg2.a
     // 2. seg1.a -> seg2.b
@@ -447,6 +570,93 @@ fn hull_seg_arc(seg1: Arc, arc2: Arc) -> Vec<Arc> {
     result
 }
 
+fn hull_arc_seg(arc1: Arc, seg2: Arc) -> Vec<Arc> {
+    let mut result = Vec::new();
+    
+    // Get the circle that arc1 belongs to
+    let c1 = Circle { c: arc1.c, r: arc1.r };
+    
+    // Try to find tangent from arc1's circle to each endpoint of seg2
+    let tangent_to_a = find_tangent_point_to_circle(seg2.a, c1);
+    let tangent_to_b = find_tangent_point_to_circle(seg2.b, c1);
+    
+    // Check tangent to seg2.a first (as it's the natural continuation point)
+    if let Some(t_a) = tangent_to_a {
+        // Check if tangent point is on arc1
+        if arc1.contains(t_a) {
+            // Valid tangent: arc portion from arc1.a to t_a, then tangent line t_a -> seg2.a
+            if !arc1.a.close_enough(t_a, 1e-9) {
+                result.push(arc(arc1.a, t_a, arc1.c, arc1.r));
+            }
+            
+            // Add tangent line from arc tangent point to seg2 start
+            if !t_a.close_enough(seg2.a, 1e-9) {
+                result.push(arcseg(t_a, seg2.a));
+            }
+            
+            return result;
+        }
+    }
+    
+    // Check tangent to seg2.b
+    if let Some(t_b) = tangent_to_b {
+        // Check if tangent point is on arc1
+        if arc1.contains(t_b) {
+            // Valid tangent: arc portion from arc1.a to t_b, then tangent line t_b -> seg2.b
+            if !arc1.a.close_enough(t_b, 1e-9) {
+                result.push(arc(arc1.a, t_b, arc1.c, arc1.r));
+            }
+            
+            // Add tangent line from arc tangent point to seg2 end
+            if !t_b.close_enough(seg2.b, 1e-9) {
+                result.push(arcseg(t_b, seg2.b));
+            }
+            
+            return result;
+        }
+    }
+    
+    // No tangent point on the arc, try direct connections from arc endpoints to seg2
+    let candidates = [
+        (arc1.b, seg2.a),
+        (arc1.a, seg2.a),
+        (arc1.b, seg2.b),
+        (arc1.a, seg2.b),
+    ];
+    
+    for &(p1, p2) in &candidates {
+        let connection_dir = p2 - p1;
+        if connection_dir.norm() < 1e-9 {
+            continue;
+        }
+        
+        let other_arc = if p1 == arc1.a { arc1.b } else { arc1.a };
+        let to_other = other_arc - p1;
+        let cross = connection_dir.perp(to_other);
+        
+        if cross <= 1e-9 {
+            // Valid connection
+            // If connected from arc1.a, don't include arc portion
+            if p1 != arc1.a && !arc1.a.close_enough(p1, 1e-9) {
+                result.push(arc(arc1.a, p1, arc1.c, arc1.r));
+            }
+            
+            result.push(arcseg(p1, p2));
+            
+            return result;
+        }
+    }
+    
+    // Fallback: direct connection from arc1.b to seg2.a
+    if !arc1.a.close_enough(arc1.b, 1e-9) {
+        result.push(arc(arc1.a, arc1.b, arc1.c, arc1.r));
+    }
+    if !arc1.b.close_enough(seg2.a, 1e-9) {
+        result.push(arcseg(arc1.b, seg2.a));
+    }
+    
+    result
+}
 
 /// Computes the convex hull of an arcline (arc-based polygon).
 ///
@@ -488,93 +698,5 @@ fn hull_seg_arc(seg1: Arc, arc2: Arc) -> Vec<Arc> {
 /// ```
 #[must_use]
 pub fn arcline_convex_hull(arcs: &Arcline) -> Arcline {
-    if arcs.is_empty() {
-        return Arcline::new();
-    }
-
-    let n = arcs.len();
-
-    // Extract all candidate points: just arc endpoints for now
-    let mut points_with_indices: Vec<(Point, usize, bool)> = Vec::new(); // (point, arc_idx, is_end_b)
-
-    for (i, arc) in arcs.iter().enumerate() {
-        points_with_indices.push((arc.a, i, false));
-        points_with_indices.push((arc.b, i, true));
-    }
-
-    // Find the bottommost point (minimum y, then minimum x)
-    let mut start_idx = 0;
-    let mut start_point = points_with_indices[0].0;
-
-    for (i, &(p, _, _)) in points_with_indices.iter().enumerate() {
-        if p.y < start_point.y || (p.y == start_point.y && p.x < start_point.x) {
-            start_idx = i;
-            start_point = p;
-        }
-    }
-
-    // Gift-wrapping on the extracted points
-    let mut hull_point_indices: Vec<usize> = vec![start_idx];
-    let mut current_point_idx = start_idx;
-    let mut prev_direction = Point { x: 1.0, y: 0.0 }; // Start pointing right
-
-    loop {
-        let current_point = points_with_indices[current_point_idx].0;
-
-        // Find the point with the largest (most left-turn) cross product
-        let mut best_point_idx = current_point_idx;
-        let mut best_cross = f64::NEG_INFINITY;
-
-        for (i, &(candidate_point, _, _)) in points_with_indices.iter().enumerate() {
-            if i == current_point_idx {
-                continue;
-            }
-
-            let to_candidate = candidate_point - current_point;
-
-            if to_candidate.norm() < 1e-9 {
-                continue; // Skip if same point
-            }
-
-            // Cross product: prev_direction × to_candidate
-            let cross = prev_direction.x * to_candidate.y - prev_direction.y * to_candidate.x;
-
-            if cross > best_cross {
-                best_cross = cross;
-                best_point_idx = i;
-            }
-        }
-
-        // If we've wrapped back to the start, we're done
-        if best_point_idx == start_idx && hull_point_indices.len() > 2 {
-            break;
-        }
-
-        hull_point_indices.push(best_point_idx);
-
-        // Update direction for next iteration
-        let next_point = points_with_indices[best_point_idx].0;
-        prev_direction = next_point - current_point;
-        current_point_idx = best_point_idx;
-
-        // Safety check
-        if hull_point_indices.len() > n + 10 {
-            break;
-        }
-    }
-
-    // Convert the hull points back to arcline segments
-    let mut hull = Arcline::new();
-
-    for i in 0..hull_point_indices.len() {
-        let p1_idx = hull_point_indices[i];
-        let p2_idx = hull_point_indices[(i + 1) % hull_point_indices.len()];
-
-        let (p1, _, _) = points_with_indices[p1_idx];
-        let (p2, _, _) = points_with_indices[p2_idx];
-
-        hull.push(arcseg(p1, p2));
-    }
-
-    hull
+    new_convex_hull(arcs)
 }
