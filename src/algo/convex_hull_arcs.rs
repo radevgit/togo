@@ -2167,4 +2167,295 @@ mod tests {
         assert_eq!(result[1].a, point(0.0, 0.1)); // t1
         assert_eq!(result[1].b, point(0.6, 0.1)); // t2 = arc2.b
     }
+
+    // ===== hull_seg_arc Tests =====
+
+    #[test]
+    fn test_hull_seg_arc_tangent_from_seg_end() {
+        // Segment to arc where tangent from seg.b to arc exists and is on the arc
+        // Horizontal segment, arc to the right and above
+        let seg = arcseg(point(0.0, 0.0), point(2.0, 0.0));
+        let arc_center = point(5.0, 0.0);
+        let arc_radius = 2.0;
+        // Arc on right side of circle, top quadrant
+        let arc2 = arc(point(7.0, 0.0), point(5.0, 2.0), arc_center, arc_radius);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connects to arc start, so: tangent line + full arc
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert_eq!(result[0].a, point(2.0, 0.0)); // seg.b
+        assert_eq!(result[0].b, point(7.0, 0.0)); // arc2.a
+        assert!(!result[1].is_seg());
+        assert_eq!(result[1].a, point(7.0, 0.0));
+        assert_eq!(result[1].b, point(5.0, 2.0));
+    }
+
+    #[test]
+    fn test_hull_seg_arc_tangent_point_on_arc() {
+        // Segment with tangent point that lies exactly on the arc
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        // Circle at (5, 0) radius 2, arc from right to top
+        let arc2 = arc(point(7.0, 0.0), point(5.0, 2.0), point(5.0, 0.0), 2.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connects to arc start
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert_eq!(result[0].a, point(1.0, 0.0)); // seg.b
+        assert_eq!(result[0].b, point(7.0, 0.0)); // arc2.a
+        assert!(!result[1].is_seg());
+        assert_eq!(result[1], arc2);
+    }
+
+    #[test]
+    fn test_hull_seg_arc_no_tangent_connect_to_arc_start() {
+        // Segment and arc where tangent computation finds valid tangent on arc
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 1.0));
+        let arc2 = arc(point(3.0, 0.0), point(4.0, 1.0), point(4.0, 0.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connection produces 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_segment_below_arc() {
+        // Horizontal segment below a convex arc
+        let seg = arcseg(point(0.0, 0.0), point(2.0, 0.0));
+        let arc2 = arc(point(3.0, 0.0), point(3.0, 2.0), point(3.0, 1.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Produces tangent or endpoint connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_segment_to_left_of_arc() {
+        // Segment to the left of arc
+        let seg = arcseg(point(0.0, 0.0), point(0.0, 2.0)); // Vertical segment
+        let arc2 = arc(point(3.0, 0.0), point(5.0, 1.0), point(4.0, 0.0), 1.414);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_vertical_segment_horizontal_arc() {
+        // Vertical segment connecting to horizontally oriented arc
+        let seg = arcseg(point(0.0, 0.0), point(0.0, 2.0));
+        let arc2 = arc(point(2.0, 3.0), point(4.0, 3.0), point(3.0, 3.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_diagonal_segment_to_arc() {
+        // Diagonal segment to arc
+        let seg = arcseg(point(0.0, 0.0), point(2.0, 1.0));
+        let arc2 = arc(point(4.0, 2.0), point(5.0, 3.0), point(5.0, 2.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_segment_far_from_arc() {
+        // Segment far away from arc
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        let arc2 = arc(point(10.0, 5.0), point(11.0, 6.0), point(11.0, 5.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_touching_segment_and_arc() {
+        // Segment endpoint touches arc start, but tangent from seg.a to arc exists
+        let seg = arcseg(point(0.0, 0.0), point(2.0, 0.0));
+        let arc2 = arc(point(2.0, 0.0), point(3.0, 1.0), point(3.0, 0.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent from seg.a found on arc, produces 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        // Tangent from (0,0) to arc's circle
+        assert!(result[0].a == seg.a);
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_small_arc() {
+        // Small arc to test numerical stability
+        let seg = arcseg(point(0.0, 0.0), point(0.1, 0.0));
+        let arc2 = arc(point(0.3, 0.0), point(0.4, 0.05), point(0.4, 0.0), 0.05);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Should produce 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_large_arc() {
+        // Large arc with segment
+        let seg = arcseg(point(0.0, 0.0), point(5.0, 0.0));
+        let arc2 = arc(point(10.0, 0.0), point(10.0, 10.0), point(10.0, 5.0), 5.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_negative_coordinates() {
+        // Segment and arc with negative coordinates
+        let seg = arcseg(point(-5.0, -2.0), point(-3.0, -2.0));
+        let arc2 = arc(point(-1.0, -1.0), point(0.0, 0.0), point(0.0, -1.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_arc_below_segment() {
+        // Arc positioned below the segment
+        let seg = arcseg(point(0.0, 5.0), point(2.0, 5.0));
+        let arc2 = arc(point(3.0, 2.0), point(4.0, 1.0), point(4.0, 2.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_semicircle() {
+        // Segment to semicircular arc
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        let arc2 = arc(point(3.0, 0.0), point(5.0, 0.0), point(4.0, 0.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_quarter_circle() {
+        // Segment to quarter circle arc
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        // Quarter arc from right to top
+        let arc2 = arc(point(3.0, 0.0), point(2.0, 1.0), point(2.0, 0.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection from seg.b to arc start + full arc
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert_eq!(result[0].a, point(1.0, 0.0)); // seg.b
+        assert_eq!(result[0].b, point(3.0, 0.0)); // arc2.a
+        assert_eq!(result[1], arc2);
+    }
+
+    #[test]
+    fn test_hull_seg_arc_arc_wrapping_around() {
+        // Arc that wraps significantly (large angular span)
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        // Large arc spanning more than 180 degrees
+        let arc2 = arc(point(4.0, 0.0), point(2.0, 0.0), point(3.0, 0.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection from seg.b to arc start + full arc
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert_eq!(result[0].a, point(1.0, 0.0)); // seg.b
+        assert_eq!(result[0].b, point(4.0, 0.0)); // arc2.a
+        assert_eq!(result[1], arc2);
+    }
+
+    #[test]
+    fn test_hull_seg_arc_parallel_segment_and_arc_chord() {
+        // Segment parallel to arc's chord
+        let seg = arcseg(point(0.0, 0.0), point(2.0, 0.0));
+        let arc2 = arc(point(3.0, 1.0), point(5.0, 1.0), point(4.0, 1.0), 1.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_perpendicular_configurations() {
+        // Segment perpendicular to arc's general direction
+        let seg = arcseg(point(0.0, 0.0), point(0.0, 2.0)); // Vertical
+        let arc2 = arc(point(2.0, 3.0), point(4.0, 3.0), point(3.0, 3.0), 1.0); // Horizontal arc
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Tangent connection, 2 elements
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert!(!result[1].is_seg());
+    }
+
+    #[test]
+    fn test_hull_seg_arc_segment_inside_arc_circle() {
+        // Segment that's inside the circle's radius but arc doesn't cover it
+        let seg = arcseg(point(0.0, 0.0), point(1.0, 0.0));
+        // Circle center at (2, 0), radius 3, but arc only covers top portion
+        let arc2 = arc(point(5.0, 0.0), point(2.0, 3.0), point(2.0, 0.0), 3.0);
+        
+        let result = hull_seg_arc(seg, arc2);
+        
+        // Connection from seg.b to arc start + full arc
+        assert_eq!(result.len(), 2);
+        assert!(result[0].is_seg());
+        assert_eq!(result[0].a, point(1.0, 0.0)); // seg.b
+        assert_eq!(result[0].b, point(5.0, 0.0)); // arc2.a
+        assert_eq!(result[1], arc2);
+    }
 }
