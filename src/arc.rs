@@ -5,6 +5,7 @@ use robust::{Coord, orient2d};
 use crate::constants::{DIVISION_EPSILON, GEOMETRIC_EPSILON};
 use crate::prelude::*;
 
+use std::ops::Div;
 use std::{fmt::Display, sync::atomic::AtomicUsize};
 
 /// A Arcline is a sequence of connected Arc-s forming a path.
@@ -932,7 +933,10 @@ mod test_arc_validation {
         assert!(test_arc1.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
 
         let p3 = point(100.0, 100.0);
-        let p4 = point(100.0 + ARC_COLLAPSED_TOLERANCE / 3.0, 100.0 + ARC_COLLAPSED_TOLERANCE / 3.0);
+        let p4 = point(
+            100.0 + ARC_COLLAPSED_TOLERANCE / 3.0,
+            100.0 + ARC_COLLAPSED_TOLERANCE / 3.0,
+        );
         let test_arc2 = arc(p3, p4, point(100.0, 100.0), 1.0);
         assert!(test_arc2.is_collapsed_ends(ARC_COLLAPSED_TOLERANCE));
     }
@@ -1221,7 +1225,7 @@ pub fn bulge_from_arc(a: Point, b: Point, c: Point, r: f64) -> f64 {
     let pc = Coord { x: c.x, y: c.y };
     let perp = orient2d(pa, pb, pc);
     let ddd = (4.0 * r * r) - dist * dist;
-    
+
     // Guard: Clamp ddd to zero before sqrt to prevent NaN from negative values
     // This handles cases where floating-point rounding makes ddd slightly negative
     let ddd_clamped = ddd.max(0.0);
@@ -1239,18 +1243,18 @@ pub fn bulge_from_arc(a: Point, b: Point, c: Point, r: f64) -> f64 {
     if seg.abs() <= 1E-10 || !seg.is_finite() {
         return 0f64;
     }
-    
+
     // The original formula was returning 2.0 * seg / dist
     // But to match arc_circle_parametrization, we need to return the actual bulge
     // The relationship is: bulge = dist / (2 * seg)
     // This comes from the inverse of the parametrization formula
     let bulge = dist / (2.0 * seg);
-    
+
     // Final safety check: ensure result is valid
     if !bulge.is_finite() {
         return 0f64;
     }
-    
+
     bulge
 }
 
@@ -1296,12 +1300,12 @@ pub fn arc_from_bulge(p1: Point, p2: Point, bulge: f64) -> Arc {
     let mut pp1 = p1;
     let mut pp2 = p2;
     let mut bulge = bulge;
-    
+
     // Guard 1: if bulge is invalid (NaN/Infinity), treat as line segment
     if !bulge.is_finite() {
         return arcseg(p1, p2);
     }
-    
+
     // Handle negative bulge first (before DIVISION_EPSILON check) to ensure consistent endpoint ordering
     if bulge < 0f64 {
         // make arc CCW
@@ -1309,7 +1313,7 @@ pub fn arc_from_bulge(p1: Point, p2: Point, bulge: f64) -> Arc {
         pp2 = p1;
         bulge = -bulge;
     }
-    
+
     // Guard 2: Check for degenerate conditions
     // - Bulge too small (would cause division issues)
     // - Endpoints too close (degenerate arc)
@@ -1325,12 +1329,12 @@ pub fn arc_from_bulge(p1: Point, p2: Point, bulge: f64) -> Arc {
     let cx = (0.5 * pp1.x + 0.5 * pp2.x) + dt2 * (pp1.y - pp2.y);
     let cy = (0.5 * pp1.y + 0.5 * pp2.y) + dt2 * (pp2.x - pp1.x);
     let r = 0.25 * t2 * (1.0 / bulge + bulge).abs();
-    
+
     // Guard 3: if results contain NaN or Infinity, treat as line segment
     if !cx.is_finite() || !cy.is_finite() || !r.is_finite() {
         return arcseg(pp1, pp2);
     }
-    
+
     arc(pp1, pp2, point(cx, cy), r)
 }
 
@@ -1620,7 +1624,7 @@ mod test_arc_g_from_points {
             );
         }
     }
-    
+
     #[test]
     fn test_close_points_large_bulge() {
         let r = 1.0;
@@ -1631,20 +1635,20 @@ mod test_arc_g_from_points {
     }
 
     // ===== Phase 3.3: Degenerate Arc Handling Tests =====
-    
+
     #[test]
     fn test_degenerate_tiny_bulge_near_division_epsilon() {
         // Test bulge at or near DIVISION_EPSILON (1e-12)
         // Should be treated as line segment
         use crate::constants::DIVISION_EPSILON;
-        
+
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
-        
+
         // Test bulge at DIVISION_EPSILON - should be line
         let arc1 = arc_from_bulge(a, b, DIVISION_EPSILON / 2.0);
         assert!(arc1.is_seg(), "Very tiny bulge should be line segment");
-        
+
         // Test bulge just above DIVISION_EPSILON - should be arc
         let arc2 = arc_from_bulge(a, b, DIVISION_EPSILON * 10.0);
         assert!(arc2.is_arc(), "Bulge above guard should be arc");
@@ -1665,29 +1669,41 @@ mod test_arc_g_from_points {
         // Infinite bulge should return line segment
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
-        
+
         let arc_pos_inf = arc_from_bulge(a, b, f64::INFINITY);
-        assert!(arc_pos_inf.is_seg(), "Positive infinite bulge should produce line segment");
-        
+        assert!(
+            arc_pos_inf.is_seg(),
+            "Positive infinite bulge should produce line segment"
+        );
+
         let arc_neg_inf = arc_from_bulge(a, b, f64::NEG_INFINITY);
-        assert!(arc_neg_inf.is_seg(), "Negative infinite bulge should produce line segment");
+        assert!(
+            arc_neg_inf.is_seg(),
+            "Negative infinite bulge should produce line segment"
+        );
     }
 
     #[test]
     fn test_degenerate_coincident_endpoints() {
         // Points at same location should return line segment
         use crate::constants::GEOMETRIC_EPSILON;
-        
+
         let a = point(1.5, 2.5);
-        
+
         // Exactly same point
         let arc1 = arc_from_bulge(a, a, 1.0);
-        assert!(arc1.is_seg(), "Identical endpoints should produce line segment");
-        
+        assert!(
+            arc1.is_seg(),
+            "Identical endpoints should produce line segment"
+        );
+
         // Endpoints within tolerance
         let b = point(1.5 + GEOMETRIC_EPSILON / 2.0, 2.5);
         let arc2 = arc_from_bulge(a, b, 1.0);
-        assert!(arc2.is_seg(), "Nearly identical endpoints should produce line segment");
+        assert!(
+            arc2.is_seg(),
+            "Nearly identical endpoints should produce line segment"
+        );
     }
 
     #[test]
@@ -1695,14 +1711,17 @@ mod test_arc_g_from_points {
         // Test very large and very small bulge values
         let a = point(0.0, 0.0);
         let b = point(1.0, 0.0);
-        
+
         // Extremely large bulge
         let arc_large = arc_from_bulge(a, b, 1e10);
         assert!(arc_large.is_arc(), "Very large bulge should produce arc");
-        
+
         // Extremely small bulge (but not NaN/Infinity)
         let arc_small = arc_from_bulge(a, b, 1e-15);
-        assert!(arc_small.is_seg(), "Extremely small bulge should be line segment");
+        assert!(
+            arc_small.is_seg(),
+            "Extremely small bulge should be line segment"
+        );
     }
 
     #[test]
@@ -1711,14 +1730,14 @@ mod test_arc_g_from_points {
         let a = point(0.0, 0.0);
         let b = point(2.0, 0.0);
         let bulge = 0.5;
-        
+
         let arc_pos = arc_from_bulge(a, b, bulge);
         let arc_neg = arc_from_bulge(a, b, -bulge);
-        
+
         // Both should produce valid arcs
         assert!(arc_pos.is_arc(), "Positive bulge should be arc");
         assert!(arc_neg.is_arc(), "Negative bulge should be arc");
-        
+
         // Endpoints should be swapped
         assert_eq!(arc_pos.a, arc_neg.b, "Negative bulge swaps endpoints");
         assert_eq!(arc_pos.b, arc_neg.a, "Negative bulge swaps endpoints");
@@ -1732,10 +1751,13 @@ mod test_arc_g_from_points {
             (point(100.0, 100.0), point(100.0, 100.0)),
             (point(-1e6, -1e6), point(-1e6, -1e6)),
         ];
-        
+
         for (a, b) in &test_points {
             let arc = arc_from_bulge(*a, *b, 1.0);
-            assert!(arc.is_seg(), "Zero-length chord should produce line segment");
+            assert!(
+                arc.is_seg(),
+                "Zero-length chord should produce line segment"
+            );
         }
     }
 
@@ -1745,7 +1767,7 @@ mod test_arc_g_from_points {
         // This is tricky to trigger naturally, but we can verify the guards exist
         let a = point(0.0, 0.0);
         let b = point(1.0, 0.0);
-        
+
         // Normal case should produce finite geometry
         let arc = arc_from_bulge(a, b, 0.5);
         assert!(arc.c.x.is_finite(), "Arc center x should be finite");
@@ -1759,21 +1781,17 @@ mod test_arc_g_from_points {
         // even at problematic values
         let a = point(0.0, 0.0);
         let b = point(1.0, 0.0);
-        
+
         let test_bulges = [
-            1e-11,  // Near DIVISION_EPSILON
-            1e-10,  // Near GEOMETRIC_EPSILON
-            1e-8,   // Normal small
-            0.1,
-            0.5,
-            1.0,
-            2.0,
-            1e2,
+            1e-11, // Near DIVISION_EPSILON
+            1e-10, // Near GEOMETRIC_EPSILON
+            1e-8,  // Normal small
+            0.1, 0.5, 1.0, 2.0, 1e2,
         ];
-        
+
         for &bulge in &test_bulges {
             let arc = arc_from_bulge(a, b, bulge);
-            
+
             if arc.is_seg() {
                 // Very small bulges should produce line segments, which is acceptable
                 assert!(bulge < 1e-9, "Only very small bulges should be lines");
@@ -2304,7 +2322,7 @@ pub fn arcline_is_valid(arcs: &Arcline) -> ArclineValidation {
         if arc.is_seg() {
             let prev_arc = arcs[if i == 0 { size - 1 } else { i - 1 }];
             let next_arc = arcs[(i + 1) % size];
-            
+
             // A segment should connect: prev_arc.end -> arc.start and arc.end -> next_arc.start
             // If reversed: prev_arc.end == arc.end and arc.start != prev_arc.end
             if prev_arc.b == arc.b && prev_arc.b != arc.a {
@@ -2343,23 +2361,17 @@ fn arc_have_two_connected_ends(arc1: &Arc, arc2: &Arc, arc3: &Arc) -> bool {
     // Check connectivity between consecutive arcs
     // arc1 must connect to arc2, and arc2 must connect to arc3
     // They connect if any endpoint of arc1 exactly matches any endpoint of arc2
-    
+
     // arc1 connects to arc2 if:
     // - arc1.b == arc2.a (normal case), OR
-    // - arc1.b == arc2.b (arc2 is reversed), OR  
+    // - arc1.b == arc2.b (arc2 is reversed), OR
     // - arc1.a == arc2.a (arc1 is reversed and arc2 is reversed), OR
     // - arc1.a == arc2.b (arc1 is reversed)
-    let arc1_to_arc2 = arc1.b == arc2.a ||
-                       arc1.b == arc2.b ||
-                       arc1.a == arc2.a ||
-                       arc1.a == arc2.b;
-    
+    let arc1_to_arc2 = arc1.b == arc2.a || arc1.b == arc2.b || arc1.a == arc2.a || arc1.a == arc2.b;
+
     // arc2 connects to arc3 - same logic
-    let arc2_to_arc3 = arc2.b == arc3.a ||
-                       arc2.b == arc3.b ||
-                       arc2.a == arc3.a ||
-                       arc2.a == arc3.b;
-    
+    let arc2_to_arc3 = arc2.b == arc3.a || arc2.b == arc3.b || arc2.a == arc3.a || arc2.a == arc3.b;
+
     arc1_to_arc2 && arc2_to_arc3
 }
 
@@ -2382,16 +2394,16 @@ fn arc_have_two_connected_ends(arc1: &Arc, arc2: &Arc, arc3: &Arc) -> bool {
 /// # Returns
 ///
 /// `true` if the arc is convex (forward traversal), `false` if concave (backward traversal)
-pub fn is_arc_convex(arcs: &Arcline, index: usize) -> bool {
-    if arcs.is_empty() || index >= arcs.len() {
+pub fn is_arc_convex(arcs: &Arcline, mut index: usize) -> bool {
+    if arcs.is_empty() {
         return true; // Default to convex
     }
     let size = arcs.len();
+    index = index % size;
     let next = arcs[(index + 1) % size];
     let prev = arcs[(index + size - 1) % size];
     let arc = arcs[index];
-    (prev.a == arc.a || prev.b == arc.a)
-        && (arc.b == next.a || arc.b == next.b)
+    (prev.a == arc.a || prev.b == arc.a) && (arc.b == next.a || arc.b == next.b)
 }
 
 // Check that each arc have 2 connected ends
@@ -2850,109 +2862,157 @@ mod test_is_valid_arcline {
     fn test_arcline200_validity_with_ccw_check() {
         // Test arcline200 validation including CCW orientation check
         use crate::poly::data::arcline200;
-        
+
         let arcline = arcline200();
         let result = arcline_is_valid(&arcline);
         println!("arcline200 validation result: {:?}", result);
         println!("arcline200 length: {}", arcline.len());
-        
+
         // Print area to see if it's CCW (positive)
         let area = crate::algo::arcline_area(&arcline);
         println!("arcline200 area: {}", area);
-        
+
         // Print connection arcs (should be at index 100, 200+, and 222)
         println!("\nConnection and spiral info:");
         println!("Arc 0: {} -> {}", arcline[0].a, arcline[0].b);
         println!("Arc 1: {} -> {}", arcline[1].a, arcline[1].b);
-        
+
         // Check gap between arc 0 and 1
-        let gap_0_1 = ((arcline[0].b.x - arcline[1].a.x).powi(2) + (arcline[0].b.y - arcline[1].a.y).powi(2)).sqrt();
+        let gap_0_1 = ((arcline[0].b.x - arcline[1].a.x).powi(2)
+            + (arcline[0].b.y - arcline[1].a.y).powi(2))
+        .sqrt();
         println!("Gap between Arc 0.b and Arc 1.a: {}", gap_0_1);
-        
+
         println!("\nArc 98: {} -> {}", arcline[98].a, arcline[98].b);
         println!("Arc 99: {} -> {}", arcline[99].a, arcline[99].b);
-        println!("Arc 100 (connection1): {} -> {} (is_seg: {})", arcline[100].a, arcline[100].b, arcline[100].is_seg());
-        
+        println!(
+            "Arc 100 (connection1): {} -> {} (is_seg: {})",
+            arcline[100].a,
+            arcline[100].b,
+            arcline[100].is_seg()
+        );
+
         // Check gap between arc 99 and 100
-        let gap_99_100 = ((arcline[99].b.x - arcline[100].a.x).powi(2) + (arcline[99].b.y - arcline[100].a.y).powi(2)).sqrt();
+        let gap_99_100 = ((arcline[99].b.x - arcline[100].a.x).powi(2)
+            + (arcline[99].b.y - arcline[100].a.y).powi(2))
+        .sqrt();
         println!("Gap between Arc 99.b and Arc 100.a: {}", gap_99_100);
-        
-        println!("Arc 101 (spiral2_rev[0]): {} -> {} (is_seg: {})", arcline[101].a, arcline[101].b, arcline[101].is_seg());
-        
+
+        println!(
+            "Arc 101 (spiral2_rev[0]): {} -> {} (is_seg: {})",
+            arcline[101].a,
+            arcline[101].b,
+            arcline[101].is_seg()
+        );
+
         // Check gap between arc 100 and 101
-        let gap_100_101 = ((arcline[100].b.x - arcline[101].a.x).powi(2) + (arcline[100].b.y - arcline[101].a.y).powi(2)).sqrt();
+        let gap_100_101 = ((arcline[100].b.x - arcline[101].a.x).powi(2)
+            + (arcline[100].b.y - arcline[101].a.y).powi(2))
+        .sqrt();
         println!("Gap between Arc 100.b and Arc 101.a: {}", gap_100_101);
-        
+
         let spiral2_start_len = arcline.len() - 101 - 1; // Total - (spiral1 + connection1) - connection2
         println!("Expected spiral2_reversed length: {}", spiral2_start_len);
-        
+
         let last_spiral2_idx = 100 + spiral2_start_len;
         if last_spiral2_idx < arcline.len() {
-            println!("Arc {} (spiral2_rev[last]): {} -> {} (is_seg: {})", 
-                last_spiral2_idx, arcline[last_spiral2_idx].a, arcline[last_spiral2_idx].b, arcline[last_spiral2_idx].is_seg());
-            println!("Arc {} (connection2): {} -> {} (is_seg: {})", 
-                last_spiral2_idx+1, arcline[last_spiral2_idx+1].a, arcline[last_spiral2_idx+1].b, arcline[last_spiral2_idx+1].is_seg());
-            
+            println!(
+                "Arc {} (spiral2_rev[last]): {} -> {} (is_seg: {})",
+                last_spiral2_idx,
+                arcline[last_spiral2_idx].a,
+                arcline[last_spiral2_idx].b,
+                arcline[last_spiral2_idx].is_seg()
+            );
+            println!(
+                "Arc {} (connection2): {} -> {} (is_seg: {})",
+                last_spiral2_idx + 1,
+                arcline[last_spiral2_idx + 1].a,
+                arcline[last_spiral2_idx + 1].b,
+                arcline[last_spiral2_idx + 1].is_seg()
+            );
+
             // Check gap between spiral2_rev[last] and connection2
-            let gap_spiral2_conn2 = ((arcline[last_spiral2_idx].b.x - arcline[last_spiral2_idx+1].a.x).powi(2) 
-                + (arcline[last_spiral2_idx].b.y - arcline[last_spiral2_idx+1].a.y).powi(2)).sqrt();
-            println!("Gap between spiral2_rev[last].b and connection2.a: {}", gap_spiral2_conn2);
+            let gap_spiral2_conn2 =
+                ((arcline[last_spiral2_idx].b.x - arcline[last_spiral2_idx + 1].a.x).powi(2)
+                    + (arcline[last_spiral2_idx].b.y - arcline[last_spiral2_idx + 1].a.y).powi(2))
+                .sqrt();
+            println!(
+                "Gap between spiral2_rev[last].b and connection2.a: {}",
+                gap_spiral2_conn2
+            );
         }
-        
+
         // Check gap between connection2.b and arc 0.a (to close the loop)
         if arcline.len() > 0 {
             let last_idx = arcline.len() - 1;
-            let gap_close_loop = ((arcline[last_idx].b.x - arcline[0].a.x).powi(2) 
-                + (arcline[last_idx].b.y - arcline[0].a.y).powi(2)).sqrt();
-            println!("Gap between connection2.b and Arc 0.a (close loop): {}", gap_close_loop);
+            let gap_close_loop = ((arcline[last_idx].b.x - arcline[0].a.x).powi(2)
+                + (arcline[last_idx].b.y - arcline[0].a.y).powi(2))
+            .sqrt();
+            println!(
+                "Gap between connection2.b and Arc 0.a (close loop): {}",
+                gap_close_loop
+            );
         }
-        
+
         // Check which segments might be problematic
         for i in 0..arcline.len() {
             let arc = &arcline[i];
             if arc.is_seg() {
                 let seg_contribution = arc.a.perp(arc.b);
                 if seg_contribution < -1e-10 {
-                    println!("REVERSED SEGMENT at index {}: {} -> {}, contribution: {}", 
-                        i, arc.a, arc.b, seg_contribution);
+                    println!(
+                        "REVERSED SEGMENT at index {}: {} -> {}, contribution: {}",
+                        i, arc.a, arc.b, seg_contribution
+                    );
                 }
             }
         }
-        
+
         // arcline200 is valid - the validation correctly detects that arcs connect
         // even when they have reversed endpoints from negative bulges
-        assert!(matches!(result, ArclineValidation::Valid), 
-                "Expected Valid for arcline200, got {:?}", result);
+        assert!(
+            matches!(result, ArclineValidation::Valid),
+            "Expected Valid for arcline200, got {:?}",
+            result
+        );
     }
 
     #[test]
     fn test_arcline500_validity_with_ccw_check() {
         // Test arcline500 validation including CCW orientation check
         use crate::poly::data::arcline500;
-        
+
         let arcline = arcline500();
         let result = arcline_is_valid(&arcline);
         println!("arcline500 validation result: {:?}", result);
         let area = crate::algo::arcline_area(&arcline);
         println!("arcline500 area: {}", area);
-        
+
         // Assert that area is positive (CCW) or that result is not Valid
-        assert!(area > -1e-10, "arcline500 should be CCW (positive area), got {}", area);
+        assert!(
+            area > -1e-10,
+            "arcline500 should be CCW (positive area), got {}",
+            area
+        );
     }
 
     #[test]
     fn test_arcline1000_validity_with_ccw_check() {
         // Test arcline1000 validation including CCW orientation check
         use crate::poly::data::arcline1000;
-        
+
         let arcline = arcline1000();
         let result = arcline_is_valid(&arcline);
         println!("arcline1000 validation result: {:?}", result);
         let area = crate::algo::arcline_area(&arcline);
         println!("arcline1000 area: {}", area);
-        
+
         // Assert that area is positive (CCW) or that result is not Valid
-        assert!(area > -1e-10, "arcline1000 should be CCW (positive area), got {}", area);
+        assert!(
+            area > -1e-10,
+            "arcline1000 should be CCW (positive area), got {}",
+            area
+        );
     }
 
     #[test]
@@ -2963,24 +3023,24 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.5);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         // arc1: p0 -> p1
-        // arc2: p1 -> p2  
+        // arc2: p1 -> p2
         // seg: p2 -> p3 (normal orientation)
         // arc3: p3 -> p0
         // All properly connected. Should be Valid if CCW oriented.
         let arc1 = arc_from_bulge(p0, p1, 0.1);
         let arc2 = arc_from_bulge(p1, p2, 0.1);
-        let seg = arcseg(p2, p3);  // Properly connected
+        let seg = arcseg(p2, p3); // Properly connected
         let arc3 = arc_from_bulge(p3, p0, 0.1);
-        
+
         let arcline = vec![arc1, arc2, seg, arc3];
         let result = arcline_is_valid(&arcline);
-        
+
         // With proper connectivity, should validate based on CCW area
         match result {
-            ArclineValidation::Valid => {},  // Perfect case
-            ArclineValidation::NotCCW(None) => {},  // CCW check failed (negative area)
+            ArclineValidation::Valid => {}        // Perfect case
+            ArclineValidation::NotCCW(None) => {} // CCW check failed (negative area)
             other => panic!("Unexpected result: {:?}", other),
         }
     }
@@ -2991,16 +3051,22 @@ mod test_is_valid_arcline {
         let p1 = point(1.2, 0.6);
         let p2 = point(2.0, 0.3);
         let p3 = point(1.0, -0.8);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.12);
         let seg = arcseg(p1, p2);
         let arc2 = arc_from_bulge(p2, p3, 0.15);
         let arc3 = arc_from_bulge(p3, p0, 0.1);
-        
+
         let arcline = vec![arc1, seg, arc2, arc3];
         let result = arcline_is_valid(&arcline);
-        assert!(matches!(result, ArclineValidation::Valid | ArclineValidation::NotCCW(None)), 
-                "Expected Valid or CCW area check, got {:?}", result);
+        assert!(
+            matches!(
+                result,
+                ArclineValidation::Valid | ArclineValidation::NotCCW(None)
+            ),
+            "Expected Valid or CCW area check, got {:?}",
+            result
+        );
     }
 
     #[test]
@@ -3010,12 +3076,12 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(1.0, 1.0);
         let p3 = point(0.0, 1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, -0.05);
         let seg = arcseg(p1, p2);
         let arc2 = arc_from_bulge(p2, p3, 0.05);
         let arc3 = arc_from_bulge(p3, p0, 0.05);
-        
+
         let arcline = vec![arc1, seg, arc2, arc3];
         let result = arcline_is_valid(&arcline);
         // Just verify it doesn't panic - various validation checks may trigger
@@ -3028,12 +3094,12 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(1.0, 1.0);
         let p3 = point(0.0, 1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, -0.08);
         let arc2 = arc_from_bulge(p1, p2, -0.08);
         let arc3 = arc_from_bulge(p2, p3, -0.08);
         let arc4 = arc_from_bulge(p3, p0, -0.08);
-        
+
         let arcline = vec![arc1, arc2, arc3, arc4];
         let result = arcline_is_valid(&arcline);
         let _ = result;
@@ -3045,12 +3111,12 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(1.0, 1.0);
         let p3 = point(0.0, 1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.08);
         let seg1 = arcseg(p1, p2);
         let arc2 = arc_from_bulge(p2, p3, -0.08);
         let seg2 = arcseg(p3, p0);
-        
+
         let arcline = vec![arc1, seg1, arc2, seg2];
         let result = arcline_is_valid(&arcline);
         let _ = result;
@@ -3063,13 +3129,13 @@ mod test_is_valid_arcline {
         let p2 = point(1.0, 1.0);
         let p3 = point(0.5, 1.5);
         let p4 = point(0.0, 1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
         let arc2 = arc_from_bulge(p1, p2, -0.1);
         let arc3 = arc_from_bulge(p2, p3, 0.08);
         let arc4 = arc_from_bulge(p3, p4, -0.08);
         let arc5 = arc_from_bulge(p4, p0, 0.08);
-        
+
         let arcline = vec![arc1, arc2, arc3, arc4, arc5];
         let result = arcline_is_valid(&arcline);
         let _ = result;
@@ -3082,17 +3148,19 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
-        let seg = arcseg(p1, p0);  // Reversed
+        let seg = arcseg(p1, p0); // Reversed
         let arc2 = arc_from_bulge(p0, p2, 0.1);
         let arc3 = arc_from_bulge(p2, p3, 0.1);
-        
+
         let arcline = vec![arc1, seg, arc2, arc3];
         let result = arcline_is_valid(&arcline);
         // Reversed segment creates gap, so validation catches it
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment, got Valid"
+        );
     }
 
     #[test]
@@ -3102,16 +3170,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
         let arc2 = arc_from_bulge(p1, p2, 0.1);
-        let seg = arcseg(p2, p1);  // Reversed
+        let seg = arcseg(p2, p1); // Reversed
         let arc3 = arc_from_bulge(p1, p3, 0.1);
-        
+
         let arcline = vec![arc1, arc2, seg, arc3];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment, got Valid"
+        );
     }
 
     #[test]
@@ -3121,16 +3191,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
         let arc2 = arc_from_bulge(p1, p2, 0.1);
         let arc3 = arc_from_bulge(p2, p3, 0.1);
-        let seg = arcseg(p3, p2);  // Reversed
-        
+        let seg = arcseg(p3, p2); // Reversed
+
         let arcline = vec![arc1, arc2, arc3, seg];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment, got Valid"
+        );
     }
 
     #[test]
@@ -3140,17 +3212,23 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
-        let seg = arcseg(p1, p0);  // REVERSED (should be p0->p1)
+
+        let seg = arcseg(p1, p0); // REVERSED (should be p0->p1)
         let arc1 = arc_from_bulge(p1, p2, 0.1);
         let arc2 = arc_from_bulge(p2, p3, 0.1);
         let arc3 = arc_from_bulge(p3, p0, 0.1);
-        
+
         let arcline = vec![seg, arc1, arc2, arc3];
         let result = arcline_is_valid(&arcline);
         // Reversed segment creates gap which is caught by connectivity check
-        assert!(matches!(result, ArclineValidation::GapBetweenArcs(_) | ArclineValidation::NotCCW(Some(_))), 
-                "Expected validation error for reversed segment, got {:?}", result);
+        assert!(
+            matches!(
+                result,
+                ArclineValidation::GapBetweenArcs(_) | ArclineValidation::NotCCW(Some(_))
+            ),
+            "Expected validation error for reversed segment, got {:?}",
+            result
+        );
     }
 
     #[test]
@@ -3160,16 +3238,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
         let arc2 = arc_from_bulge(p1, p2, 0.1);
         let arc3 = arc_from_bulge(p2, p3, 0.1);
         let seg = arcseg(p0, p3);
-        
+
         let arcline = vec![arc1, arc2, arc3, seg];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment at end, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment at end, got Valid"
+        );
     }
 
     #[test]
@@ -3178,16 +3258,18 @@ mod test_is_valid_arcline {
         let p0 = point(0.0, 0.0);
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
-        let seg1 = arcseg(p1, p0);  // Reversed
+        let seg1 = arcseg(p1, p0); // Reversed
         let arc2 = arc_from_bulge(p0, p2, 0.1);
-        let seg2 = arcseg(p2, p0);  // Also reversed
-        
+        let seg2 = arcseg(p2, p0); // Also reversed
+
         let arcline = vec![arc1, seg1, arc2, seg2];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segments, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segments, got Valid"
+        );
     }
 
     #[test]
@@ -3197,16 +3279,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let seg1 = arcseg(p0, p1);
-        let seg2 = arcseg(p1, p0);  // Reversed
+        let seg2 = arcseg(p1, p0); // Reversed
         let seg3 = arcseg(p0, p2);
         let arc1 = arc_from_bulge(p2, p3, 0.1);
-        
+
         let arcline = vec![seg1, seg2, seg3, arc1];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segments, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segments, got Valid"
+        );
     }
 
     #[test]
@@ -3216,16 +3300,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, -0.2);
-        let seg = arcseg(p1, p0);  // Reversed
+        let seg = arcseg(p1, p0); // Reversed
         let arc2 = arc_from_bulge(p0, p2, -0.2);
         let arc3 = arc_from_bulge(p2, p3, -0.2);
-        
+
         let arcline = vec![arc1, seg, arc2, arc3];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment with negative bulge, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment with negative bulge, got Valid"
+        );
     }
 
     #[test]
@@ -3235,16 +3321,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(1.0, -1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.15);
-        let seg = arcseg(p1, p0);  // Reversed
+        let seg = arcseg(p1, p0); // Reversed
         let arc2 = arc_from_bulge(p0, p2, -0.2);
         let arc3 = arc_from_bulge(p2, p3, 0.15);
-        
+
         let arcline = vec![arc1, seg, arc2, arc3];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment with mixed bulge, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment with mixed bulge, got Valid"
+        );
     }
 
     #[test]
@@ -3254,16 +3342,18 @@ mod test_is_valid_arcline {
         let p1 = point(1.0, 0.0);
         let p2 = point(1.0, 1.0);
         let p3 = point(0.0, 1.0);
-        
+
         let seg1 = arcseg(p0, p1);
-        let seg2 = arcseg(p1, p0);  // Reversed at index 1
+        let seg2 = arcseg(p1, p0); // Reversed at index 1
         let arc1 = arc_from_bulge(p0, p2, 0.1);
         let arc2 = arc_from_bulge(p2, p3, 0.1);
-        
+
         let arcline = vec![seg1, seg2, arc1, arc2];
         let result = arcline_is_valid(&arcline);
-        assert!(!matches!(result, ArclineValidation::Valid),
-                "Expected validation error for reversed segment, got Valid");
+        assert!(
+            !matches!(result, ArclineValidation::Valid),
+            "Expected validation error for reversed segment, got Valid"
+        );
     }
 
     #[test]
@@ -3271,63 +3361,69 @@ mod test_is_valid_arcline {
         // Tests that connections with small numerical drift from arc endpoints still validate
         // This simulates real-world geometry where segments connect to arc endpoints
         // but may have tiny floating-point differences
-        
+
         let p0 = point(0.0, 0.0);
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(2.0, 1.0);
         let p4 = point(0.0, 1.0);
-        
+
         // Arc from p0 to p1
         let arc1 = arc_from_bulge(p0, p1, 0.1);
-        
+
         // Connection segment from arc1.b to p2 (with tiny numerical drift simulated)
         // The connection should join arc1.b (which is p1) to arc2.a
         let arc1_end = arc1.b;
-        
+
         // Connection: arc1 end -> arc2 start
         let connection = arcseg(arc1_end, p2);
-        
+
         // Arc from p2 to p3
         let arc2 = arc_from_bulge(p2, p3, 0.1);
-        
+
         // Connection: arc2 end -> arc3 start
         let arc2_end = arc2.b;
         let connection2 = arcseg(arc2_end, p4);
-        
+
         // Close loop: p4 back to p0
         let arc3 = arc_from_bulge(p4, p0, 0.1);
-        
+
         let arcline = vec![arc1, connection, arc2, connection2, arc3];
         let result = arcline_is_valid(&arcline);
-        assert!(matches!(result, ArclineValidation::Valid),
-                "Expected valid arcline with proper connections, got {:?}", result);
+        assert!(
+            matches!(result, ArclineValidation::Valid),
+            "Expected valid arcline with proper connections, got {:?}",
+            result
+        );
     }
 
     #[test]
     fn test_connection_endpoints_must_match_arc_endpoints() {
         // Tests that segments connecting arcs MUST use the actual arc endpoints (.b and .a)
         // not arbitrary points
-        
+
         let p0 = point(0.0, 0.0);
         let p1 = point(1.0, 0.0);
         let p2 = point(2.0, 0.0);
         let p3 = point(2.0, 1.0);
-        
+
         let arc1 = arc_from_bulge(p0, p1, 0.1);
-        let _arc1_end = arc1.b;  // Should use .b (actual end)
-        
+        let _arc1_end = arc1.b; // Should use .b (actual end)
+
         // WRONG: connection using arbitrary point instead of arc1.b
-        let connection = arcseg(point(0.5, 0.0), p2);  // Wrong start point!
-        
+        let connection = arcseg(point(0.5, 0.0), p2); // Wrong start point!
+
         let arc2 = arc_from_bulge(p2, p3, 0.1);
-        
+
         let arcline = vec![arc1, connection, arc2];
         let result = arcline_is_valid(&arcline);
-        
+
         // Should detect gap between arc1 and connection
-        assert!(matches!(result, ArclineValidation::GapBetweenArcs(_)),
-                "Expected GapBetweenArcs for mismatched connection, got {:?}", result);
+        assert!(
+            matches!(result, ArclineValidation::GapBetweenArcs(_)),
+            "Expected GapBetweenArcs for mismatched connection, got {:?}",
+            result
+        );
     }
 
     #[test]
@@ -3336,9 +3432,9 @@ mod test_is_valid_arcline {
         let arcs = vec![
             arcseg(point(0.0, 0.0), point(1.0, 0.0)),
             arcseg(point(1.0, 0.0), point(1.0, 1.0)),
-            arcseg(point(1.0, 1.0), point(0.0, 0.0)),  // Close the loop
+            arcseg(point(1.0, 1.0), point(0.0, 0.0)), // Close the loop
         ];
-        
+
         // Arc 1 should be convex: prev.b == arc.a and arc.b == next.a
         // prev = arc 0: (0,0) -> (1,0), arc = arc 1: (1,0) -> (1,1), next = arc 2: (1,1) -> (0,0)
         // (0,0)==(1,0)? no, (1,0)==(1,0)? YES && (1,1)==(1,1)? YES, so convex
@@ -3349,15 +3445,14 @@ mod test_is_valid_arcline {
     fn test_is_arc_convex_with_curved_arc() {
         // Test with actual curved arcs forming a closed semicircle
         let arcs = vec![
-            arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0),   // Convex quarter circle
-            arc(point(0.0, 1.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0),  // Convex quarter circle
-            arcseg(point(-1.0, 0.0), point(1.0, 0.0)),                     // Closing line
+            arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0), // Convex quarter circle
+            arc(point(0.0, 1.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0), // Convex quarter circle
+            arcseg(point(-1.0, 0.0), point(1.0, 0.0)),                   // Closing line
         ];
-        
+
         // First two arcs should be convex (forward traversal)
         // Index 1 and 2 are safe to check (they have a prev element in forward direction)
         assert!(is_arc_convex(&arcs, 1));
         assert!(is_arc_convex(&arcs, 2)); // The line segment
     }
 }
-
