@@ -2363,6 +2363,37 @@ fn arc_have_two_connected_ends(arc1: &Arc, arc2: &Arc, arc3: &Arc) -> bool {
     arc1_to_arc2 && arc2_to_arc3
 }
 
+/// Determines if an arc is convex (outward-bulging) or concave (inward-bulging) based on
+/// its connectivity pattern in the arcline.
+///
+/// # Arc Connectivity Patterns
+///
+/// Arcs are always CCW geometrically, but may be traversed forward or backward:
+/// - **Forward traversal (a→b)**: Positive bulge, convex/outward-bulging
+///   - Connectivity: `arc[i-1].b == arc[i].a → arc[i].b == arc[i+1].a`
+/// - **Backward traversal (b→a)**: Negative bulge, concave/inward-bulging  
+///   - Connectivity: `arc[i-1].b == arc[i].b ← arc[i].a == arc[i+1].a`
+///
+/// # Arguments
+///
+/// * `arcs` - The arcline containing the arc, closed loop, ccw oriented, non self-intersecting
+/// * `index` - Index of the arc to check
+///
+/// # Returns
+///
+/// `true` if the arc is convex (forward traversal), `false` if concave (backward traversal)
+pub fn is_arc_convex(arcs: &Arcline, index: usize) -> bool {
+    if arcs.is_empty() || index >= arcs.len() {
+        return true; // Default to convex
+    }
+    let size = arcs.len();
+    let next = arcs[(index + 1) % size];
+    let prev = arcs[(index + size - 1) % size];
+    let arc = arcs[index];
+    (prev.a == arc.a || prev.b == arc.a)
+        && (arc.b == next.a || arc.b == next.b)
+}
+
 // Check that each arc have 2 connected ends
 #[must_use]
 fn arc_tangents_are_collinear(arc1: &Arc, arc2: &Arc) -> bool {
@@ -3297,6 +3328,36 @@ mod test_is_valid_arcline {
         // Should detect gap between arc1 and connection
         assert!(matches!(result, ArclineValidation::GapBetweenArcs(_)),
                 "Expected GapBetweenArcs for mismatched connection, got {:?}", result);
+    }
+
+    #[test]
+    fn test_is_arc_convex_basic() {
+        // Three connected line segments forming a proper closed loop
+        let arcs = vec![
+            arcseg(point(0.0, 0.0), point(1.0, 0.0)),
+            arcseg(point(1.0, 0.0), point(1.0, 1.0)),
+            arcseg(point(1.0, 1.0), point(0.0, 0.0)),  // Close the loop
+        ];
+        
+        // Arc 1 should be convex: prev.b == arc.a and arc.b == next.a
+        // prev = arc 0: (0,0) -> (1,0), arc = arc 1: (1,0) -> (1,1), next = arc 2: (1,1) -> (0,0)
+        // (0,0)==(1,0)? no, (1,0)==(1,0)? YES && (1,1)==(1,1)? YES, so convex
+        assert!(is_arc_convex(&arcs, 1));
+    }
+
+    #[test]
+    fn test_is_arc_convex_with_curved_arc() {
+        // Test with actual curved arcs forming a closed semicircle
+        let arcs = vec![
+            arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0),   // Convex quarter circle
+            arc(point(0.0, 1.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0),  // Convex quarter circle
+            arcseg(point(-1.0, 0.0), point(1.0, 0.0)),                     // Closing line
+        ];
+        
+        // First two arcs should be convex (forward traversal)
+        // Index 1 and 2 are safe to check (they have a prev element in forward direction)
+        assert!(is_arc_convex(&arcs, 1));
+        assert!(is_arc_convex(&arcs, 2)); // The line segment
     }
 }
 

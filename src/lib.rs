@@ -218,7 +218,7 @@ pub mod prelude {
     pub use crate::arc::{
         Arc, Arcline, arc, bulge_from_arc, arc_from_bulge,
         arcline_translate, arcline_scale, arcline_reverse, arcline_is_valid, arcseg, is_really_intersecting,
-        ArclineValidation
+        ArclineValidation, is_arc_convex
     };
     pub use crate::circle::{Circle, circle};
     pub use crate::interval::{Interval, interval};
