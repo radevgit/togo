@@ -60,12 +60,6 @@ fn test_arcline_convex_hull_circle() {
 
     let hull = arcline_convex_hull(&arcs);
 
-    // Debug output
-    println!("Hull length: {}", hull.len());
-    for (i, arc) in hull.iter().enumerate() {
-        println!("  [{}] {:?} -> {:?}, r={}", i, arc.a, arc.b, arc.r);
-    }
-
     // Hull should include all 4 cardinal points (endpoints)
     assert_eq!(hull.len(), 4);
 
@@ -244,13 +238,15 @@ fn test_arcline_convex_hull_square_with_convex_arcs() {
 
     println!("Hull length: {}", hull.len());
     for (i, elem) in hull.iter().enumerate() {
-        println!("  [{}] {} -> {}", i, elem.a, elem.b);
+        if elem.is_seg() {
+            println!("  [{}] SEGMENT: {} -> {}", i, elem.a, elem.b);
+        } else {
+            println!("  [{}] ARC: {} -> {} (center={}, r={})", i, elem.a, elem.b, elem.c, elem.r);
+        }
     }
 
-    // With gift-wrapping, if all 4 arcs form a convex sequence, the hull should contain just those 4 arcs
-    // (no connecting segments needed if they're selected in order)
-    // However, the exact number depends on whether connecting segments are added between non-adjacent arcs
-    assert!(hull.len() >= 4, "Hull should contain at least the 4 arcs");
+    println!("Expected 8, got {}", hull.len());
+    assert!(hull.len() == 8);
 
     // Write SVG for visualization
     use crate::svg::SVG;
@@ -1467,7 +1463,7 @@ fn test_hull_arc_arc_no_tangent_concentric_circles() {
     let arc1 = arc(point(2.0, 0.0), point(0.0, 2.0), point(0.0, 0.0), 2.0); // Quarter arc on outer circle
     let arc2 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0); // Quarter arc on inner circle
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should find a valid connection (likely endpoint to endpoint)
     assert!(!result.is_empty());
@@ -1485,7 +1481,7 @@ fn test_hull_arc_arc_no_tangent_nested_arcs() {
     let arc1 = arc(point(8.0, 5.0), point(5.0, 8.0), point(5.0, 5.0), 3.0);
     let arc2 = arc(point(6.0, 5.0), point(5.0, 6.0), point(5.0, 5.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should return valid hull elements
     assert!(!result.is_empty());
@@ -1498,7 +1494,7 @@ fn test_hull_arc_arc_no_tangent_direct_connection_valid() {
     let arc1 = arc(point(2.0, 0.0), point(1.414, 1.414), point(0.0, 0.0), 2.0);
     let arc2 = arc(point(0.707, 0.707), point(0.0, 1.0), point(0.0, 0.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should have at least one element
     assert!(!result.is_empty());
@@ -1511,7 +1507,7 @@ fn test_hull_arc_arc_no_tangent_needs_point_to_arc_tangent() {
     let arc1 = arc(point(3.0, 0.0), point(-3.0, 0.0), point(0.0, 0.0), 3.0); // Large semicircle
     let arc2 = arc(point(0.5, 0.0), point(-0.5, 0.0), point(0.0, 0.0), 0.5); // Small semicircle at center
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should find a solution (either direct or via tangent)
     assert!(!result.is_empty());
@@ -1523,7 +1519,7 @@ fn test_hull_arc_arc_no_tangent_identical_circles() {
     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
     let arc2 = arc(point(0.0, -1.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should connect the arcs somehow
     assert!(!result.is_empty());
@@ -1535,7 +1531,7 @@ fn test_hull_arc_arc_no_tangent_touching_endpoints() {
     let arc1 = arc(point(2.0, 0.0), point(0.0, 2.0), point(0.0, 0.0), 2.0);
     let arc2 = arc(point(0.0, 2.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0); // Starts where arc1 ends (on circle)
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should have a valid connection
     assert!(!result.is_empty());
@@ -1551,7 +1547,7 @@ fn test_hull_arc_arc_no_tangent_opposite_sides() {
     let arc1 = arc(point(3.0, 0.0), point(0.0, 3.0), point(0.0, 0.0), 3.0); // Top-right quadrant, outer
     let arc2 = arc(point(-1.0, 0.0), point(0.0, -1.0), point(0.0, 0.0), 1.0); // Bottom-left quadrant, inner
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should find a connection
     assert!(!result.is_empty());
@@ -1565,7 +1561,7 @@ fn test_hull_arc_arc_no_tangent_same_circle_different_parts() {
     // Arc2: Third quadrant (180° to 270°)
     let arc2 = arc(point(-1.0, 0.0), point(0.0, -1.0), point(0.0, 0.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should connect the arcs - no external tangent exists for same circle
     assert!(!result.is_empty());
@@ -1583,7 +1579,7 @@ fn test_hull_arc_arc_no_tangent_same_circle_adjacent_arcs() {
     // Arc2: 90° to 180° (second quadrant) - starts where arc1 ends
     let arc2 = arc(point(0.0, 1.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Should handle adjacent arcs that share an endpoint
     assert!(!result.is_empty());
@@ -1596,7 +1592,7 @@ fn test_hull_arc_arc_tangent_both_on_arcs() {
     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0); // Quarter circle
     let arc2 = arc(point(3.0, 0.0), point(4.0, 1.0), point(4.0, 0.0), 1.0); // Quarter circle
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Tangent at (0,1) -> (4,1). Since t1 = arc1.b and t2 = arc2.b:
     // Only 2 segments: arc1 (1,0)->(0,1) + tangent line (0,1)->(4,1)
@@ -1616,7 +1612,7 @@ fn test_hull_arc_arc_tangent_only_second_on_arc() {
     let arc1 = arc(point(-1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0); // Left half
     let arc2 = arc(point(3.0, 0.0), point(4.0, 1.0), point(4.0, 0.0), 1.0); // Right side
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Tangent at y=1. Since t2 = arc2.b (4,1), no third segment:
     // arc1 (from -1,0 to 0,1) + line (0,1 to 4,1)
@@ -1635,7 +1631,7 @@ fn test_hull_arc_arc_tangent_only_first_on_arc() {
     let arc1 = arc(point(0.0, -1.0), point(1.0, 0.0), point(0.0, 0.0), 1.0); // Right bottom quadrant
     let arc2 = arc(point(5.0, 1.0), point(4.0, 0.0), point(4.0, 0.0), 1.0); // Positioned so tangent before arc2.a
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // t1=arc1.a=(1,0) so no arc1 portion, just tangent line + arc2
     assert_eq!(result.len(), 2);
@@ -1654,7 +1650,7 @@ fn test_hull_arc_arc_tangent_neither_on_arc() {
     let arc1 = arc(point(-1.0, 0.0), point(-0.707, 0.707), point(0.0, 0.0), 1.0); // Small arc on left
     let arc2 = arc(point(4.707, 0.707), point(5.0, 0.0), point(4.0, 0.0), 1.0); // Small arc on right
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // External tangent exists but neither point is on the arcs, so connects arc1.b to arc2.a
     // Pattern: full arc1 + connection line + full arc2
@@ -1678,7 +1674,7 @@ fn test_hull_arc_arc_tangent_both_on_arcs_full_semicircles() {
     // Arc2: Right semicircle from bottom to top, offset to the right
     let arc2 = arc(point(4.0, -1.0), point(4.0, 1.0), point(4.0, 0.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Tangent at y=1, so t1=arc1.b=(0,1) and t2=arc2.b=(4,1)
     // Only 2 segments: arc1 (0,-1)->(0,1) + tangent line (0,1)->(4,1)
@@ -1697,7 +1693,7 @@ fn test_hull_arc_arc_tangent_only_first_on_arc_small_arc1() {
     let arc1 = arc(point(1.0, 0.0), point(-1.0, 0.0), point(0.0, 0.0), 1.0); // Large semicircle
     let arc2 = arc(point(4.1, 0.1), point(4.0, 0.0), point(4.0, 0.0), 1.0); // Small arc, tangent outside
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Returns: arc1 (1,0)->(0,1) + line (0,1)->(4,1) + arc2 (4,1)->(4,0)
     assert_eq!(result.len(), 3);
@@ -1718,7 +1714,7 @@ fn test_hull_arc_arc_tangent_only_second_on_arc_small_arc1() {
     let arc1 = arc(point(0.1, 0.1), point(0.0, 0.0), point(0.0, 0.0), 1.0); // Very small arc
     let arc2 = arc(point(4.0, -1.0), point(4.0, 1.0), point(4.0, 0.0), 1.0); // Large arc
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Returns: arc1 (0.1,0.1)->(0,1) + line (0,1)->(4,1) (t2=arc2.b so no third segment)
     assert_eq!(result.len(), 2);
@@ -1736,7 +1732,7 @@ fn test_hull_arc_arc_tangent_horizontal_alignment() {
     let arc1 = arc(point(0.5, 0.866), point(-0.5, 0.866), point(0.0, 0.0), 1.0); // Top part of circle
     let arc2 = arc(point(3.5, 0.866), point(4.5, 0.866), point(4.0, 0.0), 1.0); // Top part of circle
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Returns: arc1 (0.5,0.866)->(0,1) + line (0,1)->(3.5,0.866) (t2=arc2.a so no third segment)
     assert_eq!(result.len(), 2);
@@ -1754,7 +1750,7 @@ fn test_hull_arc_arc_tangent_vertical_circles() {
     let arc1 = arc(point(0.0, 0.0), point(1.0, 0.0), point(0.0, 0.0), 1.0); // Bottom circle, bottom half
     let arc2 = arc(point(0.0, 4.0), point(1.0, 4.0), point(0.0, 4.0), 1.0); // Top circle, bottom half
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Tangent at x=1 (rightmost points): t1=arc1.b=(1,0) and t2=arc2.a=(0,4) possibly
     // Or tangent may be on the arcs. Expect 3 segments typically
@@ -1772,7 +1768,7 @@ fn test_hull_arc_arc_tangent_large_separation() {
     let arc1 = arc(point(1.0, 0.0), point(0.0, 1.0), point(0.0, 0.0), 1.0);
     let arc2 = arc(point(10.0, 0.0), point(11.0, 1.0), point(11.0, 0.0), 1.0);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Tangent at y≈1 height. t1 likely equals arc1.b, t2 likely equals arc2.b
     // Expect 2 segments: arc1 + tangent line
@@ -1791,7 +1787,7 @@ fn test_hull_arc_arc_tangent_small_circles() {
     let arc1 = arc(point(0.1, 0.0), point(0.0, 0.1), point(0.0, 0.0), 0.1);
     let arc2 = arc(point(0.5, 0.0), point(0.6, 0.1), point(0.6, 0.0), 0.1);
     
-    let result = hull_arc_arc(arc1, arc2);
+    let result = hull_arc_arc(arc1, arc2, arc1.a);
     
     // Similar geometry: tangent at top, so t1=arc1.b and t2=arc2.b
     // Expect 2 segments: arc1 + tangent line

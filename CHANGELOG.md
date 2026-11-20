@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0] - 2026-11-20
+- Added oriented (rotated) rectangle `OrientedRect` / `orect()`: unit-vector heading, `from_angle`, `corners`, `to_local` / `from_local`, `contains_point`.
+- Added overlap tests (new `overlap` module; touching counts as overlap): `overlap_orect_orect`, `overlap_circle_orect`.
+- Added distances between filled shapes (0 when touching or overlapping): `dist_orect_orect`, `dist_circle_orect`.
+- Added bounding rectangles: `circle_bounding_rect`, `orect_bounding_rect`.
+- Added `bench_overlap` benchmark.
 
 ## [0.7.2] - 2025-11-20
 - Initial implementation of convex hull for arcline.
