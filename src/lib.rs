@@ -3,8 +3,10 @@
 //! Basic 2D geometric operations.
 //!
 //! This library provides core 2D geometric primitives and operations including:
-//! - **Primitives:** Points, Segments, Circles, Arcs, Polylines, Intervals
-//! - **Distance Calculations:** Between points, segments, circles, and arcs
+//! - **Primitives:** Points, Segments, Circles, Arcs, Polylines, Intervals, Oriented (rotated) Rectangles
+//! - **Distance Calculations:** Between points, segments, circles, arcs, and (filled) oriented rectangles
+//! - **Overlap Tests:** Fast yes/no collision checks for circles and oriented rectangles
+//!   (see the [`overlap`] module; touching counts as overlap)
 //! - **Intersection Detection:** Line-line, circle-circle, arc-arc, and mixed geometric types
 //! - **Geometric Algorithms:** Convex hull, area calculation, bounding shapes
 //!
@@ -34,6 +36,26 @@
 //! let a2 = arc(point(4.0, 0.0), point(2.0, 0.0), point(3.0, 0.0), 1.0);
 //! let dist = dist_arc_arc(&a1, &a2);
 //! assert!(dist > 0.0);
+//! ```
+//!
+//! ## Overlap tests for oriented rectangles and circles
+//!
+//! ```
+//! use togo::prelude::*;
+//!
+//! // Rectangle given by centre, unit heading, half-length and half-width
+//! let a = orect(point(0.0, 0.0), point(1.0, 0.0), 1.0, 0.5);
+//! let b = OrientedRect::from_angle(point(1.5, 0.5), std::f64::consts::FRAC_PI_4, 1.0, 0.5);
+//! assert!(overlap_orect_orect(&a, &b));
+//! assert!(overlap_circle_orect(&circle(point(2.0, 0.0), 1.0), &a)); // touching counts
+//!
+//! // Distance between filled shapes: 0.0 when they touch or overlap
+//! let far = orect(point(5.0, 0.0), point(1.0, 0.0), 1.0, 0.5);
+//! assert_eq!(dist_orect_orect(&a, &far), 3.0);
+//!
+//! // Axis-aligned bounding rectangle for a broad phase
+//! let bb = orect_bounding_rect(&b);
+//! assert!(bb.p1.x < bb.p2.x);
 //! ```
 //!
 //! ## Intersection tests
@@ -180,6 +202,7 @@
 mod arc;
 mod circle;
 mod line;
+mod orect;
 mod point;
 mod polyline;
 mod rect;
@@ -200,6 +223,9 @@ pub mod distance;
 // Intersection computation modules
 pub mod intersection;
 
+// Overlap (yes/no) tests
+pub mod overlap;
+
 #[doc(hidden)]
 // Bézier curve support (experimental)
 pub mod bezier;
@@ -211,7 +237,8 @@ pub mod prelude {
     // Re-export core types and functions
     pub use crate::algo::{
         is_convex_pointline, pointline_area, arcline_area, points_convex_hull, pointline_convex_hull,
-        arcline_convex_hull, arc_bounding_circle, arc_bounding_rect, arcline_has_self_intersection, 
+        arcline_convex_hull, arc_bounding_circle, arc_bounding_rect, circle_bounding_rect, orect_bounding_rect,
+        arcline_has_self_intersection,
         arcline_self_intersections, arcline_self_intersection_status, SelfIntersectionStatus
     };
     pub use aabb::HilbertRTree;
@@ -223,6 +250,8 @@ pub mod prelude {
     pub use crate::circle::{Circle, circle};
     pub use crate::interval::{Interval, interval};
     pub use crate::line::{Line, line};
+    pub use crate::orect::{OrientedRect, orect};
+    pub use crate::overlap::{overlap_circle_orect, overlap_orect_orect};
     pub use crate::point::{Point, Pointline, point, points_order};
     pub use crate::polyline::{
         PVertex, Polyline, polyline_reverse, polyline_scale, polyline_translate, polylines_reverse,
@@ -235,7 +264,7 @@ pub mod prelude {
     // Re-export distance computation functions
     pub use crate::distance::{
         DistLineCircleConfig, DistPointArcConfig, DistSegmentCircleConfig, dist_arc_arc,
-        dist_line_circle, dist_point_arc, dist_point_arc_dist, dist_point_circle,
+        dist_circle_orect, dist_orect_orect, dist_line_circle, dist_point_arc, dist_point_arc_dist, dist_point_circle,
         dist_point_segment, dist_segment_arc, dist_segment_circle, dist_segment_segment,
     };
 

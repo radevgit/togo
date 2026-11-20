@@ -12,6 +12,7 @@ use robust::{orient2d, Coord};
 // pub mod triangulation;
 pub mod area;
 pub mod bounding;
+pub mod bounding_orect;
 pub mod convex_hull;
 pub mod convex_hull_arcs;
 pub mod tangent;
@@ -21,6 +22,7 @@ pub mod self_intersect;
 // Re-export all public types and functions for easy access
 pub use area::{arcline_area, pointline_area};
 pub use bounding::{arc_bounding_circle, arc_bounding_rect};
+pub use bounding_orect::{circle_bounding_rect, orect_bounding_rect};
 pub use convex_hull::{points_convex_hull, pointline_convex_hull};
 pub use convex_hull_arcs::arcline_convex_hull;
 pub use self_intersect::{

@@ -1,7 +1,7 @@
 [package]
 name = "togo"
 description = "A library for 2D geometry, providing geometric algorithms for intersection/distance between circular arcs/line segments."
-version = "0.7.2"
+version = "0.8.0"
 rust-version = "1.88"
 edition = "2024"
 categories = ["algorithms", "data-structures", "graphics", "mathematics"]
@@ -43,6 +43,10 @@ harness = false
 
 [[bench]]
 name = "hull_pointline"
+harness = false
+
+[[bench]]
+name = "bench_overlap"
 harness = false
 
 [workspace.lints]

@@ -4,10 +4,16 @@
 //!
 //! This module contains algorithms for computing distances between
 //! various geometric primitives such as points, segments, arcs, circles, and lines.
+//!
+//! Note: most functions here treat a circle as a *curve*. The exceptions are
+//! `dist_circle_orect` and `dist_orect_orect`, which treat their shapes as
+//! *filled* and return `0.0` when the shapes touch or overlap.
 
 // Module declarations
 pub mod dist_arc_arc;
+pub mod dist_circle_orect;
 pub mod dist_line_circle;
+pub mod dist_orect_orect;
 pub mod dist_point_arc;
 pub mod dist_point_circle;
 pub mod dist_point_segment;
@@ -17,7 +23,9 @@ pub mod dist_segment_segment;
 
 // Re-export all public types and functions for easy access
 pub use dist_arc_arc::dist_arc_arc;
+pub use dist_circle_orect::dist_circle_orect;
 pub use dist_line_circle::{DistLineCircleConfig, dist_line_circle};
+pub use dist_orect_orect::dist_orect_orect;
 pub use dist_point_arc::{DistPointArcConfig, dist_point_arc, dist_point_arc_dist};
 pub use dist_point_circle::dist_point_circle;
 pub use dist_point_segment::dist_point_segment;

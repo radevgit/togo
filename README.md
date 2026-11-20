@@ -11,7 +11,7 @@ It is used in my other projects and **may not implement** all possible geometric
 
 ```toml
 [dependencies]
-togo = "0.7"
+togo = "0.8"
 ```
 ![](https://raw.githubusercontent.com/radevgit/togo/refs/heads/main/examples/img/arc_segment_intersect.png "arc_segment_intersect")
 
@@ -23,9 +23,11 @@ togo = "0.7"
 
 ## Core Capabilities
 
-**2D Geometric Primitives:** Points, Line Segments, Circles, Circle Arcs, Polylines, Intervals
+**2D Geometric Primitives:** Points, Line Segments, Circles, Circle Arcs, Polylines, Intervals, Oriented (rotated) Rectangles
 
-**Distance Calculations:** point-arc, point-circle, point-segment, segment-arc, segment-circle, segment-segment, line-circle, arc-arc
+**Distance Calculations:** point-arc, point-circle, point-segment, segment-arc, segment-circle, segment-segment, line-circle, arc-arc, circle-oriented rectangle, oriented rectangle-oriented rectangle (filled shapes)
+
+**Overlap Tests (collision checks):** circle-oriented rectangle, oriented rectangle-oriented rectangle — fast yes/no tests, touching counts as overlap
 
 **Intersection Detection:** line-line, line-circle, line-arc, circle-circle, segment-segment, segment-circle, segment-arc, arc-arc, interval-interval
 
@@ -60,6 +62,25 @@ assert_eq!(dist, 5.0);
 let a2 = arc(point(4.0, 0.0), point(2.0, 0.0), point(3.0, 0.0), 1.0);
 let dist = dist_arc_arc(&arc, &a2);
 assert!(dist > 0.0);
+```
+
+### Overlap tests for oriented rectangles and circles
+```rust
+use togo::prelude::*;
+
+// 2.0 x 1.0 robot at (0, 0) heading along +x; the second is rotated by 45°
+let a = orect(point(0.0, 0.0), point(1.0, 0.0), 1.0, 0.5);
+let b = OrientedRect::from_angle(point(1.5, 0.5), std::f64::consts::FRAC_PI_4, 1.0, 0.5);
+assert!(overlap_orect_orect(&a, &b));
+
+// circle vs rectangle; touching counts as overlap
+assert!(overlap_circle_orect(&circle(point(2.0, 0.0), 1.0), &a));
+
+// distance between filled shapes (0.0 when they touch or overlap)
+assert_eq!(dist_orect_orect(&a, &orect(point(5.0, 0.0), point(1.0, 0.0), 1.0, 0.5)), 3.0);
+
+// bounding rectangle for a broad phase (e.g. with HilbertRTree)
+let bb = orect_bounding_rect(&b);
 ```
 
 ### Intersection computations
@@ -126,4 +147,3 @@ assert_eq!(bounding.r, 0.7071067811865476); // sqrt(2)/2
 
 ## Related Projects
 
-Togo is part of the open-sourced [Nest2D](https://nest2d.com) projects collection.
